@@ -1,0 +1,159 @@
+/**
+ * zlib.heap.js
+ *
+ * The MIT License
+ *
+ * Copyright (c) 2011 imaya
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+/**
+ * @fileoverview Heap Sort 実装. ハフマン符号化で使用する.
+ */
+
+goog.provide('Zlib.Heap');
+
+goog.scope(function() {
+
+/**
+ * カスタムハフマン符号で使用するヒープ実装
+ * @param {number} length ヒープサイズ.
+ * @constructor
+ */
+Zlib.Heap = function(length) {
+  this.buffer = new Array(length * 2);
+  this.length = 0;
+};
+
+/**
+ * 親ノードの index 取得
+ * @param {number} index 子ノードの index.
+ * @return {number} 親ノードの index.
+ *
+ */
+Zlib.Heap.prototype.getParent = function(index) {
+  return ((index - 2) / 4 | 0) * 2;
+};
+
+/**
+ * 子ノードの index 取得
+ * @param {number} index 親ノードの index.
+ * @return {number} 子ノードの index.
+ */
+Zlib.Heap.prototype.getChild = function(index) {
+  return 2 * index + 2;
+};
+
+/**
+ * Heap に値を追加する
+ * @param {number} index キー index.
+ * @param {number} value 値.
+ * @return {number} 現在のヒープ長.
+ */
+Zlib.Heap.prototype.push = function(index, value) {
+  var current, parent,
+      heap = this.buffer,
+      swap;
+
+  current = this.length;
+  heap[this.length++] = value;
+  heap[this.length++] = index;
+
+  // ルートノードにたどり着くまで入れ替えを試みる
+  while (current > 0) {
+    parent = this.getParent(current);
+
+    // 親ノードと比較して親の方が大きければ値と index を入れ替える
+    if (heap[current + 1] < heap[parent + 1]) {
+      swap = heap[current];
+      heap[current] = heap[parent];
+      heap[parent] = swap;
+
+      swap = heap[current + 1];
+      heap[current + 1] = heap[parent + 1];
+      heap[parent + 1] = swap;
+
+      current = parent;
+    // 入れ替えが必要なくなったらそこで抜ける
+    } else {
+      break;
+    }
+  }
+
+  return this.length;
+};
+
+/**
+ * Heapから一番小さい値を返す
+ * @return {{index: number, value: number, length: number}} {index: キーindex,
+ *     value: 値, length: ヒープ長} の Object.
+ */
+Zlib.Heap.prototype.pop = function() {
+  var index, value,
+      heap = this.buffer, swap,
+      current, parent;
+
+  value = heap[0];
+  index = heap[1];
+
+  // 後ろから値を取る
+  this.length -= 2;
+  heap[0] = heap[this.length];
+  heap[1] = heap[this.length + 1];
+
+  parent = 0;
+  // ルートノードから下がっていく
+  while (true) {
+    current = this.getChild(parent);
+
+    // 範囲チェック
+    if (current >= this.length) {
+      break;
+    }
+
+    // 隣のノードと比較して、隣の方が値が小さければ隣を現在ノードとして選択
+    if (current + 2 < this.length && heap[current + 3] < heap[current + 1]) {
+      current += 2;
+    }
+
+    // 親ノードと比較して親の方が大きい場合は入れ替える
+    if (heap[parent + 1] > heap[current + 1]) {
+      swap = heap[parent];
+      heap[parent] = heap[current];
+      heap[current] = swap;
+
+      swap = heap[parent + 1];
+      heap[parent + 1] = heap[current + 1];
+      heap[current + 1] = swap;
+    } else {
+      break;
+    }
+
+    parent = current;
+  }
+
+  return {index: index, value: value, length: this.length};
+};
+
+
+// end of scope
+});
+
+/* vim:set expandtab ts=2 sw=2 tw=80: */
