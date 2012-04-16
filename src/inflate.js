@@ -42,14 +42,17 @@ goog.scope(function() {
 
 /**
  * @param {!(Uint8Array|Array)} input deflated buffer.
+ * @param {number=} blocksize buffer blocksize.
  * @return {!(Uint8Array|Array)} inflated buffer.
  * @constructor
  */
-Zlib.Inflate = function(input) {
+Zlib.Inflate = function(input, blocksize) {
   /** @type {!(Array|Uint8Array)} inflated buffer */
   this.buffer;
   /** @type {!Array.<(Array|Uint8Array)>} */
   this.blocks = [];
+  /** @type {number} block size. */
+  this.blockSize = blocksize ? blocksize : ZLIB_BUFFER_BLOCK_SIZE;
   /** @type {!number} total output buffer pointer. */
   this.totalpos = 0;
   /** @type {!number} input buffer pointer. */
@@ -62,9 +65,13 @@ Zlib.Inflate = function(input) {
   this.input = input;
   /** @type {!(Uint8Array|Array)} output buffer. */
   this.output =
-    new (USE_TYPEDARRAY ? Uint8Array : Array)(ZLIB_BUFFER_BLOCK_SIZE * 2);
+    new (USE_TYPEDARRAY ? Uint8Array : Array)(
+      Zlib.Inflate.MaxBackwardLength +
+      this.blockSize +
+      Zlib.Inflate.MaxCopyLength
+    );
   /** @type {!number} output buffer pointer. */
-  this.op = ZLIB_BUFFER_BLOCK_SIZE;
+  this.op = Zlib.Inflate.MaxBackwardLength;
   /** @type {boolean} is final block flag. */
   this.bfinal = false;
 
@@ -104,6 +111,16 @@ Zlib.Inflate.prototype.inflate = function() {
     this.parseBlock();
   }
 };
+
+/**
+ * @const {number} max backward length for LZ77.
+ */
+Zlib.Inflate.MaxBackwardLength = 32768;
+
+/**
+ * @const {number} max copy length for LZ77.
+ */
+Zlib.Inflate.MaxCopyLength = 258;
 
 /**
  * huffman order
@@ -381,6 +398,7 @@ Zlib.Inflate.prototype.parseUncompressedBlock = function() {
     while (preCopy--) {
       output[op++] = input[ip++];
     }
+    this.op = op;
     op = this.expandBuffer();
   }
   while (len--) {
@@ -488,7 +506,7 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
   var op = this.op;
 
   /** @type {number} output position limit. */
-  var olength = output.length;
+  var olength = output.length - Zlib.Inflate.MaxCopyLength;
   /** @type {number} huffman code. */
   var code;
   /** @type {number} table index. */
@@ -505,7 +523,8 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
   while ((code = this.readCodeByTable(litlen)) !== 256) {
     // literal
     if (code < 256) {
-      if (op === olength) {
+      if (op >= olength) {
+        this.op = op;
         op = this.expandBuffer();
       }
       output[op++] = code;
@@ -528,13 +547,8 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
     }
 
     // lz77 decode
-    // expand を途中で起こらないように2回にわける
-    if (op + codeLength >= olength) {
-      preCopy = olength - op;
-      codeLength -= preCopy;
-      while (preCopy--) {
-        output[op] = output[(op++) - codeDist];
-      }
+    if (op >= olength) {
+      this.op = op;
       op = this.expandBuffer();
     }
     while (codeLength--) {
@@ -552,19 +566,31 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
 Zlib.Inflate.prototype.expandBuffer = function() {
   /** @type {!(Array|Uint8Array)} store buffer. */
   var buffer =
-    new (USE_TYPEDARRAY ? Uint8Array : Array)(ZLIB_BUFFER_BLOCK_SIZE);
+    new (USE_TYPEDARRAY ? Uint8Array : Array)(
+        this.op - Zlib.Inflate.MaxBackwardLength
+    );
+  /** @type {number} backward base point */
+  var backward = this.op - Zlib.Inflate.MaxBackwardLength;
   /** @type {number} copy index. */
   var i;
+  /** @type {number} copy limit */
+  var il;
 
   var output = this.output;
 
-  for (i = 0; i < ZLIB_BUFFER_BLOCK_SIZE; ++i) {
-    buffer[i] = output[i] = output[i + ZLIB_BUFFER_BLOCK_SIZE];
+  // copy to output buffer
+  for (i = 0, il = buffer.length; i < il; ++i) {
+    buffer[i] = output[i + Zlib.Inflate.MaxBackwardLength];
   }
   this.blocks.push(buffer);
+  this.totalpos += buffer.length;
 
-  this.totalpos += ZLIB_BUFFER_BLOCK_SIZE;
-  this.op = ZLIB_BUFFER_BLOCK_SIZE;
+  // copy to backward buffer
+  for (i = 0; i < Zlib.Inflate.MaxBackwardLength; ++i) {
+    output[i] = output[backward + i];
+  }
+
+  this.op = Zlib.Inflate.MaxBackwardLength;
 
   return this.op;
 };
@@ -577,7 +603,7 @@ Zlib.Inflate.prototype.concatBuffer = function() {
   /** @type {number} buffer pointer. */
   var pos = 0;
   /** @type {number} buffer pointer. */
-  var limit = this.totalpos + this.op - ZLIB_BUFFER_BLOCK_SIZE;
+  var limit = this.totalpos + (this.op - Zlib.Inflate.MaxBackwardLength);
   /** @type {!(Array|Uint8Array)} output block array. */
   var output = this.output;
   /** @type {!Array} blocks array. */
@@ -595,6 +621,13 @@ Zlib.Inflate.prototype.concatBuffer = function() {
   /** @type {number} loop limiter. */
   var jl;
 
+  // single buffer
+  if (blocks.length === 0) {
+    return USE_TYPEDARRAY ?
+      this.output.subarray(Zlib.Inflate.MaxBackwardLength, this.op) :
+      this.output.slice(Zlib.Inflate.MaxBackwardLength, this.op);
+  }
+
   // copy to buffer
   for (i = 0, il = blocks.length; i < il; ++i) {
     block = blocks[i];
@@ -604,7 +637,7 @@ Zlib.Inflate.prototype.concatBuffer = function() {
   }
 
   // current buffer
-  for (i = ZLIB_BUFFER_BLOCK_SIZE, il = this.op; i < il; ++i) {
+  for (i = Zlib.Inflate.MaxBackwardLength, il = this.op; i < il; ++i) {
     buffer[pos++] = output[i];
   }
 
