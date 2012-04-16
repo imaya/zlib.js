@@ -31,10 +31,10 @@ goog.provide('Zlib.Inflate');
 /** @define {boolean} export symbols. */
 var ZLIB_INFLATE_EXPORT = false;
 
-/** @define {boolean} */
+/** @define {boolean} use TypedArray flag. */
 var USE_TYPEDARRAY = true;
 
-/** @define {number} */
+/** @define {number} buffer block size. */
 var ZLIB_BUFFER_BLOCK_SIZE = 0x8000; // [ 0x8000 >= ZLIB_BUFFER_BLOCK_SIZE ]
 
 //-----------------------------------------------------------------------------
@@ -45,27 +45,26 @@ goog.scope(function() {
  * @return {!(Uint8Array|Array)} inflated buffer.
  * @constructor
  */
-Zlib.Inflate = function (input) {
+Zlib.Inflate = function(input) {
   /** @type {!(Array|Uint8Array)} inflated buffer */
   this.buffer;
-  /** @type {!(Array|Uint8Array)} input buffer. */
-  this.input = input;
   /** @type {!Array.<(Array|Uint8Array)>} */
   this.blocks = [];
   /** @type {!number} total output buffer pointer. */
   this.totalpos = 0;
-  /** @type {!(Uint8Array|Array)} output buffer. */
-  this.output = this.expandBuffer();
-  /** @type {!(Uint8Array|Array)} prev output buffer. */
-  this.prev;
   /** @type {!number} input buffer pointer. */
   this.ip = 0;
-  /** @type {!number} output buffer pointer. */
-  this.op = 0;
   /** @type {!number} bit stream reader buffer. */
   this.bitsbuf = 0;
   /** @type {!number} bit stream reader buffer size. */
   this.bitsbuflen = 0;
+  /** @type {!(Array|Uint8Array)} input buffer. */
+  this.input = input;
+  /** @type {!(Uint8Array|Array)} output buffer. */
+  this.output =
+    new (USE_TYPEDARRAY ? Uint8Array : Array)(ZLIB_BUFFER_BLOCK_SIZE * 2);
+  /** @type {!number} output buffer pointer. */
+  this.op = ZLIB_BUFFER_BLOCK_SIZE;
   /** @type {boolean} is final block flag. */
   this.bfinal = false;
 
@@ -334,6 +333,8 @@ Zlib.Inflate.prototype.parseUncompressedBlock = function() {
   var nlen;
   /** @type {number} output buffer length */
   var olength = output.length;
+  /** @type {number} copy counter */
+  var preCopy;
 
   // skip buffered header bits
   this.bitsbuf = 0;
@@ -374,13 +375,15 @@ Zlib.Inflate.prototype.parseUncompressedBlock = function() {
 
   // copy
   if (ip + len > input.length) { throw new Error('input buffer is broken'); }
-  while (len--) {
-    if (op === olength) {
-      this.expandBuffer();
-      output = this.output;
-      op = this.op;
-      olength = output.length;
+  while (op + len >= olength) {
+    preCopy = olength - op;
+    len -= preCopy;
+    while (preCopy--) {
+      output[op++] = input[ip++];
     }
+    op = this.expandBuffer();
+  }
+  while (len--) {
     output[op++] = input[ip++];
   }
 
@@ -483,7 +486,6 @@ Zlib.Inflate.prototype.parseDynamicHuffmanBlock = function() {
 Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
   var output = this.output;
   var op = this.op;
-  var prev = this.prev;
 
   /** @type {number} output position limit. */
   var olength = output.length;
@@ -504,10 +506,7 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
     // literal
     if (code < 256) {
       if (op === olength) {
-        output = this.expandBuffer();
-        prev = this.prev;
-        op = this.op;
-        olength = output.length;
+        op = this.expandBuffer();
       }
       output[op++] = code;
 
@@ -532,19 +531,14 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
     // expand を途中で起こらないように2回にわける
     if (op + codeLength >= olength) {
       preCopy = olength - op;
+      codeLength -= preCopy;
       while (preCopy--) {
-        bpos = op - codeDist;
-        output[op++] = (bpos < 0) ? prev[bpos + olength] : output[bpos];
-        codeLength--;
+        output[op] = output[(op++) - codeDist];
       }
-      output = this.expandBuffer();
-      prev = this.prev;
-      op = this.op;
-      olength = output.length;
+      op = this.expandBuffer();
     }
     while (codeLength--) {
-      bpos = op - codeDist;
-      output[op++] = (bpos < 0) ? prev[bpos + olength] : output[bpos];
+      output[op] = output[(op++) - codeDist];
     }
   }
 
@@ -553,18 +547,26 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
 
 /**
  * expand output buffer.
- * @return {!(Array|Uint8Array)} new output buffer.
+ * @return {number} output buffer pointer.
  */
 Zlib.Inflate.prototype.expandBuffer = function() {
-  this.totalpos += ZLIB_BUFFER_BLOCK_SIZE;
-
-  this.prev = this.output;
-  this.output =
+  /** @type {!(Array|Uint8Array)} store buffer. */
+  var buffer =
     new (USE_TYPEDARRAY ? Uint8Array : Array)(ZLIB_BUFFER_BLOCK_SIZE);
-  this.blocks.push(this.output);
-  this.op = 0;
+  /** @type {number} copy index. */
+  var i;
 
-  return this.output;
+  var output = this.output;
+
+  for (i = 0; i < ZLIB_BUFFER_BLOCK_SIZE; ++i) {
+    buffer[i] = output[i] = output[i + ZLIB_BUFFER_BLOCK_SIZE];
+  }
+  this.blocks.push(buffer);
+
+  this.totalpos += ZLIB_BUFFER_BLOCK_SIZE;
+  this.op = ZLIB_BUFFER_BLOCK_SIZE;
+
+  return this.op;
 };
 
 /**
@@ -575,7 +577,9 @@ Zlib.Inflate.prototype.concatBuffer = function() {
   /** @type {number} buffer pointer. */
   var pos = 0;
   /** @type {number} buffer pointer. */
-  var limit = this.totalpos - this.output.length + this.op;
+  var limit = this.totalpos + this.op - ZLIB_BUFFER_BLOCK_SIZE;
+  /** @type {!(Array|Uint8Array)} output block array. */
+  var output = this.output;
   /** @type {!Array} blocks array. */
   var blocks = this.blocks;
   /** @type {!(Array|Uint8Array)} output block array. */
@@ -595,11 +599,13 @@ Zlib.Inflate.prototype.concatBuffer = function() {
   for (i = 0, il = blocks.length; i < il; ++i) {
     block = blocks[i];
     for (j = 0, jl = block.length; j < jl; ++j) {
-      if (pos === limit) {
-        break;
-      }
       buffer[pos++] = block[j];
     }
+  }
+
+  // current buffer
+  for (i = ZLIB_BUFFER_BLOCK_SIZE, il = this.op; i < il; ++i) {
+    buffer[pos++] = output[i];
   }
 
   this.blocks = [];
@@ -616,7 +622,7 @@ Zlib.Inflate.prototype.concatBuffer = function() {
 /**
  * build huffman table from length list.
  * @param {!(Array.<number>|Uint8Array)} lengths length list.
- * @return {!Array}
+ * @return {!Array} huffman table.
  */
 function buildHuffmanTable(lengths) {
   /** @type {number} length list size. */
