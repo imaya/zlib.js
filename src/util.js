@@ -25,7 +25,7 @@
  */
 
 /**
- * @fileoverview G‘½‚ÈŠÖ”ŒQ‚ğ‚Ü‚Æ‚ß‚½ƒ‚ƒWƒ…[ƒ‹À‘•.
+ * @fileoverview é›‘å¤šãªé–¢æ•°ç¾¤ã‚’ã¾ã¨ã‚ãŸãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«å®Ÿè£….
  */
 
 goog.provide('Zlib.Util');
@@ -64,11 +64,11 @@ Zlib.Util.convertNetworkByteOrder = function(number, size) {
 
 
 /**
- * ”z—ñ•—‚ÌƒIƒuƒWƒFƒNƒg‚Ì•”•ªƒRƒs[
- * @param {!(Array|Uint8Array)} arraylike ”z—ñ•—ƒIƒuƒWƒFƒNƒg.
- * @param {!number} start ƒRƒs[ŠJnƒCƒ“ƒfƒbƒNƒX.
- * @param {!number} length ƒRƒs[‚·‚é’·‚³.
- * @return {!Array} •”•ªƒRƒs[‚µ‚½”z—ñ.
+ * é…åˆ—é¢¨ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®éƒ¨åˆ†ã‚³ãƒ”ãƒ¼
+ * @param {!(Array|Uint8Array)} arraylike é…åˆ—é¢¨ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ.
+ * @param {!number} start ã‚³ãƒ”ãƒ¼é–‹å§‹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹.
+ * @param {!number} length ã‚³ãƒ”ãƒ¼ã™ã‚‹é•·ã•.
+ * @return {!Array} éƒ¨åˆ†ã‚³ãƒ”ãƒ¼ã—ãŸé…åˆ—.
  */
 Zlib.Util.slice = function(arraylike, start, length) {
   var result, arraylength = arraylike.length;
@@ -90,11 +90,11 @@ Zlib.Util.slice = function(arraylike, start, length) {
 }
 
 /**
- * ”z—ñ•—‚ÌƒIƒuƒWƒFƒNƒg‚ÌŒ‹‡
- * Œ‹‡æ‚Ì”z—ñ‚ÉŒ‹‡Œ³‚Ì”z—ñ‚ğ’Ç‰Á‚µ‚Ü‚·.
- * @param {!(Array|Uint8Array)} dst Œ‹‡æ”z—ñ.
- * @param {!(Array|Uint8Array)} src Œ‹‡Œ³”z—ñ.
- * @return {!number} Œ‹‡Œã‚Ì”z—ñƒTƒCƒY.
+ * é…åˆ—é¢¨ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®çµåˆ
+ * çµåˆå…ˆã®é…åˆ—ã«çµåˆå…ƒã®é…åˆ—ã‚’è¿½åŠ ã—ã¾ã™.
+ * @param {!(Array|Uint8Array)} dst çµåˆå…ˆé…åˆ—.
+ * @param {!(Array|Uint8Array)} src çµåˆå…ƒé…åˆ—.
+ * @return {!number} çµåˆå¾Œã®é…åˆ—ã‚µã‚¤ã‚º.
  */
 Zlib.Util.push = function(dst, src) {
   var i = 0, dl = src.length, sl = src.length, pushImpl = (!!dst.push);
@@ -113,7 +113,7 @@ Zlib.Util.push = function(dst, src) {
 }
 
 /**
- * Byte String ‚©‚ç Byte Array ‚É•ÏŠ·.
+ * Byte String ã‹ã‚‰ Byte Array ã«å¤‰æ›.
  * @param {!string} str byte string.
  * @return {!Array.<number>} byte array.
  */

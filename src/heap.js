@@ -25,7 +25,7 @@
  */
 
 /**
- * @fileoverview Heap Sort À‘•. ƒnƒtƒ}ƒ“•„†‰»‚Åg—p‚·‚é.
+ * @fileoverview Heap Sort å®Ÿè£…. ãƒãƒ•ãƒãƒ³ç¬¦å·åŒ–ã§ä½¿ç”¨ã™ã‚‹.
  */
 
 goog.provide('Zlib.Heap');
@@ -33,8 +33,8 @@ goog.provide('Zlib.Heap');
 goog.scope(function() {
 
 /**
- * ƒJƒXƒ^ƒ€ƒnƒtƒ}ƒ“•„†‚Åg—p‚·‚éƒq[ƒvÀ‘•
- * @param {number} length ƒq[ƒvƒTƒCƒY.
+ * ã‚«ã‚¹ã‚¿ãƒ ãƒãƒ•ãƒãƒ³ç¬¦å·ã§ä½¿ç”¨ã™ã‚‹ãƒ’ãƒ¼ãƒ—å®Ÿè£…
+ * @param {number} length ãƒ’ãƒ¼ãƒ—ã‚µã‚¤ã‚º.
  * @constructor
  */
 Zlib.Heap = function(length) {
@@ -43,9 +43,9 @@ Zlib.Heap = function(length) {
 };
 
 /**
- * eƒm[ƒh‚Ì index æ“¾
- * @param {number} index qƒm[ƒh‚Ì index.
- * @return {number} eƒm[ƒh‚Ì index.
+ * è¦ªãƒãƒ¼ãƒ‰ã® index å–å¾—
+ * @param {number} index å­ãƒãƒ¼ãƒ‰ã® index.
+ * @return {number} è¦ªãƒãƒ¼ãƒ‰ã® index.
  *
  */
 Zlib.Heap.prototype.getParent = function(index) {
@@ -53,19 +53,19 @@ Zlib.Heap.prototype.getParent = function(index) {
 };
 
 /**
- * qƒm[ƒh‚Ì index æ“¾
- * @param {number} index eƒm[ƒh‚Ì index.
- * @return {number} qƒm[ƒh‚Ì index.
+ * å­ãƒãƒ¼ãƒ‰ã® index å–å¾—
+ * @param {number} index è¦ªãƒãƒ¼ãƒ‰ã® index.
+ * @return {number} å­ãƒãƒ¼ãƒ‰ã® index.
  */
 Zlib.Heap.prototype.getChild = function(index) {
   return 2 * index + 2;
 };
 
 /**
- * Heap ‚É’l‚ğ’Ç‰Á‚·‚é
- * @param {number} index ƒL[ index.
- * @param {number} value ’l.
- * @return {number} Œ»İ‚Ìƒq[ƒv’·.
+ * Heap ã«å€¤ã‚’è¿½åŠ ã™ã‚‹
+ * @param {number} index ã‚­ãƒ¼ index.
+ * @param {number} value å€¤.
+ * @return {number} ç¾åœ¨ã®ãƒ’ãƒ¼ãƒ—é•·.
  */
 Zlib.Heap.prototype.push = function(index, value) {
   var current, parent,
@@ -76,11 +76,11 @@ Zlib.Heap.prototype.push = function(index, value) {
   heap[this.length++] = value;
   heap[this.length++] = index;
 
-  // ƒ‹[ƒgƒm[ƒh‚É‚½‚Ç‚è’…‚­‚Ü‚Å“ü‚ê‘Ö‚¦‚ğ‚İ‚é
+  // ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰ã«ãŸã©ã‚Šç€ãã¾ã§å…¥ã‚Œæ›¿ãˆã‚’è©¦ã¿ã‚‹
   while (current > 0) {
     parent = this.getParent(current);
 
-    // eƒm[ƒh‚Æ”äŠr‚µ‚Äe‚Ì•û‚ª‘å‚«‚¯‚ê‚Î’l‚Æ index ‚ğ“ü‚ê‘Ö‚¦‚é
+    // è¦ªãƒãƒ¼ãƒ‰ã¨æ¯”è¼ƒã—ã¦è¦ªã®æ–¹ãŒå¤§ãã‘ã‚Œã°å€¤ã¨ index ã‚’å…¥ã‚Œæ›¿ãˆã‚‹
     if (heap[current + 1] < heap[parent + 1]) {
       swap = heap[current];
       heap[current] = heap[parent];
@@ -91,7 +91,7 @@ Zlib.Heap.prototype.push = function(index, value) {
       heap[parent + 1] = swap;
 
       current = parent;
-    // “ü‚ê‘Ö‚¦‚ª•K—v‚È‚­‚È‚Á‚½‚ç‚»‚±‚Å”²‚¯‚é
+    // å…¥ã‚Œæ›¿ãˆãŒå¿…è¦ãªããªã£ãŸã‚‰ãã“ã§æŠœã‘ã‚‹
     } else {
       break;
     }
@@ -101,9 +101,9 @@ Zlib.Heap.prototype.push = function(index, value) {
 };
 
 /**
- * Heap‚©‚çˆê”Ô¬‚³‚¢’l‚ğ•Ô‚·
- * @return {{index: number, value: number, length: number}} {index: ƒL[index,
- *     value: ’l, length: ƒq[ƒv’·} ‚Ì Object.
+ * Heapã‹ã‚‰ä¸€ç•ªå°ã•ã„å€¤ã‚’è¿”ã™
+ * @return {{index: number, value: number, length: number}} {index: ã‚­ãƒ¼index,
+ *     value: å€¤, length: ãƒ’ãƒ¼ãƒ—é•·} ã® Object.
  */
 Zlib.Heap.prototype.pop = function() {
   var index, value,
@@ -113,27 +113,27 @@ Zlib.Heap.prototype.pop = function() {
   value = heap[0];
   index = heap[1];
 
-  // Œã‚ë‚©‚ç’l‚ğæ‚é
+  // å¾Œã‚ã‹ã‚‰å€¤ã‚’å–ã‚‹
   this.length -= 2;
   heap[0] = heap[this.length];
   heap[1] = heap[this.length + 1];
 
   parent = 0;
-  // ƒ‹[ƒgƒm[ƒh‚©‚ç‰º‚ª‚Á‚Ä‚¢‚­
+  // ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰ã‹ã‚‰ä¸‹ãŒã£ã¦ã„ã
   while (true) {
     current = this.getChild(parent);
 
-    // ”ÍˆÍƒ`ƒFƒbƒN
+    // ç¯„å›²ãƒã‚§ãƒƒã‚¯
     if (current >= this.length) {
       break;
     }
 
-    // —×‚Ìƒm[ƒh‚Æ”äŠr‚µ‚ÄA—×‚Ì•û‚ª’l‚ª¬‚³‚¯‚ê‚Î—×‚ğŒ»İƒm[ƒh‚Æ‚µ‚Ä‘I‘ğ
+    // éš£ã®ãƒãƒ¼ãƒ‰ã¨æ¯”è¼ƒã—ã¦ã€éš£ã®æ–¹ãŒå€¤ãŒå°ã•ã‘ã‚Œã°éš£ã‚’ç¾åœ¨ãƒãƒ¼ãƒ‰ã¨ã—ã¦é¸æŠ
     if (current + 2 < this.length && heap[current + 3] < heap[current + 1]) {
       current += 2;
     }
 
-    // eƒm[ƒh‚Æ”äŠr‚µ‚Äe‚Ì•û‚ª‘å‚«‚¢ê‡‚Í“ü‚ê‘Ö‚¦‚é
+    // è¦ªãƒãƒ¼ãƒ‰ã¨æ¯”è¼ƒã—ã¦è¦ªã®æ–¹ãŒå¤§ãã„å ´åˆã¯å…¥ã‚Œæ›¿ãˆã‚‹
     if (heap[parent + 1] > heap[current + 1]) {
       swap = heap[parent];
       heap[parent] = heap[current];
