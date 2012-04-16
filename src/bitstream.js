@@ -25,34 +25,68 @@
  */
 
 /**
- * @fileoverview bit ’PˆÊ‚Å‚Ì‘‚«‚İÀ‘•.
+ * @fileoverview bit å˜ä½ã§ã®æ›¸ãè¾¼ã¿å®Ÿè£….
  */
 
 goog.provide('Zlib.BitStream');
 
+/** @define {boolean} */
+var USE_TYPEDARRAY = true;
+
 goog.scope(function() {
 
 /**
- * ƒrƒbƒgƒXƒgƒŠ[ƒ€
+ * ãƒ“ãƒƒãƒˆã‚¹ãƒˆãƒªãƒ¼ãƒ 
  * @constructor
  */
 Zlib.BitStream = function() {
   this.index = 0;
   this.bitindex = 0;
-  this.buffer = [];
+  this.buffer =
+    new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.BitStream.DefaultBlockSize);
+  this.blocks = [];
+  this.totalpos = 0;
 };
 
 /**
- * ”’l‚ğƒrƒbƒg‚Åw’è‚µ‚½”‚¾‚¯‘‚«‚Ş.
- * @param {!number} number ‘‚«‚Ş”’l.
- * @param {!number} n ‘‚«‚Şƒrƒbƒg”.
- * @param {!boolean=} reverse ‹t‡‚É‘‚«‚Ş‚È‚ç‚Î true.
+ * ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ–ãƒ­ãƒƒã‚¯ã‚µã‚¤ã‚º.
+ * @const {number}
+ */
+Zlib.BitStream.DefaultBlockSize = 0x8000;
+
+/**
+ * expand buffer.
+ * @return {!(Array|Uint8Array)} new buffer.
+ */
+Zlib.BitStream.prototype.expandBuffer = function() {
+  /** @type {!(Array|Uint8Array)} new buffer. */
+  var buffer =
+    new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.BitStream.DefaultBlockSize);
+
+  this.totalpos += this.buffer.length;
+  this.blocks.push(this.buffer);
+  this.buffer = buffer;
+  this.index = 0;
+
+  return this.buffer;
+};
+
+
+/**
+ * æ•°å€¤ã‚’ãƒ“ãƒƒãƒˆã§æŒ‡å®šã—ãŸæ•°ã ã‘æ›¸ãè¾¼ã‚€.
+ * @param {number} number æ›¸ãè¾¼ã‚€æ•°å€¤.
+ * @param {number} n æ›¸ãè¾¼ã‚€ãƒ“ãƒƒãƒˆæ•°.
+ * @param {boolean=} reverse é€†é †ã«æ›¸ãè¾¼ã‚€ãªã‚‰ã° true.
  */
 Zlib.BitStream.prototype.writeBits = function(number, n, reverse) {
-  var i,
-      buffer = this.buffer,
-      bufferIndex = this.index,
-      bitindex = this.bitindex;
+  var buffer = this.buffer;
+  var index = this.index;
+  var bitindex = this.bitindex;
+
+  /** @type {number} current octet. */
+  var current = buffer[index];
+  /** @type {number} loop counter. */
+  var i;
 
   if (reverse && n > 1) {
     number = n > 8 ?
@@ -60,116 +94,129 @@ Zlib.BitStream.prototype.writeBits = function(number, n, reverse) {
       Zlib.BitStream.ReverseTable[number] >> (8 - n);
   }
 
-  // Byte ‹«ŠE‚ğ’´‚¦‚È‚¢‚Æ‚«
+  // Byte å¢ƒç•Œã‚’è¶…ãˆãªã„ã¨ã
   if (n + bitindex < 8) {
-    buffer[bufferIndex] = (buffer[bufferIndex] << n) | number;
+    current = (current << n) | number;
     bitindex += n;
-  // Byte ‹«ŠE‚ğ’´‚¦‚é‚Æ‚«
+  // Byte å¢ƒç•Œã‚’è¶…ãˆã‚‹ã¨ã
   } else {
-    for (i = 0; i < n; i++) {
-      buffer[bufferIndex] = (buffer[bufferIndex] << 1) |
-                            ((number >> n - i - 1) & 1);
-      ++bitindex
-      if (bitindex === 8) {
+    for (i = 0; i < n; ++i) {
+      current = (current << 1) | ((number >> n - i - 1) & 1);
+
+      // next byte
+      if (++bitindex === 8) {
         bitindex = 0;
-        buffer[bufferIndex] = Zlib.BitStream.ReverseTable[buffer[bufferIndex]];
-        buffer[++bufferIndex] = 0;
+        buffer[index++] = Zlib.BitStream.ReverseTable[current];
+
+        // expand
+        if (index === buffer.length) {
+          buffer = this.expandBuffer();
+          index = 0;
+        }
+        current = 0;
       }
     }
   }
+  buffer[index] = current;
 
+  this.buffer = buffer;
   this.bitindex = bitindex;
-  this.index = bufferIndex;
+  this.index = index;
 };
 
 /**
- * 32-bit ®”‚Ìƒrƒbƒg‡‚ğ‹t‚É‚·‚é
+ * 32-bit æ•´æ•°ã®ãƒ“ãƒƒãƒˆé †ã‚’é€†ã«ã™ã‚‹
  * @param {number} n 32-bit integer.
  * @return {number} reversed 32-bit integer.
  * @private
  */
 function rev32_(n) {
-  return (Zlib.BitStream.ReverseTable[n        & 0xFF] << 24) |
-         (Zlib.BitStream.ReverseTable[n >>>  8 & 0xFF] << 16) |
-         (Zlib.BitStream.ReverseTable[n >>> 16 & 0xFF] <<  8) |
+  return (Zlib.BitStream.ReverseTable[n & 0xFF] << 24) |
+         (Zlib.BitStream.ReverseTable[n >>> 8 & 0xFF] << 16) |
+         (Zlib.BitStream.ReverseTable[n >>> 16 & 0xFF] << 8) |
           Zlib.BitStream.ReverseTable[n >>> 24 & 0xFF];
 }
 
 /**
- * ƒXƒgƒŠ[ƒ€‚ÌI’[ˆ—‚ğs‚¤
- * @return {!Array} I’[ˆ—Œã‚Ìƒoƒbƒtƒ@‚ğ byte array ‚Å•Ô‚·.
+ * ã‚¹ãƒˆãƒªãƒ¼ãƒ ã®çµ‚ç«¯å‡¦ç†ã‚’è¡Œã†
+ * @return {!(Array|Uint8Array)} çµ‚ç«¯å‡¦ç†å¾Œã®ãƒãƒƒãƒ•ã‚¡ã‚’ byte array ã§è¿”ã™.
  */
 Zlib.BitStream.prototype.finish = function() {
-  var buffer = this.buffer,
-      index = this.index;
+  var buffer = this.buffer;
+  var index = this.index;
+  var limit = this.totalpos + index + 1;
+
+  /** @type {!(Array|Uint8Array)} output buffer */
+  var output = new (USE_TYPEDARRAY ? Uint8Array : Array)(limit);
+  /** @type {number} output buffer pointer. */
+  var op;
+  /** @type {!(Array|Uint8Array)} block buffer. */
+  var block;
+  /** @type {number} loop counter. */
+  var i;
+  /** @type {number} loop limiter. */
+  var il;
+  /** @type {number} loop counter. */
+  var j;
+  /** @type {number} loop limiter. */
+  var jl;
 
   if (this.bitindex > 0) {
     buffer[index] <<= 8 - this.bitindex;
   }
-
   buffer[index] = Zlib.BitStream.ReverseTable[buffer[index]];
 
-  if (this.bitindex === 0) {
-    buffer.pop();
+  // concat blocks
+  for (i = 0, il = this.blocks.length, op = 0; i < il; ++i) {
+    block = this.blocks[i];
+    for (j = 0, jl = block.length; j < jl; ++j) {
+      output[op++] = block[j];
+    }
   }
 
-  return buffer;
+  // current
+  for (i = 0; i <= index; ++i) {
+    output[op++] = buffer[i];
+  }
+
+  return output;
 };
 
+
+
 /**
- * 0-255 ‚Ìƒrƒbƒg‡‚ğ”½“]‚µ‚½ƒe[ƒuƒ‹
- * @const {Array.<number>}
+ * 0-255 ã®ãƒ“ãƒƒãƒˆé †ã‚’åè»¢ã—ãŸãƒ†ãƒ¼ãƒ–ãƒ«
+ * @const {!(Uint8Array|Array.<number>)}
  */
-Zlib.BitStream.ReverseTable = [
-  0, 128,  64, 192,  32, 160,  96, 224,  16, 144,  80, 208,  48, 176, 112, 240,
-  8, 136,  72, 200,  40, 168, 104, 232,  24, 152,  88, 216,  56, 184, 120, 248,
-  4, 132,  68, 196,  36, 164, 100, 228,  20, 148,  84, 212,  52, 180, 116, 244,
- 12, 140,  76, 204,  44, 172, 108, 236,  28, 156,  92, 220,  60, 188, 124, 252,
-  2, 130,  66, 194,  34, 162,  98, 226,  18, 146,  82, 210,  50, 178, 114, 242,
- 10, 138,  74, 202,  42, 170, 106, 234,  26, 154,  90, 218,  58, 186, 122, 250,
-  6, 134,  70, 198,  38, 166, 102, 230,  22, 150,  86, 214,  54, 182, 118, 246,
- 14, 142,  78, 206,  46, 174, 110, 238,  30, 158,  94, 222,  62, 190, 126, 254,
-  1, 129,  65, 193,  33, 161,  97, 225,  17, 145,  81, 209,  49, 177, 113, 241,
-  9, 137,  73, 201,  41, 169, 105, 233,  25, 153,  89, 217,  57, 185, 121, 249,
-  5, 133,  69, 197,  37, 165, 101, 229,  21, 149,  85, 213,  53, 181, 117, 245,
- 13, 141,  77, 205,  45, 173, 109, 237,  29, 157,  93, 221,  61, 189, 125, 253,
-  3, 131,  67, 195,  35, 163,  99, 227,  19, 147,  83, 211,  51, 179, 115, 243,
- 11, 139,  75, 203,  43, 171, 107, 235,  27, 155,  91, 219,  59, 187, 123, 251,
-  7, 135,  71, 199,  39, 167, 103, 231,  23, 151,  87, 215,  55, 183, 119, 247,
- 15, 143,  79, 207,  47, 175, 111, 239,  31, 159,  95, 223,  63, 191, 127, 255
-];
+Zlib.BitStream.ReverseTable = (function(table) {
+  return table;
+})((function() {
+  /** @type {!(Array|Uint8Array)} reverse table. */
+  var table = new (USE_TYPEDARRAY ? Uint8Array : Array)(256);
+  /** @type {number} loop counter. */
+  var i;
+  /** @type {number} loop limiter. */
+  var il;
 
-/*
- * ƒrƒbƒg‡‚Ì”½“]ƒe[ƒuƒ‹‚Í‰º‹L‚Åì‚é‚±‚Æ‚ª‚Å‚«‚é
- */
-/*
-console.log(
-  JSON.stringify(
-    (function() {
-      var r = [], i;
+  // generate
+  for (i = 0; i < 256; ++i) {
+    table[i] = (function(n) {
+      var r = n;
+      var s = 7;
 
-      for (i = 0; i < 256; i++) {
-        r[i] = reverseBit(i);
+      for (n >>>= 1; n; n >>>= 1) {
+        r <<= 1;
+        r |= n & 1;
+        --s;
       }
 
-      return r;
-    })()
-  )
-);
-
-function reverseBit(n) {
-  var r = n,
-      s = 7;
-
-  for (n >>= 1; n; n >>= 1) {
-    r <<= 1;
-    r |= n & 1;
-    --s;
+      return (r << s & 0xff) >>> 0;
+    })(i);
   }
 
-  return (r << s & 0xff) >>> 0;
-}
-*/
+  return table;
+})());
+
 
 // end of scope
 });

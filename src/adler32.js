@@ -25,7 +25,7 @@
  */
 
 /**
- * @fileoverview Adler32 checksum ����.
+ * @fileoverview Adler32 checksum 実装.
  */
 
 goog.provide('Zlib.Adler32');
@@ -34,9 +34,9 @@ goog.scope(function() {
 
 
 /**
- * Adler32 �n�b�V���l�̍쐬
- * @param {!(Array|Uint8Array|string)} array �Z�o�Ɏg�p���� byte array.
- * @return {number} Adler32 �n�b�V���l.
+ * Adler32 ハッシュ値の作成
+ * @param {!(Array|Uint8Array|string)} array 算出に使用する byte array.
+ * @return {number} Adler32 ハッシュ値.
  */
 Zlib.Adler32 = function(array) {
   if (typeof(array) === 'string') {
@@ -46,10 +46,10 @@ Zlib.Adler32 = function(array) {
 };
 
 /**
- * Adler32 �n�b�V���l�̍X�V
- * @param {number} adler ���݂̃n�b�V���l.
- * @param {Array|Uint8Array} array �X�V�Ɏg�p���� byte array.
- * @return {number} Adler32 �n�b�V���l.
+ * Adler32 ハッシュ値の更新
+ * @param {number} adler 現在のハッシュ値.
+ * @param {!(Array|Uint8Array)} array 更新に使用する byte array.
+ * @return {number} Adler32 ハッシュ値.
  */
 Zlib.Adler32.update = function(adler, array) {
   var s1 = adler & 0xffff,
