@@ -62,7 +62,8 @@ Zlib.Inflate = function(input, blocksize) {
   /** @type {!number} bit stream reader buffer size. */
   this.bitsbuflen = 0;
   /** @type {!(Array|Uint8Array)} input buffer. */
-  this.input = input;
+  this.input =
+    (USE_TYPEDARRAY && input instanceof Array) ? new Uint8Array(input) : input;
   /** @type {!(Uint8Array|Array)} output buffer. */
   this.output =
     new (USE_TYPEDARRAY ? Uint8Array : Array)(
