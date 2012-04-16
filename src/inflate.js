@@ -42,17 +42,17 @@ goog.scope(function() {
 
 /**
  * @param {!(Uint8Array|Array)} input deflated buffer.
- * @param {number=} blocksize buffer blocksize.
+ * @param {number=} opt_blocksize buffer blocksize.
  * @return {!(Uint8Array|Array)} inflated buffer.
  * @constructor
  */
-Zlib.Inflate = function(input, blocksize) {
+Zlib.Inflate = function(input, opt_blocksize) {
   /** @type {!(Array|Uint8Array)} inflated buffer */
   this.buffer;
   /** @type {!Array.<(Array|Uint8Array)>} */
   this.blocks = [];
   /** @type {number} block size. */
-  this.blockSize = blocksize ? blocksize : ZLIB_BUFFER_BLOCK_SIZE;
+  this.blockSize = opt_blocksize ? opt_blocksize : ZLIB_BUFFER_BLOCK_SIZE;
   /** @type {!number} total output buffer pointer. */
   this.totalpos = 0;
   /** @type {!number} input buffer pointer. */
