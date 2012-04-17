@@ -221,7 +221,7 @@ function(blockArray, isFinalBlock) {
  * 固定ハフマンブロックの作成
  * @param {!(Array|Uint8Array)} blockArray ブロックデータ byte array.
  * @param {!boolean} isFinalBlock 最後のブロックならばtrue.
- * @return {!Array} 固定ハフマン符号化ブロック byte array.
+ * @return {!(Array|Uint8Array)} 固定ハフマン符号化ブロック byte array.
  */
 Zlib.RawDeflate.prototype.makeFixedHuffmanBlock =
 function(blockArray, isFinalBlock) {
@@ -244,7 +244,7 @@ function(blockArray, isFinalBlock) {
  * 動的ハフマンブロックの作成
  * @param {!(Array|Uint8Array)} blockArray ブロックデータ byte array.
  * @param {!boolean} isFinalBlock 最後のブロックならばtrue.
- * @return {!Array} 動的ハフマン符号ブロック byte array.
+ * @return {!(Array|Uint8Array)} 動的ハフマン符号ブロック byte array.
  */
 Zlib.RawDeflate.prototype.makeDynamicHuffmanBlock =
 function(blockArray, isFinalBlock) {
@@ -381,7 +381,7 @@ function(dataArray, litLen, dist, stream) {
  * 固定ハフマン符号化
  * @param {!(Array|Uint8Array)} dataArray LZ77 符号化済み byte array.
  * @param {Zlib.BitStream=} stream 書き込み用ビットストリーム.
- * @return {!Array} ハフマン符号化済み byte array.
+ * @return {!(Array|Uint8Array)} ハフマン符号化済み byte array.
  */
 Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
   var index, length, literal, code, bitlen, extra;
