@@ -135,7 +135,8 @@ Zlib.RawDeflate.FixedHuffmanTable = (function() {
 
 /**
  * DEFLATE ブロックの作成
- * @param {!(Array.<number>|Uint8Array|string)} data plain data byte array / byte string.
+ * @param {!(Array.<number>|Uint8Array|string)}
+ *     data plain data byte array / byte string.
  * @return {!Array} 圧縮済み byte array.
  */
 Zlib.RawDeflate.prototype.makeBlocks = function(data) {
@@ -180,7 +181,8 @@ Zlib.RawDeflate.prototype.makeBlocks = function(data) {
 
 /**
  * DEFLATE ブロックの作成
- * @param {!(Array.<number>|Uint8Array|string)} data plain data byte array / byte string.
+ * @param {!(Array.<number>|Uint8Array|string)}
+ *     data plain data byte array / byte string.
  * @return {!Array} 圧縮済み byte array.
  */
 Zlib.RawDeflate.prototype.compress = Zlib.RawDeflate.prototype.makeBlocks;
@@ -668,10 +670,10 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
  */
 Zlib.RawDeflate.prototype.searchLongestMatch_ =
 function(data, position, matchList) {
-  var  match,
-       currentMatch,
-       matchMax = 0, matchLength,
-       i, j, l, dl = data.length;
+  var match,
+      currentMatch,
+      matchMax = 0, matchLength,
+      i, j, l, dl = data.length;
 
   // 候補を後ろから 1 つずつ絞り込んでゆく
   permatch:
@@ -690,9 +692,9 @@ function(data, position, matchList) {
     }
 
     // 最長一致探索
-    while(matchLength < Zlib.RawDeflate.Lz77MaxLength &&
-          position + matchLength < dl &&
-          data[match + matchLength] === data[position + matchLength]) {
+    while (matchLength < Zlib.RawDeflate.Lz77MaxLength &&
+           position + matchLength < dl &&
+           data[match + matchLength] === data[position + matchLength]) {
       matchLength++;
     }
 
