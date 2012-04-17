@@ -32,6 +32,13 @@
 
 goog.provide('Zlib');
 
+//-----------------------------------------------------------------------------
+
+/** @define {boolean} use typed array flag. */
+var USE_TYPEDARRAY = true;
+
+//-----------------------------------------------------------------------------
+
 goog.require('Zlib.Deflate');
 goog.require('Zlib.Inflate');
 

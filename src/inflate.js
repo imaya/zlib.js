@@ -31,9 +31,6 @@ goog.provide('Zlib.Inflate');
 /** @define {boolean} export symbols. */
 var ZLIB_INFLATE_EXPORT = false;
 
-/** @define {boolean} use TypedArray flag. */
-var USE_TYPEDARRAY = true;
-
 /** @define {number} buffer block size. */
 var ZLIB_BUFFER_BLOCK_SIZE = 0x8000; // [ 0x8000 >= ZLIB_BUFFER_BLOCK_SIZE ]
 

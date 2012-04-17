@@ -30,9 +30,6 @@
 
 goog.provide('Zlib.BitStream');
 
-/** @define {boolean} use typed array flag. */
-var USE_TYPEDARRAY = true;
-
 goog.scope(function() {
 
 /**
