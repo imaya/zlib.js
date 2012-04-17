@@ -10,6 +10,10 @@
 	<!-- バイナリディレクトリ -->
 	<property name="bin" value="./bin" />
 
+	<!-- closure compiler -->
+	<property name="compiler" value="../${vendor}/google-closure-compiler/compiler.jar" />
+	<!--property name="compiler" value="../${vendor}/google-closure-compiler/compiler-report-unknown-type.jar" /-->
+
 	<!-- 依存関係を解決する deps.js のビルド -->
 	<target name="deps" description="依存関係を解決する deps.js を作成する" >
 		<exec dir="${src}" executable="python" failonerror="true">
@@ -26,7 +30,7 @@
 		<!-- ビルド(出力先は一時ファイル) -->
 		<exec dir="${src}" executable="python" failonerror="true">
 			<arg line="../${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
-			<arg line="-c ../${vendor}/google-closure-compiler/compiler.jar" />
+			<arg line="-c ${compiler}" />
 			<arg line="-f &quot;--warning_level=VERBOSE&quot;" />
 			<arg line="-f &quot;--compilation_level=ADVANCED_OPTIMIZATIONS&quot;" />
 			<arg line="-f &quot;--define=goog.DEBUG=false&quot;" />
@@ -59,7 +63,7 @@
 		<!-- ビルド(出力先は一時ファイル) -->
 		<exec dir="${src}" executable="python" failonerror="true">
 			<arg line="../${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
-			<arg line="-c ../${vendor}/google-closure-compiler/compiler.jar" />
+			<arg line="-c ${compiler}" />
 			<arg line="-f &quot;--warning_level=VERBOSE&quot;" />
 			<arg line="-f &quot;--compilation_level=ADVANCED_OPTIMIZATIONS&quot;" />
 			<arg line="-f &quot;--define=goog.DEBUG=false&quot;" />
@@ -93,7 +97,7 @@
 		<!-- ビルド(出力先は一時ファイル) -->
 		<exec dir="${src}" executable="python" failonerror="true">
 			<arg line="../${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
-			<arg line="-c ../${vendor}/google-closure-compiler/compiler.jar" />
+			<arg line="-c ${compiler}" />
 			<arg line="-f &quot;--warning_level=VERBOSE&quot;" />
 			<arg line="-f &quot;--compilation_level=ADVANCED_OPTIMIZATIONS&quot;" />
 			<arg line="-f &quot;--define=goog.DEBUG=false&quot;" />
