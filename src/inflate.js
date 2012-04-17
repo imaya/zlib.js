@@ -170,7 +170,7 @@ Zlib.Inflate.LengthCodeTable = (function(table) {
 Zlib.Inflate.LengthExtraTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint8Array(table) : table;
 })([
-  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 3, 4, 5, 5,
+  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
   5, 5, 0, 0, 0
 ]);
 
