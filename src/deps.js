@@ -4,7 +4,7 @@ goog.addDependency('../../../../src/adler32.js', ['Zlib.Adler32'], []);
 goog.addDependency('../../../../src/bitstream.js', ['Zlib.BitStream'], []);
 goog.addDependency('../../../../src/deflate.js', ['Zlib.Deflate'], ['Zlib.Adler32', 'Zlib.BitStream', 'Zlib.RawDeflate', 'Zlib.Util']);
 goog.addDependency('../../../../src/heap.js', ['Zlib.Heap'], []);
-goog.addDependency('../../../../src/inflate.js', ['Zlib.Inflate'], []);
+goog.addDependency('../../../../src/inflate.js', ['Zlib.Inflate'], ['Zlib.Adler32']);
 goog.addDependency('../../../../src/rawdeflate.js', ['Zlib.RawDeflate'], ['Zlib.BitStream', 'Zlib.Heap', 'Zlib.Util']);
 goog.addDependency('../../../../src/util.js', ['Zlib.Util'], []);
 goog.addDependency('../../../../src/zlib.js', ['Zlib'], ['Zlib.Deflate', 'Zlib.Inflate']);

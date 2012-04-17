@@ -35,15 +35,24 @@ var ZLIB_INFLATE_EXPORT = false;
 var ZLIB_BUFFER_BLOCK_SIZE = 0x8000; // [ 0x8000 >= ZLIB_BUFFER_BLOCK_SIZE ]
 
 //-----------------------------------------------------------------------------
+
+goog.require('Zlib.Adler32');
+
 goog.scope(function() {
 
 /**
  * @param {!(Uint8Array|Array)} input deflated buffer.
  * @param {number=} opt_blocksize buffer blocksize.
+ * @param {boolean=} opt_verify verify adler-32 checksum.
  * @return {!(Uint8Array|Array)} inflated buffer.
  * @constructor
  */
-Zlib.Inflate = function(input, opt_blocksize) {
+Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
+  /** @type {!(Uint8Array|Array)} inflated buffer. */
+  var buffer;
+  /** @type {number} adler-32 checksum */
+  var adler32;
+
   /** @type {!(Array|Uint8Array)} inflated buffer */
   this.buffer;
   /** @type {!Array.<(Array|Uint8Array)>} */
@@ -98,7 +107,20 @@ Zlib.Inflate = function(input, opt_blocksize) {
 
   this.inflate();
 
-  return this.concatBuffer();
+  buffer = this.concatBuffer();
+
+  // verify adler-32
+  if (opt_verify) {
+    adler32 =
+      input[this.ip++] << 24 | input[this.ip++] << 16 |
+      input[this.ip++] << 8 | input[this.ip++];
+
+    if (adler32 !== Zlib.Adler32(buffer)) {
+      throw new Error('invalid adler-32 checksum');
+    }
+  }
+
+  return buffer;
 }
 
 /**
