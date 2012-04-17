@@ -30,6 +30,9 @@
 
 goog.provide('Zlib.Heap');
 
+/** @define {boolean} use typed array. */
+var USE_TYPEDARRAY = true;
+
 goog.scope(function() {
 
 /**
@@ -38,7 +41,7 @@ goog.scope(function() {
  * @constructor
  */
 Zlib.Heap = function(length) {
-  this.buffer = new Array(length * 2);
+  this.buffer = new (USE_TYPEDARRAY ? Uint16Array : Array)(length * 2);
   this.length = 0;
 };
 
