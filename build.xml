@@ -4,6 +4,9 @@
 	<!-- ソースディレクトリ -->
 	<property name="src" value="./src" />
 
+	<!-- defines -->
+	<property name="def" value="./define" />
+
 	<!-- ベンダーディレクトリ -->
 	<property name="vendor" value="./vendor" />
 
@@ -44,6 +47,8 @@
 			<arg line="--namespace=Zlib" />
 			<arg line="-o compiled" />
 			<arg line="--output_file=../${outfile}.tmp" />
+			<arg line="-n USE_TYPEDARRAY" />
+			<arg line="../${def}/typedarray/hybrid.js" />
 		</exec>
 		<!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
 		<loadfile property="license" srcfile="./LICENSE_min" />
@@ -77,6 +82,8 @@
 			<arg line="--namespace=Zlib" />
 			<arg line="-o compiled" />
 			<arg line="--output_file=../${outfile}.tmp" />
+			<arg line="-n USE_TYPEDARRAY" />
+			<arg line="../${def}/typedarray/hybrid.js" />
 		</exec>
 		<!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
 		<loadfile property="license" srcfile="./LICENSE_min" />
@@ -111,6 +118,8 @@
 			<arg line="--namespace=Zlib" />
 			<arg line="-o compiled" />
 			<arg line="--output_file=../${outfile}.tmp" />
+			<arg line="-n USE_TYPEDARRAY" />
+			<arg line="../${def}/typedarray/hybrid.js" />
 		</exec>
 		<!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
 		<loadfile property="license" srcfile="./LICENSE_min" />

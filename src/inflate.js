@@ -44,21 +44,17 @@ goog.scope(function() {
  * @param {!(Uint8Array|Array)} input deflated buffer.
  * @param {number=} opt_blocksize buffer blocksize.
  * @param {boolean=} opt_verify verify adler-32 checksum.
- * @return {!(Uint8Array|Array)} inflated buffer.
  * @constructor
  */
 Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
-  /** @type {!(Uint8Array|Array)} inflated buffer. */
-  var buffer;
-  /** @type {number} adler-32 checksum */
-  var adler32;
-
   /** @type {!(Array|Uint8Array)} inflated buffer */
   this.buffer;
   /** @type {!Array.<(Array|Uint8Array)>} */
   this.blocks = [];
   /** @type {number} block size. */
   this.blockSize = opt_blocksize ? opt_blocksize : ZLIB_BUFFER_BLOCK_SIZE;
+  /** @type {(boolean|undefined)} verify flag. */
+  this.verify = opt_verify;
   /** @type {!number} total output buffer pointer. */
   this.totalpos = 0;
   /** @type {!number} input buffer pointer. */
@@ -104,13 +100,28 @@ Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
   if (flg & 0x20) {
     throw new Error('fdict flag is not supported');
   }
+}
 
-  this.inflate();
+/**
+ * inflate.
+ * @return {!(Uint8Array|Array)} inflated buffer.
+ */
+Zlib.Inflate.prototype.inflate = function() {
+  /** @type {!(Array|Uint8Array)} input buffer. */
+  var input = this.input;
+  /** @type {!(Uint8Array|Array)} inflated buffer. */
+  var buffer;
+  /** @type {number} adler-32 checksum */
+  var adler32;
+
+  while (!this.bfinal) {
+    this.parseBlock();
+  }
 
   buffer = this.concatBuffer();
 
   // verify adler-32
-  if (opt_verify) {
+  if (this.verify) {
     adler32 =
       input[this.ip++] << 24 | input[this.ip++] << 16 |
       input[this.ip++] << 8 | input[this.ip++];
@@ -121,15 +132,6 @@ Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
   }
 
   return buffer;
-}
-
-/**
- * inflate.
- */
-Zlib.Inflate.prototype.inflate = function() {
-  while (!this.bfinal) {
-    this.parseBlock();
-  }
 };
 
 /**
@@ -776,6 +778,10 @@ Zlib.Inflate.fromString = function(str) {
 
 if (ZLIB_INFLATE_EXPORT) {
   goog.exportSymbol('Zlib.Inflate', Zlib.Inflate);
+  goog.exportSymbol(
+    'Zlib.Inflate.prototype.inflate',
+    Zlib.Inflate.prototype.inflate
+  );
 }
 
 
