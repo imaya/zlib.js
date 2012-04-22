@@ -432,11 +432,16 @@ function Lz77Match(length, backwordDistance) {
  * [コード, 拡張ビット, 拡張ビット長] の配列となっている.
  * @const {Array.<Array.<number>>}
  */
-Lz77Match.LengthCodeTable = (function() {
-  var table = [], i, l;
+Lz77Match.LengthCodeTable = (function(table) {
+  return USE_TYPEDARRAY ? new Uint32Array(table) : table;
+})((function() {
+  var table = [];
+  var i;
+  var c;
 
   for (i = 3; i <= 258; i++) {
-    table[i] = code(i);
+    c = code(i);
+    table[i] = (c[2] << 24) | (c[1] << 16) | c[0];
   }
 
   function code(length) {
@@ -475,7 +480,7 @@ Lz77Match.LengthCodeTable = (function() {
   };
 
   return table;
-})();
+})());
 
 /**
  * 距離符号テーブル
@@ -533,9 +538,14 @@ Lz77Match.prototype.toLz77Array = function() {
   var length = this.length,
       dist = this.backwordDistance,
       codeArray = [];
+  var pos = 0;
+  var code;
 
   // length
-  push(codeArray, Lz77Match.LengthCodeTable[length]);
+  code = Lz77Match.LengthCodeTable[length];
+  codeArray[pos++] = code & 0xffff;
+  codeArray[pos++] = (code >> 16) & 0xff;
+  codeArray[pos++] = code >> 24;
 
   // distance
   push(codeArray, this.getDistanceCode_(dist));
@@ -549,26 +559,48 @@ Lz77Match.prototype.toLz77Array = function() {
  * @return {!Array} LZ77 符号化した配列.
  */
 Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
-  var position, // @type {number}
-      length, // @type {number}
-      i, // @type {number}
-      l, // @type {number}
-      matchKey, // @type {number}
-      matchKeyArray, // @type {Array.<number>}
-      table = {}, // @type {Object.<Array.<Array.<number>>>}
-      windowSize = Zlib.RawDeflate.WindowSize, // @const {number}
-      matchList, // @type {Array.<Array.<number>>}
-      longestMatch, // @type {Lz77Match}
-      prevMatch, // @type {Lz77Match}
-      lz77buf = [], // @type {Array.<number>}
-      skipLength = 0, // @type {number}
-      freqsLitLen = [], // @type {Array.<number>}
-      freqsDist = [], // @type {Array.<number>}
-      lazy = this.lazy; // @const {number}
+  /** @type {number} input position */
+  var position;
+  /** @type {number} input length */
+  var length;
+  /** @type {number} loop counter */
+  var i;
+  /** @type {number} loop limiter */
+  var il;
+  /** @type {number} chained-hash-table key */
+  var matchKey;
+  /** @type {Array.<number>} chained-hash-table key array */
+  var matchKeyArray;
+  /** @type {Object.<Array.<Array.<number>>>} chained-hash-table */
+  var table = {};
+  /** @const {number} */
+  var windowSize = Zlib.RawDeflate.WindowSize;
+  /** @type {Array.<Array.<number>>} match list */
+  var matchList;
+  /** @type {Lz77Match} longest match */
+  var longestMatch;
+  /** @type {Lz77Match} previous longest match */
+  var prevMatch;
+  /** @type {(Array.<number>|Uint16Array)} lz77 buffer */
+  var lz77buf = new (USE_TYPEDARRAY ? Uint16Array : Array)(0xffffff); // XXX
+  /** @type {number} lz77 output buffer pointer */
+  var pos = 0;
+  /** @type {number} lz77 skip length */
+  var skipLength = 0;
+  /** @type {(Array.<number>|Uint32Array)} */
+  var freqsLitLen = new (USE_TYPEDARRAY ? Uint32Array : Array)(286);
+  /** @type {(Array.<number>|Uint32Array)} */
+  var freqsDist = new (USE_TYPEDARRAY ? Uint32Array : Array)(30);
+  /** @type {number} */
+  var lazy = this.lazy;
+  /** @type {*} temporary variable */
+  var tmp;
 
   // 初期化
-  for (i = 0; i <= 285; i++) { freqsLitLen[i] = 0; }
-  for (i = 0; i <= 29; i++) { freqsDist[i] = 0; }
+  if (!USE_TYPEDARRAY) {
+    for (i = 0; i <= 285;) { freqsLitLen[i++] = 0; }
+    for (i = 0; i <= 29;) { freqsDist[i++] = 0; }
+  }
   freqsLitLen[256] = 1; // EOB の最低出現回数は 1
 
   /**
@@ -579,8 +611,12 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
    */
   function writeMatch(match, offset) {
     var lz77Array = match.toLz77Array();
+    var i;
+    var il;
 
-    push(lz77buf, lz77Array);
+    for (i = 0, il = lz77Array.length; i < il; ++i) {
+      lz77buf[pos++] = lz77Array[i];
+    }
     freqsLitLen[lz77Array[0]]++;
     freqsDist[lz77Array[3]]++;
     skipLength = match.length + offset - 1;
@@ -588,20 +624,19 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   }
 
   // LZ77 符号化
-  for (position = 0, length = dataArray.length; position < length; position++) {
+  for (position = 0, length = dataArray.length; position < length; ++position) {
     // ハッシュキーの作成
     matchKeyArray = slice(dataArray, position, Zlib.RawDeflate.Lz77MinLength);
-    for (matchKey = 0, i = 0, l = matchKeyArray.length; i < l; i++) {
-      matchKey = ((matchKey << 8) | (matchKeyArray[i] & 0xff)) >>> 0;
+    for (matchKey = 0, i = 0, il = matchKeyArray.length; i < il; ++i) {
+      matchKey = ((matchKey << 8) | (matchKeyArray[i] & 0xff));
     }
 
     // テーブルが未定義だったら作成する
-    if (table[matchKey] === undefined) { table[matchKey] = []; }
+    if (table[matchKey] === void 0) { table[matchKey] = []; }
     matchList = table[matchKey];
 
     // skip
-    if (skipLength > 0) {
-      skipLength--;
+    if (skipLength-- > 0) {
       matchList.push(position);
       continue;
     }
@@ -617,9 +652,9 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
         writeMatch(prevMatch, -1);
       }
 
-      push(lz77buf, matchKeyArray);
-      for (i = 0, l = matchKeyArray.length; i < l; i++) {
-        freqsLitLen[matchKeyArray[i]]++;
+      for (i = 0, il = matchKeyArray.length; i < il; ++i) {
+        lz77buf[pos++] = matchKeyArray[i];
+        ++freqsLitLen[matchKeyArray[i]];
       }
       break;
     }
@@ -629,12 +664,18 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
       longestMatch = this.searchLongestMatch_(dataArray, position, matchList);
 
       if (prevMatch instanceof Lz77Match) {
+        // 現在のマッチの方が前回のマッチよりも長い
         if (prevMatch.length < longestMatch.length) {
-          lz77buf.push(dataArray[position - 1]); // previous match
-          freqsLitLen[dataArray[position - 1]]++;
+          // write previous character
+          tmp = dataArray[position - 1]
+          lz77buf[pos++] = tmp;
+          ++freqsLitLen[tmp];
+
+          // write current match
           writeMatch(longestMatch, 0); // current match
         } else {
-          writeMatch(prevMatch, -1); // previous match
+          // write // previous match
+          writeMatch(prevMatch, -1);
         }
       } else if (longestMatch.length < lazy) {
         prevMatch = longestMatch;
@@ -644,20 +685,22 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
     } else if (prevMatch instanceof Lz77Match) {
       writeMatch(prevMatch, -1); // previous match
     } else {
-      lz77buf.push(dataArray[position]);
-      freqsLitLen[dataArray[position]]++;
+      tmp = dataArray[position];
+      lz77buf[pos++] = tmp;
+      ++freqsLitLen[tmp];
     }
 
     matchList.push(position); // マッチテーブルに現在の位置を保存
   }
 
   // 終端処理
-  lz77buf.push(256);
+  lz77buf[pos++] = 256;
   freqsLitLen[256]++;
   this.freqsLitLen = freqsLitLen;
   this.freqsDist = freqsDist;
 
-  return lz77buf;
+  // XXX: concatBuffer
+  return lz77buf.subarray(0, pos);
 };
 
 /**
