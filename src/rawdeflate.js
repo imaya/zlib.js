@@ -331,7 +331,7 @@ function(blockArray, isFinalBlock) {
 
 /**
  * 動的ハフマン符号化(カスタムハフマンテーブル)
- * @param {!Array} dataArray LZ77 符号化済み byte array.
+ * @param {!(Array|Uint16Array)} dataArray LZ77 符号化済み byte array.
  * @param {Zlib.BitStream=} stream 書き込み用ビットストリーム.
  * @return {!Zlib.BitStream} ハフマン符号化済みビットストリームオブジェクト.
  */
@@ -350,7 +350,7 @@ function(dataArray, litLen, dist, stream) {
   distLengths = dist[1];
 
   // 符号を BitStream に書き込んでいく
-  for (index = 0, length = dataArray.length; index < length; index++) {
+  for (index = 0, length = dataArray.length; index < length; ++index) {
     literal = dataArray[index];
 
     // literal or length
@@ -361,11 +361,8 @@ function(dataArray, litLen, dist, stream) {
       // length extra
       stream.writeBits(dataArray[++index], dataArray[++index], true);
       // distance
-      stream.writeBits(
-        distCodes[dataArray[++index]],
-        distLengths[dataArray[index]],
-        true
-      );
+      code = dataArray[++index];
+      stream.writeBits(distCodes[code], distLengths[code], true);
       // distance extra
       stream.writeBits(dataArray[++index], dataArray[++index], true);
     // 終端
@@ -379,7 +376,7 @@ function(dataArray, litLen, dist, stream) {
 
 /**
  * 固定ハフマン符号化
- * @param {!(Array|Uint8Array)} dataArray LZ77 符号化済み byte array.
+ * @param {!(Array|Uint16Array)} dataArray LZ77 符号化済み byte array.
  * @param {Zlib.BitStream=} stream 書き込み用ビットストリーム.
  * @return {!(Array|Uint8Array)} ハフマン符号化済み byte array.
  */
@@ -548,7 +545,10 @@ Lz77Match.prototype.toLz77Array = function() {
   codeArray[pos++] = code >> 24;
 
   // distance
-  push(codeArray, this.getDistanceCode_(dist));
+  code = this.getDistanceCode_(dist);
+  codeArray[pos++] = code[0];
+  codeArray[pos++] = code[1];
+  codeArray[pos++] = code[2];
 
   return codeArray;
 };
@@ -556,7 +556,7 @@ Lz77Match.prototype.toLz77Array = function() {
 /**
  * LZ77 実装
  * @param {!(Array|Uint8Array)} dataArray LZ77 符号化するバイト配列.
- * @return {!Array} LZ77 符号化した配列.
+ * @return {!(Array|Uint16Array)} LZ77 符号化した配列.
  */
 Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   /** @type {number} input position */
@@ -569,8 +569,6 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var il;
   /** @type {number} chained-hash-table key */
   var matchKey;
-  /** @type {Array.<number>} chained-hash-table key array */
-  var matchKeyArray;
   /** @type {Object.<Array.<Array.<number>>>} chained-hash-table */
   var table = {};
   /** @const {number} */
@@ -581,8 +579,9 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var longestMatch;
   /** @type {Lz77Match} previous longest match */
   var prevMatch;
-  /** @type {(Array.<number>|Uint16Array)} lz77 buffer */
-  var lz77buf = new (USE_TYPEDARRAY ? Uint16Array : Array)(0xffffff); // XXX
+  /** @type {!(Array.<number>|Uint16Array)} lz77 buffer */
+  var lz77buf = USE_TYPEDARRAY ?
+    new Uint16Array(dataArray.length * 2) : new Array();
   /** @type {number} lz77 output buffer pointer */
   var pos = 0;
   /** @type {number} lz77 skip length */
@@ -626,9 +625,11 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   // LZ77 符号化
   for (position = 0, length = dataArray.length; position < length; ++position) {
     // ハッシュキーの作成
-    matchKeyArray = slice(dataArray, position, Zlib.RawDeflate.Lz77MinLength);
-    for (matchKey = 0, i = 0, il = matchKeyArray.length; i < il; ++i) {
-      matchKey = ((matchKey << 8) | (matchKeyArray[i] & 0xff));
+    for (matchKey = 0, i = 0, il = Zlib.RawDeflate.Lz77MinLength; i < il; ++i) {
+      if (position + i === length) {
+        break;
+      }
+      matchKey = (matchKey << 8) | dataArray[position + i];
     }
 
     // テーブルが未定義だったら作成する
@@ -647,14 +648,15 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
     }
 
     // データ末尾でマッチしようがない場合はそのまま流しこむ
-    if (matchKeyArray.length < Zlib.RawDeflate.Lz77MinLength) {
-      if (prevMatch instanceof Lz77Match) {
+    if (position + Zlib.RawDeflate.Lz77MinLength >= length) {
+      if (prevMatch) {
         writeMatch(prevMatch, -1);
       }
 
-      for (i = 0, il = matchKeyArray.length; i < il; ++i) {
-        lz77buf[pos++] = matchKeyArray[i];
-        ++freqsLitLen[matchKeyArray[i]];
+      for (i = 0, il = length - position; i < il; ++i) {
+        tmp = dataArray[position + i];
+        lz77buf[pos++] = tmp;
+        ++freqsLitLen[tmp];
       }
       break;
     }
@@ -663,18 +665,18 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
     if (matchList.length > 0) {
       longestMatch = this.searchLongestMatch_(dataArray, position, matchList);
 
-      if (prevMatch instanceof Lz77Match) {
+      if (prevMatch) {
         // 現在のマッチの方が前回のマッチよりも長い
         if (prevMatch.length < longestMatch.length) {
-          // write previous character
-          tmp = dataArray[position - 1]
+          // write previous literal
+          tmp = dataArray[position - 1];
           lz77buf[pos++] = tmp;
           ++freqsLitLen[tmp];
 
           // write current match
-          writeMatch(longestMatch, 0); // current match
+          writeMatch(longestMatch, 0);
         } else {
-          // write // previous match
+          // write previous match
           writeMatch(prevMatch, -1);
         }
       } else if (longestMatch.length < lazy) {
@@ -682,8 +684,9 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
       } else {
         writeMatch(longestMatch, 0);
       }
-    } else if (prevMatch instanceof Lz77Match) {
-      writeMatch(prevMatch, -1); // previous match
+    // 前回マッチしていて今回マッチがなかったら前回のを採用
+    } else if (prevMatch) {
+      writeMatch(prevMatch, -1);
     } else {
       tmp = dataArray[position];
       lz77buf[pos++] = tmp;
@@ -699,8 +702,9 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   this.freqsLitLen = freqsLitLen;
   this.freqsDist = freqsDist;
 
-  // XXX: concatBuffer
-  return lz77buf.subarray(0, pos);
+  return /** @type {!(Uint16Array|Array)} */ (
+    USE_TYPEDARRAY ?  lz77buf.subarray(0, pos) : lz77buf
+  );
 };
 
 /**
@@ -738,7 +742,7 @@ function(data, position, matchList) {
     while (matchLength < Zlib.RawDeflate.Lz77MaxLength &&
            position + matchLength < dl &&
            data[match + matchLength] === data[position + matchLength]) {
-      matchLength++;
+      ++matchLength;
     }
 
     // マッチ長が同じ場合は後方を優先
@@ -768,10 +772,12 @@ function(data, position, matchList) {
  */
 Zlib.RawDeflate.prototype.getTreeSymbols_ =
 function(hlit, litlenLengths, hdist, distLengths) {
-  var src = new Array(hlit + hdist),
+  var src = new (USE_TYPEDARRAY ? Uint32Array : Array)(hlit + hdist),
       i, j, runLength, l, length,
-      result = new Array(286 + 30), nResult,
-      rpt, freqs = new Array(19);
+      result = new (USE_TYPEDARRAY ? Uint32Array : Array)(286 + 30),
+      nResult,
+      rpt,
+      freqs = new (USE_TYPEDARRAY ? Uint8Array : Array)(19);
 
   j = 0;
   for (i = 0; i < hlit; i++) {
@@ -782,16 +788,17 @@ function(hlit, litlenLengths, hdist, distLengths) {
   }
 
   // 初期化
-  // XXX: Uint8Array の場合はここの初期化処理が要らない
-  for (i = 0, l = freqs.length; i < l; i++) {
-    freqs[i] = 0;
+  if (!USE_TYPEDARRAY) {
+    for (i = 0, l = freqs.length; i < l; ++i) {
+      freqs[i] = 0;
+    }
   }
 
   // 符号化
   nResult = 0;
   for (i = 0, l = src.length; i < l; i += j) {
     // Run Length Encoding
-    for (j = 1; i + j < l && src[i + j] === src[i]; j++) {}
+    for (j = 1; i + j < l && src[i + j] === src[i]; ++j) {}
 
     runLength = j;
 
@@ -857,7 +864,13 @@ function(hlit, litlenLengths, hdist, distLengths) {
     }
   }
 
-  return {codes: result.slice(0, nResult), freqs: freqs};
+  return {
+    codes:
+      USE_TYPEDARRAY ?
+      result.subarray(0, nResult) :
+      result.slice(0, nResult),
+    freqs: freqs
+  };
 };
 
 /**
@@ -873,8 +886,8 @@ Zlib.RawDeflate.prototype.getLengths_ = function(freqs, opt_limit) {
       nActiveSymbols,
       max = 2 * Zlib.RawDeflate.HUFMAX - 1,
       heap = new Zlib.Heap(2 * Zlib.RawDeflate.HUFMAX),
-      parent = new Array(max),
-      length = new Array(max),
+      parent = new (USE_TYPEDARRAY ? Uint32Array : Array)(max),
+      length = new (USE_TYPEDARRAY ? Uint32Array : Array)(max),
       i, node1, node2,
       freqsZero = [],
       maxProb, smallestFreq = Infinity, totalFreq,
@@ -922,9 +935,11 @@ Zlib.RawDeflate.prototype.getLengths_ = function(freqs, opt_limit) {
   }
 
   // 配列の初期化
-  for (i = 0; i < max; i++) {
-    parent[i] = 0;
-    length[i] = 0;
+  if (!USE_TYPEDARRAY) {
+    for (i = 0; i < max; i++) {
+      parent[i] = 0;
+      length[i] = 0;
+    }
   }
 
   // ヒープの構築
@@ -939,8 +954,7 @@ Zlib.RawDeflate.prototype.getLengths_ = function(freqs, opt_limit) {
   for (i = Zlib.RawDeflate.HUFMAX; heap.length > 2; i++) {
     node1 = heap.pop();
     node2 = heap.pop();
-    parent[node1.index] = i;
-    parent[node2.index] = i;
+    parent[node1.index] = parent[node2.index] = i;
     heap.push(i, node1.value + node2.value);
   }
 
@@ -951,7 +965,11 @@ Zlib.RawDeflate.prototype.getLengths_ = function(freqs, opt_limit) {
     }
   }
 
-  return length.slice(0, nSymbols);
+  return (
+    USE_TYPEDARRAY ?
+    length.subarray(0, nSymbols) :
+    length.slice(0, nSymbols)
+  );
 };
 
 /**
@@ -962,7 +980,7 @@ Zlib.RawDeflate.prototype.getLengths_ = function(freqs, opt_limit) {
  * @private
  */
 Zlib.RawDeflate.prototype.getCodesFromLengths_ = function(lengths) {
-  var codes = new Array(lengths.length),
+  var codes = new (USE_TYPEDARRAY ? Uint16Array : Array)(lengths.length),
       count = [],
       startCode = [],
       code = 0, i, l, j, m;
@@ -986,7 +1004,7 @@ Zlib.RawDeflate.prototype.getCodesFromLengths_ = function(lengths) {
   }
 
   // undercommitted
-  if (code < ((1 << Zlib.RawDeflate.MaxCodeLength) >>> 0)) {
+  if (code < ((1 << Zlib.RawDeflate.MaxCodeLength) | 0)) {
     throw 'undercommitted';
   }
 
