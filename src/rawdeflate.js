@@ -30,8 +30,12 @@
 
 goog.provide('Zlib.RawDeflate');
 
+//-----------------------------------------------------------------------------
+
 /** @define {boolean} export symbols. */
 var ZLIB_RAWDEFLATE_EXPORT = false;
+
+//-----------------------------------------------------------------------------
 
 goog.require('Zlib.BitStream');
 goog.require('Zlib.Heap');
@@ -1026,7 +1030,6 @@ Zlib.RawDeflate.prototype.getCodesFromLengths_ = function(lengths) {
 //*****************************************************************************
 // export
 //*****************************************************************************
-
 if (ZLIB_RAWDEFLATE_EXPORT) {
   goog.exportSymbol(
     'Zlib.RawDeflate',
@@ -1035,6 +1038,18 @@ if (ZLIB_RAWDEFLATE_EXPORT) {
   goog.exportSymbol(
     'Zlib.RawDeflate.CompressionType',
     Zlib.RawDeflate.CompressionType
+  );
+  goog.exportSymbol(
+    'Zlib.RawDeflate.CompressionType.NONE',
+    Zlib.RawDeflate.CompressionType.NONE
+  );
+  goog.exportSymbol(
+    'Zlib.RawDeflate.CompressionType.FIXED',
+    Zlib.RawDeflate.CompressionType.FIXED
+  );
+  goog.exportSymbol(
+    'Zlib.RawDeflate.CompressionType.DYNAMIC',
+    Zlib.RawDeflate.CompressionType.DYNAMIC
   );
 }
 

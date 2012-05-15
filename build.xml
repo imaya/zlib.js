@@ -1,26 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="project" default="all" >
-
-	<!-- ソースディレクトリ -->
 	<property name="src" value="./src" />
-
-	<!-- defines -->
 	<property name="def" value="./define" />
-
-	<!-- ベンダーディレクトリ -->
 	<property name="vendor" value="./vendor" />
-
-	<!-- バイナリディレクトリ -->
 	<property name="bin" value="./bin" />
-
-	<!-- closure compiler -->
-	<property name="compiler" value="../${vendor}/google-closure-compiler/compiler.jar" />
-	<!--property name="compiler" value="../${vendor}/google-closure-compiler/compiler-report-unknown-type.jar" /-->
+	<property name="compiler" value="${vendor}/google-closure-compiler/compiler.jar" />
 
 	<!-- 依存関係を解決する deps.js のビルド -->
 	<target name="deps" description="依存関係を解決する deps.js を作成する" >
-		<exec dir="${src}" executable="python" failonerror="true">
-			<arg line="../${vendor}/google-closure-library/closure/bin/build/depswriter.py" />
+		<exec executable="python" failonerror="true">
+			<arg line="${vendor}/google-closure-library/closure/bin/build/depswriter.py" />
 			<arg line="--root_with_prefix=&quot;. ../../../../src&quot;" />
 			<arg line="--output_file=deps.js " />
 		</exec>
@@ -29,29 +18,32 @@
 	<!-- Inflate の単体ビルド -->
 	<target name="inflate" depends="deps" description="Inflate の独立ビルドを行う" >
 		<!-- 出力ファイル名 -->
+		<local name="outfile" />
 		<property name="outfile" value="${bin}/inflate.min.js" />
 		<!-- ビルド(出力先は一時ファイル) -->
-		<exec dir="${src}" executable="python" failonerror="true">
-			<arg line="../${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
+		<exec executable="python" failonerror="true">
+			<arg line="${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
 			<arg line="-c ${compiler}" />
 			<arg line="-f &quot;--warning_level=VERBOSE&quot;" />
-			<arg line="-f &quot;--compilation_level=ADVANCED_OPTIMIZATIONS&quot;" />
+			<arg line="-f &quot;--compilation_level=LIBRARY_OPTIMIZATIONS&quot;" />
 			<arg line="-f &quot;--define=goog.DEBUG=false&quot;" />
 			<arg line="-f &quot;--define=ZLIB_DEFLATE_EXPORT=false&quot;" />
 			<arg line="-f &quot;--define=ZLIB_INFLATE_EXPORT=true&quot;" />
 			<arg line="-f &quot;--output_wrapper='(function() {%output%})();'&quot;" />
 			<arg line="-f &quot;--summary_detail_level=3&quot;" />
-			<arg line="--root=../${vendor}/google-closure-library/closure" />
-			<arg line="--root=../${vendor}/google-closure-library/third_party/closure" />
-			<arg line="--root=." />
+			<arg line="--root=${vendor}/google-closure-library/closure" />
+			<arg line="--root=${vendor}/google-closure-library/third_party/closure" />
+			<arg line="--root=${src}" />
 			<arg line="--namespace=Zlib" />
 			<arg line="-o compiled" />
-			<arg line="--output_file=../${outfile}.tmp" />
+			<arg line="--output_file=${outfile}.tmp" />
 			<arg line="-n USE_TYPEDARRAY" />
-			<arg line="../${def}/typedarray/hybrid.js" />
+			<arg line="${def}/typedarray/hybrid.js" />
 		</exec>
 		<!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
+		<local name="license" />
 		<loadfile property="license" srcfile="./LICENSE_min" />
+		<local name="output" />
 		<loadfile property="output" srcfile="${outfile}.tmp" />
 		<!-- ライセンスとビルドされたファイルの結合 -->
 		<echo file="${outfile}" append="no" message="${license}" />
@@ -64,29 +56,34 @@
 	<!-- Deflate の単体ビルド -->
 	<target name="deflate" depends="deps" description="Deflate の独立ビルドを行う" >
 		<!-- 出力ファイル名 -->
+		<local name="outfile" />
 		<property name="outfile" value="${bin}/deflate.min.js" />
 		<!-- ビルド(出力先は一時ファイル) -->
-		<exec dir="${src}" executable="python" failonerror="true">
-			<arg line="../${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
+		<exec executable="python" failonerror="true">
+			<arg line="${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
 			<arg line="-c ${compiler}" />
 			<arg line="-f &quot;--warning_level=VERBOSE&quot;" />
-			<arg line="-f &quot;--compilation_level=ADVANCED_OPTIMIZATIONS&quot;" />
+			<arg line="-f &quot;--compilation_level=LIBRARY_OPTIMIZATIONS&quot;" />
 			<arg line="-f &quot;--define=goog.DEBUG=false&quot;" />
 			<arg line="-f &quot;--define=ZLIB_DEFLATE_EXPORT=true&quot;" />
+			<arg line="-f &quot;--define=ZLIB_RAWDEFLATE_EXPORT=true&quot;" />
 			<arg line="-f &quot;--define=ZLIB_INFLATE_EXPORT=false&quot;" />
 			<arg line="-f &quot;--output_wrapper='(function() {%output%})();'&quot;" />
 			<arg line="-f &quot;--summary_detail_level=3&quot;" />
-			<arg line="--root=../${vendor}/google-closure-library/closure" />
-			<arg line="--root=../${vendor}/google-closure-library/third_party/closure" />
-			<arg line="--root=." />
+			<arg line="-f &quot;--process_closure_primitives&quot;" />
+			<arg line="--root=${vendor}/google-closure-library/closure" />
+			<arg line="--root=${vendor}/google-closure-library/third_party/closure" />
+			<arg line="--root=${src}" />
 			<arg line="--namespace=Zlib" />
 			<arg line="-o compiled" />
-			<arg line="--output_file=../${outfile}.tmp" />
+			<arg line="--output_file=${outfile}.tmp" />
 			<arg line="-n USE_TYPEDARRAY" />
-			<arg line="../${def}/typedarray/hybrid.js" />
+			<arg line="${def}/typedarray/hybrid.js" />
 		</exec>
 		<!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
+		<local name="license" />
 		<loadfile property="license" srcfile="./LICENSE_min" />
+		<local name="output" />
 		<loadfile property="output" srcfile="${outfile}.tmp" />
 		<!-- ライセンスとビルドされたファイルの結合 -->
 		<echo file="${outfile}" append="no" message="${license}" />
@@ -100,29 +97,32 @@
 	<!-- リリース版のビルド -->
 	<target name="release" depends="deps" description="リリース版のファイル zlib.min.js を作成する" >
 		<!-- 出力ファイル名 -->
+		<local name="outfile" />
 		<property name="outfile" value="${bin}/zlib.min.js" />
 		<!-- ビルド(出力先は一時ファイル) -->
-		<exec dir="${src}" executable="python" failonerror="true">
-			<arg line="../${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
+		<exec executable="python" failonerror="true">
+			<arg line="${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
 			<arg line="-c ${compiler}" />
 			<arg line="-f &quot;--warning_level=VERBOSE&quot;" />
-			<arg line="-f &quot;--compilation_level=ADVANCED_OPTIMIZATIONS&quot;" />
+			<arg line="-f &quot;--compilation_level=LIBRARY_OPTIMIZATIONS&quot;" />
 			<arg line="-f &quot;--define=goog.DEBUG=false&quot;" />
 			<arg line="-f &quot;--define=ZLIB_DEFLATE_EXPORT=true&quot;" />
 			<arg line="-f &quot;--define=ZLIB_INFLATE_EXPORT=true&quot;" />
 			<arg line="-f &quot;--output_wrapper='(function() {%output%})();'&quot;" />
 			<arg line="-f &quot;--summary_detail_level=3&quot;" />
-			<arg line="--root=../${vendor}/google-closure-library/closure" />
-			<arg line="--root=../${vendor}/google-closure-library/third_party/closure" />
-			<arg line="--root=." />
+			<arg line="--root=${vendor}/google-closure-library/closure" />
+			<arg line="--root=${vendor}/google-closure-library/third_party/closure" />
+			<arg line="--root=${src}" />
 			<arg line="--namespace=Zlib" />
 			<arg line="-o compiled" />
-			<arg line="--output_file=../${outfile}.tmp" />
+			<arg line="--output_file=${outfile}.tmp" />
 			<arg line="-n USE_TYPEDARRAY" />
-			<arg line="../${def}/typedarray/hybrid.js" />
+			<arg line="${def}/typedarray/hybrid.js" />
 		</exec>
 		<!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
+		<local name="license" />
 		<loadfile property="license" srcfile="./LICENSE_min" />
+		<local name="output" />
 		<loadfile property="output" srcfile="${outfile}.tmp" />
 		<!-- ライセンスとビルドされたファイルの結合 -->
 		<echo file="${outfile}" append="no" message="${license}" />

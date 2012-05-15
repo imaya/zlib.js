@@ -192,7 +192,7 @@ Zlib.Inflate.LengthCodeTable = (function(table) {
   0x000d, 0x000f, 0x0011, 0x0013, 0x0017, 0x001b, 0x001f, 0x0023, 0x002b,
   0x0033, 0x003b, 0x0043, 0x0053, 0x0063, 0x0073, 0x0083, 0x00a3, 0x00c3,
   0x00e3, 0x0102, 0x0102, 0x0102
-]);0
+]);
 
 /**
  * huffman length extra-bits table.
@@ -713,9 +713,10 @@ Zlib.Inflate.prototype.decodeHuffmanDynamic = function(litlen, dist) {
 
 /**
  * expand output buffer.
- * @return {number} output buffer pointer.
+ * @param {Object=} opt_param option parameters.
+ * @return {!(Array|Uint8Array)} output buffer.
  */
-Zlib.Inflate.prototype.expandBuffer = function() {
+Zlib.Inflate.prototype.expandBuffer = function(opt_param) {
   /** @type {!(Array|Uint8Array)} store buffer. */
   var buffer =
     new (USE_TYPEDARRAY ? Uint8Array : Array)(
@@ -760,9 +761,10 @@ Zlib.Inflate.prototype.expandBuffer = function() {
 
 /**
  * expand output buffer. (dynamic)
- * @return {number} output buffer pointer.
+ * @param {Object=} opt_param option parameters.
+ * @return {!(Array|Uint8Array)} output buffer pointer.
  */
-Zlib.Inflate.prototype.expandBufferDynamic = function(opt_option) {
+Zlib.Inflate.prototype.expandBufferDynamic = function(opt_param) {
   /** @type {!(Array|Uint8Array)} store buffer. */
   var buffer;
   /** @type {number} expantion ratio. */
@@ -771,13 +773,15 @@ Zlib.Inflate.prototype.expandBufferDynamic = function(opt_option) {
   var maxHuffCode;
   /** @type {number} new output buffer size. */
   var newSize;
+  /** @type {number} max inflate size. */
+  var maxInflateSize;
 
-  if (opt_option) {
-    if (typeof opt_option.fixRatio === 'number') {
-      ratio = opt_option.fixRatio;
+  if (opt_param) {
+    if (typeof opt_param.fixRatio === 'number') {
+      ratio = opt_param.fixRatio;
     }
-    if (typeof opt_option.addRatio === 'number') {
-      ratio += opt_option.addRatio;
+    if (typeof opt_param.addRatio === 'number') {
+      ratio += opt_param.addRatio;
     }
   }
 
@@ -998,7 +1002,6 @@ Zlib.Inflate.fromString = function(str) {
 //*****************************************************************************
 // export
 //*****************************************************************************
-
 if (ZLIB_INFLATE_EXPORT) {
   goog.exportSymbol('Zlib.Inflate', Zlib.Inflate);
   goog.exportSymbol(
