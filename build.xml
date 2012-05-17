@@ -132,6 +132,43 @@
 		<delete file="${outfile}.tmp" />
 	</target>
 
+	<!-- 開発版のビルド -->
+	<target name="develop" depends="deps" description="型が未定義の変数を探す" >
+		<!-- 出力ファイル名 -->
+		<local name="outfile" />
+		<property name="outfile" value="${bin}/zlib.develop.min.js" />
+		<!-- ビルド(出力先は一時ファイル) -->
+		<exec executable="python" failonerror="true">
+			<arg line="${vendor}/google-closure-library/closure/bin/build/closurebuilder.py" />
+			<arg line="-c ${compiler}" />
+			<arg line="-f &quot;--warning_level=VERBOSE&quot;" />
+			<arg line="-f &quot;--compilation_level=DEVELOPMENT&quot;" />
+			<arg line="-f &quot;--define=goog.DEBUG=false&quot;" />
+			<arg line="-f &quot;--define=ZLIB_DEFLATE_EXPORT=true&quot;" />
+			<arg line="-f &quot;--define=ZLIB_INFLATE_EXPORT=true&quot;" />
+			<arg line="-f &quot;--output_wrapper='(function() {%output%})();'&quot;" />
+			<arg line="-f &quot;--summary_detail_level=3&quot;" />
+			<arg line="--root=${vendor}/google-closure-library/closure" />
+			<arg line="--root=${vendor}/google-closure-library/third_party/closure" />
+			<arg line="--root=${src}" />
+			<arg line="--namespace=Zlib" />
+			<arg line="-o compiled" />
+			<arg line="--output_file=${outfile}.tmp" />
+			<arg line="-n USE_TYPEDARRAY" />
+			<arg line="${def}/typedarray/hybrid.js" />
+		</exec>
+		<!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
+		<local name="license" />
+		<loadfile property="license" srcfile="./LICENSE_min" />
+		<local name="output" />
+		<loadfile property="output" srcfile="${outfile}.tmp" />
+		<!-- ライセンスとビルドされたファイルの結合 -->
+		<echo file="${outfile}" append="no" message="${license}" />
+		<echo file="${outfile}" append="yes" message="${output}"/>
+		<fixcrlf file="${outfile}" eol="unix" eof="remove" />
+		<!-- 一時ファイルの削除 -->
+		<delete file="${outfile}.tmp" />
+	</target>
 	<!-- 全て作成 -->
 	<target name="all" depends="release,inflate,deflate"></target>
 
