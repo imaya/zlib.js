@@ -31,17 +31,17 @@
 
 goog.provide('Zlib.Deflate');
 
+//-----------------------------------------------------------------------------
+
 /** @define {boolean} export symbols. */
 var ZLIB_DEFLATE_EXPORT = false;
-if (ZLIB_DEFLATE_EXPORT) {
-  var ZLIB_RAWDEFLATE_EXPROT = true;
-}
+
+//-----------------------------------------------------------------------------
 
 goog.require('Zlib.Adler32');
 goog.require('Zlib.BitStream');
 goog.require('Zlib.RawDeflate');
 goog.require('Zlib.Util');
-
 
 goog.scope(function() {
 
@@ -153,7 +153,6 @@ Zlib.Deflate.prototype.compress = function(buffer) {
 //*****************************************************************************
 // export
 //*****************************************************************************
-
 if (ZLIB_DEFLATE_EXPORT) {
   goog.exportSymbol('Zlib.Deflate', Zlib.Deflate);
   goog.exportSymbol(

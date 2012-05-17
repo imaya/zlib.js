@@ -67,16 +67,37 @@ Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
   this.input =
     (USE_TYPEDARRAY && input instanceof Array) ? new Uint8Array(input) : input;
   /** @type {!(Uint8Array|Array)} output buffer. */
-  this.output =
-    new (USE_TYPEDARRAY ? Uint8Array : Array)(
-      Zlib.Inflate.MaxBackwardLength +
-      this.blockSize +
-      Zlib.Inflate.MaxCopyLength
-    );
+  this.output;
   /** @type {!number} output buffer pointer. */
-  this.op = Zlib.Inflate.MaxBackwardLength;
+  this.op;
   /** @type {boolean} is final block flag. */
   this.bfinal = false;
+  /** @type {Zlib.Inflate.Mode} inflate mode */
+  this.mode = Zlib.Inflate.Mode.ADAPTIVE;
+  /** @type {boolean} resize flag for memory size optimization. */
+  this.resize = false;
+
+  // initialize
+  switch (this.mode) {
+    case Zlib.Inflate.Mode.BLOCK:
+      this.op = Zlib.Inflate.MaxBackwardLength;
+      this.output =
+        new (USE_TYPEDARRAY ? Uint8Array : Array)(
+          Zlib.Inflate.MaxBackwardLength +
+          this.blockSize +
+          Zlib.Inflate.MaxCopyLength
+        );
+      break;
+    case Zlib.Inflate.Mode.ADAPTIVE:
+      this.op = 0;
+      this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(this.blockSize);
+      this.expandBuffer = this.expandBufferDynamic;
+      this.concatBuffer = this.concatBufferDynamic;
+      this.decodeHuffman = this.decodeHuffmanDynamic;
+      break;
+    default:
+      throw new Error('invalid inflate mode');
+  }
 
   // Compression Method and Flags
   var cmf = input[this.ip++];
@@ -101,6 +122,14 @@ Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
     throw new Error('fdict flag is not supported');
   }
 }
+
+/**
+ * @enum {number}
+ */
+Zlib.Inflate.Mode = {
+  BLOCK: 0,
+  ADAPTIVE: 1
+};
 
 /**
  * inflate.
@@ -412,23 +441,53 @@ Zlib.Inflate.prototype.parseUncompressedBlock = function() {
     throw new Error('invalid uncompressed block header: length verify');
   }
 
-  // copy
+  // check size
   if (ip + len > input.length) { throw new Error('input buffer is broken'); }
-  while (op + len >= olength) {
-    preCopy = olength - op;
-    len -= preCopy;
-    while (preCopy--) {
+
+  // expand buffer
+  switch (this.mode) {
+    case Zlib.Inflate.Mode.BLOCK:
+      // pre copy
+      while (op + len >= output.length) {
+        preCopy = olength - op;
+        len -= preCopy;
+        if (USE_TYPEDARRAY) {
+          output.set(input.subarray(ip, ip + preCopy), op);
+          op += preCopy;
+          ip += preCopy;
+        } else {
+          while (preCopy--) {
+            output[op++] = input[ip++];
+          }
+        }
+        this.op = op;
+        output = this.expandBuffer();
+        op = this.op;
+      }
+      break;
+    case Zlib.Inflate.Mode.ADAPTIVE:
+      while (op + len > output.length) {
+        output = this.expandBuffer({fixRatio: 2});
+      }
+      break;
+    default:
+      throw new Error('invalid inflate mode');
+  }
+
+  // copy
+  if (USE_TYPEDARRAY) {
+    output.set(input.subarray(ip, ip + len), op);
+    op += len;
+    ip += len;
+  } else {
+    while (len--) {
       output[op++] = input[ip++];
     }
-    this.op = op;
-    op = this.expandBuffer();
-  }
-  while (len--) {
-    output[op++] = input[ip++];
   }
 
   this.ip = ip;
   this.op = op;
+  this.output = output;
 };
 
 /**
@@ -527,6 +586,9 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
   var output = this.output;
   var op = this.op;
 
+  this.currentLitlenTable = litlen;
+  this.currentDistTable = dist;
+
   /** @type {number} output position limit. */
   var olength = output.length - Zlib.Inflate.MaxCopyLength;
   /** @type {number} huffman code. */
@@ -547,7 +609,8 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
     if (code < 256) {
       if (op >= olength) {
         this.op = op;
-        op = this.expandBuffer();
+        output = this.expandBuffer();
+        op = this.op;
       }
       output[op++] = code;
 
@@ -571,7 +634,74 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
     // lz77 decode
     if (op >= olength) {
       this.op = op;
-      op = this.expandBuffer();
+      output = this.expandBuffer();
+      op = this.op;
+    }
+    while (codeLength--) {
+      output[op] = output[(op++) - codeDist];
+    }
+  }
+
+  this.op = op;
+};
+
+/**
+ * decode huffman code (dynamic)
+ * @param {!Array} litlen literal and length code table.
+ * @param {!Array} dist distination code table.
+ */
+Zlib.Inflate.prototype.decodeHuffmanDynamic = function(litlen, dist) {
+  var output = this.output;
+  var op = this.op;
+
+  this.currentLitlenTable = litlen;
+  this.currentDistTable = dist;
+
+  /** @type {number} output position limit. */
+  var olength = output.length;
+  /** @type {number} huffman code. */
+  var code;
+  /** @type {number} table index. */
+  var ti;
+  /** @type {number} huffman code distination. */
+  var codeDist;
+  /** @type {number} huffman code length. */
+  var codeLength;
+  /** @type {number} buffer position. */
+  var bpos;
+  /** @type {number} pre-copy counter. */
+  var preCopy;
+
+  while ((code = this.readCodeByTable(litlen)) !== 256) {
+    // literal
+    if (code < 256) {
+      if (op === olength) {
+        output = this.expandBuffer();
+        olength = output.length;
+      }
+      output[op++] = code;
+
+      continue;
+    }
+
+    // length code
+    ti = code - 257;
+    codeLength = Zlib.Inflate.LengthCodeTable[ti];
+    if (Zlib.Inflate.LengthExtraTable[ti] > 0) {
+      codeLength += this.readBits(Zlib.Inflate.LengthExtraTable[ti]);
+    }
+
+    // dist code
+    code = this.readCodeByTable(dist);
+    codeDist = Zlib.Inflate.DistCodeTable[code];
+    if (Zlib.Inflate.DistExtraTable[code] > 0) {
+      codeDist += this.readBits(Zlib.Inflate.DistExtraTable[code]);
+    }
+
+    // lz77 decode
+    if (op + codeLength >= olength) {
+      output = this.expandBuffer();
+      olength = output.length;
     }
     while (codeLength--) {
       output[op] = output[(op++) - codeDist];
@@ -583,9 +713,10 @@ Zlib.Inflate.prototype.decodeHuffman = function(litlen, dist) {
 
 /**
  * expand output buffer.
- * @return {number} output buffer pointer.
+ * @param {Object=} opt_param option parameters.
+ * @return {!(Array|Uint8Array)} output buffer.
  */
-Zlib.Inflate.prototype.expandBuffer = function() {
+Zlib.Inflate.prototype.expandBuffer = function(opt_param) {
   /** @type {!(Array|Uint8Array)} store buffer. */
   var buffer =
     new (USE_TYPEDARRAY ? Uint8Array : Array)(
@@ -601,20 +732,83 @@ Zlib.Inflate.prototype.expandBuffer = function() {
   var output = this.output;
 
   // copy to output buffer
-  for (i = 0, il = buffer.length; i < il; ++i) {
-    buffer[i] = output[i + Zlib.Inflate.MaxBackwardLength];
+  if (USE_TYPEDARRAY) {
+    buffer.set(output.subarray(Zlib.Inflate.MaxBackwardLength, buffer.length));
+  } else {
+    for (i = 0, il = buffer.length; i < il; ++i) {
+      buffer[i] = output[i + Zlib.Inflate.MaxBackwardLength];
+    }
   }
+
   this.blocks.push(buffer);
   this.totalpos += buffer.length;
 
   // copy to backward buffer
-  for (i = 0; i < Zlib.Inflate.MaxBackwardLength; ++i) {
-    output[i] = output[backward + i];
+  if (USE_TYPEDARRAY) {
+    output.set(
+      output.subarray(backward, backward + Zlib.Inflate.MaxBackwardLength)
+    );
+  } else {
+    for (i = 0; i < Zlib.Inflate.MaxBackwardLength; ++i) {
+      output[i] = output[backward + i];
+    }
   }
 
   this.op = Zlib.Inflate.MaxBackwardLength;
 
-  return this.op;
+  return output;
+};
+
+/**
+ * expand output buffer. (dynamic)
+ * @param {Object=} opt_param option parameters.
+ * @return {!(Array|Uint8Array)} output buffer pointer.
+ */
+Zlib.Inflate.prototype.expandBufferDynamic = function(opt_param) {
+  /** @type {!(Array|Uint8Array)} store buffer. */
+  var buffer;
+  /** @type {number} expantion ratio. */
+  var ratio = (this.input.length / this.ip + 1) | 0;
+  /** @type {number} maximum number of huffman code. */
+  var maxHuffCode;
+  /** @type {number} new output buffer size. */
+  var newSize;
+  /** @type {number} max inflate size. */
+  var maxInflateSize;
+
+  if (opt_param) {
+    if (typeof opt_param.fixRatio === 'number') {
+      ratio = opt_param.fixRatio;
+    }
+    if (typeof opt_param.addRatio === 'number') {
+      ratio += opt_param.addRatio;
+    }
+  }
+
+  var input = this.input;
+  var output = this.output;
+
+  // calculate new buffer size
+  if (ratio < 2) {
+    maxHuffCode =
+      (input.length - this.ip) / this.currentLitlenTable[2];
+    maxInflateSize = (maxHuffCode / 2 * 258) | 0;
+    newSize = maxInflateSize < output.length ?
+      output.length + maxInflateSize :
+      output.length << 1;
+  } else {
+    newSize = output.length * ratio;
+  }
+
+  // create new output buffer
+  buffer = new (USE_TYPEDARRAY ? Uint8Array : Array)(newSize);
+
+  // copy
+  buffer.set(output);
+
+  this.output = buffer;
+
+  return this.output;
 };
 
 /**
@@ -669,6 +863,34 @@ Zlib.Inflate.prototype.concatBuffer = function() {
   return this.buffer;
 };
 
+/**
+ * concat output buffer. (dynamic)
+ * @return {!(Array|Uint8Array)} output buffer.
+ */
+Zlib.Inflate.prototype.concatBufferDynamic = function() {
+  /** @type {Array|Uint8Array} output buffer. */
+  var buffer;
+  var resize = this.resize;
+
+  var op = this.op;
+
+  if (resize) {
+    if (USE_TYPEDARRAY) {
+      buffer = new Uint8Array(op);
+      buffer.set(this.output.subarray(0, op));
+    } else {
+      buffer = this.output.slice(0, op);
+    }
+  } else {
+    buffer =
+      USE_TYPEDARRAY ?  this.output.subarray(0, op) : this.output.slice(0, op);
+  }
+
+
+  this.buffer = buffer;
+
+  return this.buffer;
+};
 
 //-----------------------------------------------------------------------------
 // utility functions
@@ -684,6 +906,8 @@ function buildHuffmanTable(lengths) {
   var listSize = lengths.length;
   /** @type {number} max code length for table size. */
   var maxCodeLength = 0;
+  /** @type {number} min code length for table size. */
+  var minCodeLength = Number.POSITIVE_INFINITY;
   /** @type {number} table size. */
   var size;
   /** @type {!(Array|Uint8Array)} huffman code table. */
@@ -714,6 +938,9 @@ function buildHuffmanTable(lengths) {
   for (i = 0, il = listSize; i < il; ++i) {
     if (lengths[i] > maxCodeLength) {
       maxCodeLength = lengths[i];
+    }
+    if (lengths[i] < minCodeLength) {
+      minCodeLength = lengths[i];
     }
   }
 
@@ -748,7 +975,7 @@ function buildHuffmanTable(lengths) {
     skip <<= 1;
   }
 
-  return [table, maxCodeLength];
+  return [table, maxCodeLength, minCodeLength];
 }
 
 /**
@@ -775,7 +1002,6 @@ Zlib.Inflate.fromString = function(str) {
 //*****************************************************************************
 // export
 //*****************************************************************************
-
 if (ZLIB_INFLATE_EXPORT) {
   goog.exportSymbol('Zlib.Inflate', Zlib.Inflate);
   goog.exportSymbol(

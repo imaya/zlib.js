@@ -48,7 +48,6 @@ Zlib.CompressionMethod = {
   RESERVED: 15
 };
 
-
 // end of scope
 });
 
