@@ -130,6 +130,44 @@
     <delete file="${outfile}.tmp"/>
   </target>
 
+  <!-- Node.js 版 Zlib のビルド -->
+  <target name="node" depends="deps,prebuild" description="create node.js version">
+    <!-- 出力ファイル名 -->
+    <local name="outfile"/>
+    <property name="outfile" value="${bin}/node-jszlib.js"/>
+    <!-- ビルド(出力先は一時ファイル) -->
+    <java jar="${compiler}" fork="true" failonerror="true">
+      <arg line="--warning_level=VERBOSE"/>
+      <arg line="--compilation_level=${level}"/>
+      <arg line="--define=goog.DEBUG=false"/>
+      <arg line="--define=ZLIB_DEFLATE_EXPORT=false"/>
+      <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=false"/>
+      <arg line="--define=ZLIB_INFLATE_EXPORT=false"/>
+      <arg line="--output_wrapper='(function() {%output%})();'"/>
+      <arg line="--summary_detail_level=3"/>
+      <arg line="--language_in=ECMASCRIPT5_STRICT"/>
+      <arg line="--externs=node/externs.js"/>
+      <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${closure_primitives}"/>
+      <arg line="--js=${depend}"/>
+      <arg line="--js=node/exports.js"/>
+      <arg line="${def}/typedarray/hybrid.js"/>
+      <arg line="${srcfiles}"/>
+    </java>
+    <!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
+    <local name="license"/>
+    <loadfile property="license" srcfile="./LICENSE_min"/>
+    <local name="output"/>
+    <loadfile property="output" srcfile="${outfile}.tmp"/>
+    <!-- ライセンスとビルドされたファイルの結合 -->
+    <echo file="${outfile}" append="no" message="${license}"/>
+    <echo file="${outfile}" append="yes" message="${output}"/>
+    <fixcrlf file="${outfile}" eol="unix" eof="remove"/>
+    <!-- 一時ファイルの削除 -->
+    <delete file="${outfile}.tmp"/>
+  </target>
+
+ 
   <target name="help">
     <java jar="${compiler}" fork="true" failonerror="true">
       <arg line="--help"/>
@@ -137,7 +175,7 @@
   </target>
 
   <!-- 全て作成 -->
-  <target name="all" depends="zlib,inflate,deflate"></target>
+  <target name="all" depends="zlib,inflate,deflate,node"></target>
 
   <!--  削除 -->
   <target name="clean">
