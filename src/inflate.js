@@ -776,6 +776,9 @@ Zlib.Inflate.prototype.expandBufferDynamic = function(opt_param) {
   /** @type {number} max inflate size. */
   var maxInflateSize;
 
+  var input = this.input;
+  var output = this.output;
+
   if (opt_param) {
     if (typeof opt_param.fixRatio === 'number') {
       ratio = opt_param.fixRatio;
@@ -784,9 +787,6 @@ Zlib.Inflate.prototype.expandBufferDynamic = function(opt_param) {
       ratio += opt_param.addRatio;
     }
   }
-
-  var input = this.input;
-  var output = this.output;
 
   // calculate new buffer size
   if (ratio < 2) {
@@ -800,11 +800,13 @@ Zlib.Inflate.prototype.expandBufferDynamic = function(opt_param) {
     newSize = output.length * ratio;
   }
 
-  // create new output buffer
-  buffer = new (USE_TYPEDARRAY ? Uint8Array : Array)(newSize);
-
-  // copy
-  buffer.set(output);
+  // buffer expantion
+  if (USE_TYPEDARRAY) {
+    buffer = new Uint8Array(newSize);
+    buffer.set(output);
+  } else {
+    buffer = output;
+  }
 
   this.output = buffer;
 
