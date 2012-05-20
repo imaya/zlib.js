@@ -1,0 +1,18 @@
+{
+  "author": "imaya <imaya.devel@gmail.com>",
+  "name": "jszlib",
+  "description": "zlib implementation in JavaScript",
+  "version": "0.0.1",
+  "main": "./bin/node-jszlib.js",
+  "homepage": "https://github.com/imaya/zlib.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/imaya/zlib.js.git"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}
