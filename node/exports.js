@@ -48,8 +48,14 @@ function deflate(buffer, callback, opt_params) {
 function deflateSync(buffer, opt_params) {
   /** @type {Zlib.Deflate} deflate encoder. */
   var deflate = new Zlib.Deflate();
-  /** @type {!(Buffer|Array|Uint8Array)} deflated buffer. */
-  var deflated = deflate.compress(/** @type {Array|Uint8Array}*/buffer);
+  /**
+   * compression method.
+   * @param {!(Buffer|Array|Uint8Array)} buffer plain data buffer.
+   * @return {!(Array|Uint8Array)} daflated buffer.
+   */
+  deflate.compress;
+  /** @type {!(Array|Uint8Array)} deflated buffer. */
+  var deflated = deflate.compress(buffer);
 
   if (!opt_params) {
     opt_params = {};
@@ -61,7 +67,7 @@ function deflateSync(buffer, opt_params) {
 
 /**
  * inflate async.
- * @param {!(Buffer|Array|Uint8Array)} buffer deflated buffer.
+ * @param {!(Array|Uint8Array)} buffer deflated buffer.
  * @param {function(Error, !(Buffer|Array|Uint8Array))} callback
  *     error calllback function.
  * @param {Object=} opt_params option parameters.
@@ -86,7 +92,7 @@ function inflate(buffer, callback, opt_params) {
 
 /**
  * inflate sync.
- * @param {!(Buffer|Array|Uint8Array)} buffer deflated buffer.
+ * @param {!(Array|Uint8Array)} buffer deflated buffer.
  * @param {Object=} opt_params option parameters.
  * @return {!(Buffer|Array|Uint8Array)} inflated plain buffer.
  */
@@ -111,7 +117,7 @@ function inflateSync(buffer, opt_params) {
 /**
  * convert to Buffer.
  * @param {!(Array.<number>|Uint8Array)} array arraylike object.
- * @return {Buffer} Buffer object.
+ * @return {!Buffer} Buffer object.
  */
 function toBuffer(array) {
   var buffer = new Buffer(array.length);
