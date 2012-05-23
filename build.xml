@@ -134,7 +134,7 @@
   <target name="node" depends="deps,prebuild" description="create node.js version">
     <!-- 出力ファイル名 -->
     <local name="outfile"/>
-    <property name="outfile" value="${bin}/node-jszlib.js"/>
+    <property name="outfile" value="${bin}/node-zlib.js"/>
     <!-- ビルド(出力先は一時ファイル) -->
     <java jar="${compiler}" fork="true" failonerror="true">
       <arg line="--warning_level=VERBOSE"/>
