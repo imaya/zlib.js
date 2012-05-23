@@ -92,9 +92,13 @@ function inflate(buffer, callback, opt_params) {
  */
 function inflateSync(buffer, opt_params) {
   /** @type {Zlib.Inflate} deflate decoder. */
-  var inflate = new Zlib.Inflate(buffer);
+  var inflate;
   /** @type {!(Buffer|Array|Uint8Array)} inflated plain buffer. */
-  var inflated = inflate.inflate();
+  var inflated;
+
+  buffer.subarray = buffer.slice;
+  inflate = new Zlib.Inflate(buffer);
+  inflated = inflate.inflate();
 
   if (!opt_params) {
     opt_params = {};
