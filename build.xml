@@ -38,7 +38,7 @@
       <arg line="--define=goog.DEBUG=false"/>
       <arg line="--define=ZLIB_DEFLATE_EXPORT=false"/>
       <arg line="--define=ZLIB_INFLATE_EXPORT=true"/>
-      <arg line="--output_wrapper='(function() {%output%})();'"/>
+      <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
@@ -73,7 +73,7 @@
       <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
       <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=true"/>
       <arg line="--define=ZLIB_INFLATE_EXPORT=false"/>
-      <arg line="--output_wrapper='(function() {%output%})();'"/>
+      <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
@@ -108,7 +108,7 @@
       <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
       <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=true"/>
       <arg line="--define=ZLIB_INFLATE_EXPORT=true"/>
-      <arg line="--output_wrapper='(function() {%output%})();'"/>
+      <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
@@ -143,7 +143,7 @@
       <arg line="--define=ZLIB_DEFLATE_EXPORT=false"/>
       <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=false"/>
       <arg line="--define=ZLIB_INFLATE_EXPORT=false"/>
-      <arg line="--output_wrapper='(function() {%output%})();'"/>
+      <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--externs=node/externs.js"/>
@@ -167,7 +167,7 @@
     <delete file="${outfile}.tmp"/>
   </target>
 
- 
+  <!-- compiler help -->
   <target name="help">
     <java jar="${compiler}" fork="true" failonerror="true">
       <arg line="--help"/>
