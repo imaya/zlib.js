@@ -15,6 +15,23 @@ var browserCommon = {
     ]
 };
 
+// ブラウザでコンパイル前のテスト
+config["plain"] = mixin(
+  mixin({}, browserCommon),
+  {
+    libs: [
+      "closure-primitives/base.js",
+      "define/typedarray/hybrid.js",
+      "depend.js",
+      "src/util.js",
+      "src/*.js"
+    ]
+  }
+);
+config["plain"].tests = [
+  "test/browser-plain-test.js"
+];
+
 // ブラウザで独立ビルド版のテスト
 config["inflate, deflate"] = mixin(
   mixin({}, browserCommon),
