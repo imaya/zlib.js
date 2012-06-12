@@ -121,8 +121,26 @@ buster.testCase(
       inflateTest(done, this.testData);
     },
     "random sequential data": function(done) {
-      makeSequentialData(this.testData);
+      makeRandomSequentialData(this.testData);
       inflateTest(done, this.testData);
+    },
+    // native gzip, js gunzip
+    "gzip random data": function(done) {
+      makeRandomData(this.testData);
+      gunzipTest(done, this.testData);
+    },
+    "gzip sequential data": function(done) {
+      makeSequentialData(this.testData);
+      gunzipTest(done, this.testData);
+    },
+    "gzip random sequential data": function(done) {
+      makeRandomSequentialData(this.testData);
+      gunzipTest(done, this.testData);
+    },
+    // 過去に失敗したことのあるテスト
+    "bitbuflen error": function(done) {
+      makeRandomSequentialData(this.testData, 1339494909128);
+      gunzipTest(done, this.testData);
     }
   }
 );
@@ -147,9 +165,21 @@ function inflateTest(done, testData) {
   });
 }
 
+// gunzip test
+function gunzipTest(done, testData) {
+  nodeZlib.gzip(testData, function(err, buf) {
+    var inflated = zlib.gunzipSync(buf);
+
+    assert.equals(inflated.length, testData.length);
+    assert.equals(inflated, testData);
+
+    done();
+  });
+}
+
 // random
-function makeRandomData(data) {
-  var seed = +new Date();
+function makeRandomData(data, opt_seed) {
+  var seed = typeof opt_seed === 'number' ? opt_seed : +new Date();
   var mt = new mt_rand.MersenneTwister(seed);
   var i, il;
 
@@ -172,9 +202,9 @@ function makeSequentialData(data) {
 }
 
 // random sequential
-function makeRandomSequentialData(data) {
-  var seed = +new Date();
-  var mt = new MersenneTwister(seed);
+function makeRandomSequentialData(data, opt_seed) {
+  var seed = typeof opt_seed === 'number' ? opt_seed : +new Date();
+  var mt = new mt_rand.MersenneTwister(seed);
   var i, il;
   var random1, random2;
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="project" default="all" >
-  <property name="level" value="LIBRARY_OPTIMIZATIONS"/>
+  <property name="level" value="SIMPLE_OPTIMIZATIONS"/>
+  <!--property name="level" value="LIBRARY_OPTIMIZATIONS"/-->
   <property name="src" value="./src"/>
   <property name="def" value="./define"/>
   <property name="vendor" value="./vendor"/>
@@ -36,8 +37,40 @@
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_DEFLATE_EXPORT=false"/>
       <arg line="--define=ZLIB_INFLATE_EXPORT=true"/>
+      <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
+      <arg line="--summary_detail_level=3"/>
+      <arg line="--language_in=ECMASCRIPT5_STRICT"/>
+      <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${closure_primitives}"/>
+      <arg line="--js=${depend}"/>
+      <arg line="${def}/typedarray/hybrid.js"/>
+      <arg line="${srcfiles}"/>
+    </java>
+    <!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
+    <local name="license"/>
+    <loadfile property="license" srcfile="./LICENSE_min"/>
+    <local name="output"/>
+    <loadfile property="output" srcfile="${outfile}.tmp"/>
+    <!-- ライセンスとビルドされたファイルの結合 -->
+    <echo file="${outfile}" append="no" message="${license}"/>
+    <echo file="${outfile}" append="yes" message="${output}"/>
+    <fixcrlf file="${outfile}" eol="unix" eof="remove"/>
+    <!-- 一時ファイルの削除 -->
+    <delete file="${outfile}.tmp"/>
+  </target>
+
+  <!-- Gunzip の単体ビルド -->
+  <target name="gunzip" depends="deps,prebuild" description="Inflate の独立ビルドを行う">
+    <!-- 出力ファイル名 -->
+    <local name="outfile"/>
+    <property name="outfile" value="${bin}/gunzip.min.js"/>
+    <!-- ビルド(出力先は一時ファイル) -->
+    <java jar="${compiler}" fork="true" failonerror="true">
+      <arg line="--warning_level=VERBOSE"/>
+      <arg line="--compilation_level=${level}"/>
+      <arg line="--define=goog.DEBUG=false"/>
+      <arg line="--define=ZLIB_GUNZIP_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
@@ -72,7 +105,6 @@
       <arg line="--define=goog.DEBUG=false"/>
       <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
       <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=true"/>
-      <arg line="--define=ZLIB_INFLATE_EXPORT=false"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
@@ -130,6 +162,42 @@
     <delete file="${outfile}.tmp"/>
   </target>
 
+  <!-- Zlib のビルド -->
+  <target name="zlib_and_gzip" depends="deps,prebuild" description="リリース版のファイル zlib.min.js を作成する">
+    <!-- 出力ファイル名 -->
+    <local name="outfile"/>
+    <property name="outfile" value="${bin}/zlib_and_gzip.min.js"/>
+    <!-- ビルド(出力先は一時ファイル) -->
+    <java jar="${compiler}" fork="true" failonerror="true">
+      <arg line="--warning_level=VERBOSE"/>
+      <arg line="--compilation_level=${level}"/>
+      <arg line="--define=goog.DEBUG=false"/>
+      <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
+      <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=true"/>
+      <arg line="--define=ZLIB_INFLATE_EXPORT=true"/>
+      <arg line="--define=ZLIB_GUNZIP_EXPORT=true"/>
+      <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
+      <arg line="--summary_detail_level=3"/>
+      <arg line="--language_in=ECMASCRIPT5_STRICT"/>
+      <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${closure_primitives}"/>
+      <arg line="--js=${depend}"/>
+      <arg line="${def}/typedarray/hybrid.js"/>
+      <arg line="${srcfiles}"/>
+    </java>
+    <!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
+    <local name="license"/>
+    <loadfile property="license" srcfile="./LICENSE_min"/>
+    <local name="output"/>
+    <loadfile property="output" srcfile="${outfile}.tmp"/>
+    <!-- ライセンスとビルドされたファイルの結合 -->
+    <echo file="${outfile}" append="no" message="${license}"/>
+    <echo file="${outfile}" append="yes" message="${output}"/>
+    <fixcrlf file="${outfile}" eol="unix" eof="remove"/>
+    <!-- 一時ファイルの削除 -->
+    <delete file="${outfile}.tmp"/>
+  </target>
+
   <!-- Node.js 版 Zlib のビルド -->
   <target name="node" depends="deps,prebuild" description="create node.js version">
     <!-- 出力ファイル名 -->
@@ -139,10 +207,6 @@
     <java jar="${compiler}" fork="true" failonerror="true">
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
-      <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_DEFLATE_EXPORT=false"/>
-      <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=false"/>
-      <arg line="--define=ZLIB_INFLATE_EXPORT=false"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
@@ -175,7 +239,7 @@
   </target>
 
   <!-- 全て作成 -->
-  <target name="all" depends="zlib,inflate,deflate,node"></target>
+  <target name="all" depends="zlib,zlib_and_gzip,inflate,deflate,gunzip,node"></target>
 
   <!--  削除 -->
   <target name="clean">

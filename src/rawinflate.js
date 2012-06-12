@@ -429,7 +429,6 @@ Zlib.RawInflate.prototype.parseUncompressedBlock = function() {
 
   // copy
   if (USE_TYPEDARRAY) {
-    console.log(input instanceof Uint8Array);
     output.set(input.subarray(ip, ip + len), op);
     op += len;
     ip += len;
@@ -596,6 +595,10 @@ Zlib.RawInflate.prototype.decodeHuffman = function(litlen, dist) {
     }
   }
 
+  while (this.bitsbuflen >= 8) {
+    this.bitsbuflen -= 8;
+    this.ip--;
+  }
   this.op = op;
 };
 
@@ -662,6 +665,10 @@ Zlib.RawInflate.prototype.decodeHuffmanDynamic = function(litlen, dist) {
     }
   }
 
+  while (this.bitsbuflen >= 8) {
+    this.bitsbuflen -= 8;
+    this.ip--;
+  }
   this.op = op;
 };
 

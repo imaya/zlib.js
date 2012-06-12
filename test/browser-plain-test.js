@@ -4,21 +4,24 @@ var USE_TYPEDARRAY = typeof Uint8Array === 'function';
 // base64 decoder
 //-----------------------------------------------------------------------------
 function decodeB64(b64buf) {
-  var decoded =
-    new (USE_TYPEDARRAY ? Uint8Array : Array)(b64buf.length * 3 / 4 | 0);
-  var tmp;
+  var decoded = new Array();
+  var tmp, t1, t2, t3, t4;
   var pos = 0;
   var i, il;
   var table = decodeB64.DecodeTable;
 
   for (i = 0, il = b64buf.length; i < il; i += 4, pos += 3) {
-    tmp = (table[b64buf.charCodeAt(i)  ] << 18) |
-          (table[b64buf.charCodeAt(i+1)] << 12) |
-          (table[b64buf.charCodeAt(i+2)] <<  6) |
-          (table[b64buf.charCodeAt(i+3)]);
-    decoded[pos]   = tmp >>> 16;
+    t1 = table[b64buf.charCodeAt(i)];
+    t2 = table[b64buf.charCodeAt(i+1)];
+    t3 = table[b64buf.charCodeAt(i+2)];
+    t4 = table[b64buf.charCodeAt(i+3)];
+    tmp = (t1 << 18) | (t2 << 12) | (t3 << 6) | t4;
+
+    decoded[pos] = tmp >>> 16;
+    if (t3 === 255) break;
     decoded[pos+1] = tmp >>> 8 & 0xff;
-    decoded[pos+2] = tmp       & 0xff;
+    if (t4 === 255) break;
+    decoded[pos+2] = tmp & 0xff;
   }
 
   return decoded;
@@ -29,6 +32,7 @@ decodeB64.DecodeTable = (function(chars){
   for (var i = 0, il = chars.length; i < il; ++i) {
     table[chars.charCodeAt(i)] = i;
   }
+  table['='.charCodeAt(0)] = 255;
 
   return table;
 })('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/');
@@ -117,7 +121,7 @@ buster.testCase(
 
       // testdata size
       assert.equals(testData.length, 1604, "source data size");
-      assert.equals(decodedData.length, 1203, "base64 decoded data size");
+      assert.equals(decodedData.length, 1202, "base64 decoded data size");
 
       var inflator = new Zlib.Inflate(decodedData);
       var inflated = inflator.inflate();
@@ -196,6 +200,35 @@ buster.testCase(
       refute(this.none.called);
       refute(this.fixed.called);
       assert(this.dynamic.called);
+    },
+    "gunzip": function() {
+      var testData =
+        "H4sIAAAAAAAAA0tMTEwEAEXlmK0EAAAA";
+      var plain = new Uint8Array("aaaa".split('').map(function(c) { return c.charCodeAt(0); }));
+
+      var decodedData = decodeB64(testData);
+
+      var inflator = new Zlib.Gunzip(decodedData);
+      var inflated = inflator.inflate();
+
+      assert.equals(inflated.length, plain.length, "inflated data size");
+      assert.equals(inflated, plain);
+    },
+    "gunzip with filename": function() {
+      var testData =
+        "H4sICOzl1k8AA2hvZ2UudHh0AMtIzcnJVyjPL8pJ4QIALTsIrwwAAAA=";
+      var plain = new Uint8Array(
+        "hello world".split('').map(function(c) { return c.charCodeAt(0); }).concat(0x0a)
+      );
+
+      var decodedData = decodeB64(testData);
+
+      var inflator = new Zlib.Gunzip(decodedData);
+      var inflated = inflator.inflate();
+
+      assert.equals(inflated.length, plain.length, "inflated data size");
+      assert.equals(inflated, plain);
+      assert.equals(inflator.name, 'hoge.txt');
     }
   }
 );

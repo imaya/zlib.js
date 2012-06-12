@@ -3,7 +3,7 @@
  */
 goog.require('Zlib.Inflate');
 goog.require('Zlib.Deflate');
-
+goog.require('Zlib.Gunzip');
 
 //-----------------------------------------------------------------------------
 // exports methods
@@ -12,6 +12,8 @@ exports['deflate'] = deflate;
 exports['deflateSync'] = deflateSync;
 exports['inflate'] = inflate;
 exports['inflateSync'] = inflateSync;
+exports['gunzip'] = gunzip;
+exports['gunzipSync'] = gunzipSync;
 
 
 /**
@@ -104,6 +106,54 @@ function inflateSync(buffer, opt_params) {
 
   buffer.subarray = buffer.slice;
   inflate = new Zlib.Inflate(buffer);
+  inflated = inflate.inflate();
+
+  if (!opt_params) {
+    opt_params = {};
+  }
+
+  return opt_params.noBuffer ? inflated : toBuffer(inflated);
+}
+
+/**
+ * gunzip async.
+ * @param {!(Array|Uint8Array)} buffer deflated buffer.
+ * @param {function(Error, !(Buffer|Array|Uint8Array))} callback
+ *     error calllback function.
+ * @param {Object=} opt_params option parameters.
+ */
+function gunzip(buffer, callback, opt_params) {
+  process.nextTick(function(){
+    /** @type {Error} error */
+    var error;
+    /** @type {!(Buffer|Array|Uint8Array)} inflated plain buffer. */
+    var inflated;
+
+    try {
+      inflated = gunzipSync(buffer, opt_params);
+    } catch(e){
+      error = e;
+    }
+
+    callback(error, inflated);
+  });
+};
+
+
+/**
+ * inflate sync.
+ * @param {!(Array|Uint8Array)} buffer deflated buffer.
+ * @param {Object=} opt_params option parameters.
+ * @return {!(Buffer|Array|Uint8Array)} inflated plain buffer.
+ */
+function gunzipSync(buffer, opt_params) {
+  /** @type {Zlib.Gunzip} deflate decoder. */
+  var inflate;
+  /** @type {!(Buffer|Array|Uint8Array)} inflated plain buffer. */
+  var inflated;
+
+  buffer.subarray = buffer.slice;
+  inflate = new Zlib.Gunzip(buffer);
   inflated = inflate.inflate();
 
   if (!opt_params) {
