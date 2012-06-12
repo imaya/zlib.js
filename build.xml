@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="project" default="all" >
-  <property name="level" value="SIMPLE_OPTIMIZATIONS"/>
-  <!--property name="level" value="LIBRARY_OPTIMIZATIONS"/-->
+  <!--property name="level" value="SIMPLE_OPTIMIZATIONS"/-->
+  <property name="level" value="LIBRARY_OPTIMIZATIONS"/>
   <property name="src" value="./src"/>
   <property name="def" value="./define"/>
   <property name="vendor" value="./vendor"/>
