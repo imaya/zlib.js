@@ -74,9 +74,9 @@ buster.testCase(
       this.dynamic = sinon.spy(Zlib.RawDeflate.prototype, "makeDynamicHuffmanBlock");
     },
     tearDown: function() {
-      Zlib.RawDeflate.prototype.makeNocompressBlock.restore();
-      Zlib.RawDeflate.prototype.makeFixedHuffmanBlock.restore();
-      Zlib.RawDeflate.prototype.makeDynamicHuffmanBlock.restore();
+      this.none.restore();
+      this.fixed.restore();
+      this.dynamic.restore();
     },
     "inflate pre-deflated data": function() {
       var size = 123456;
