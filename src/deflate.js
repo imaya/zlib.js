@@ -47,7 +47,9 @@ goog.scope(function() {
 
 /**
  * Zlib Deflate
- * @param {{compressionType: Zlib.RawDeflate.CompressionType}=} opt_params
+ * @param {({
+ *   compressionType: Zlib.RawDeflate.CompressionType
+ * }|Object)=} opt_params
  *     parameters.
  * @constructor
  */
@@ -58,6 +60,9 @@ Zlib.Deflate = function(opt_params) {
    */
   this.buffer = [];
 
+  this.output =
+    new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.Deflate.DefaultBufferSize);
+
   /**
    * 圧縮タイプ(非圧縮, 固定ハフマン符号, 動的ハフマン符号)
    * デフォルトでは動的ハフマン符号が使用される.
@@ -66,9 +71,10 @@ Zlib.Deflate = function(opt_params) {
   this.compressionType = Zlib.RawDeflate.CompressionType.DYNAMIC;
 
   // option parameters
-  if (typeof(opt_params) === 'object') {
-    if (typeof(opt_params.compressionType) === 'number') {
-      this.compressionType = opt_params.compressionType;
+  if (typeof opt_params === 'object') {
+    if (typeof opt_params.compressionType === 'number') {
+      this.compressionType =
+        /** @type {Zlib.RawDeflate.CompressionType} */opt_params.compressionType;
     }
   }
 
@@ -77,8 +83,12 @@ Zlib.Deflate = function(opt_params) {
    * @type {Zlib.RawDeflate}
    */
   this.rawDeflate = new Zlib.RawDeflate(opt_params);
-
 };
+
+/**
+ * @const {boolean} デフォルトバッファサイズ.
+ */
+Zlib.Deflate.DefaultBufferSize = 0x8000;
 
 // Zlib.Util のエイリアス
 var push = Zlib.Util.push;
@@ -87,11 +97,11 @@ var convertNetworkByteOrder = Zlib.Util.convertNetworkByteOrder;
 
 /**
  * 直接圧縮に掛ける
- * @param {!(Array|Uint8Array|string)} buffer Data.
+ * @param {!(Array|Uint8Array)} buffer Data.
  * @param {{
  *     compressionType: Zlib.RawDeflate.CompressionType
  * }=} opt_params option parameters.
- * @return {!Array} compressed data byte array.
+ * @return {!(Array|Uint8Array)} compressed data byte array.
  */
 Zlib.Deflate.compress = function(buffer, opt_params) {
   return (new Zlib.Deflate(opt_params)).compress(buffer);
@@ -99,12 +109,36 @@ Zlib.Deflate.compress = function(buffer, opt_params) {
 
 /**
  * Deflate Compression
- * @param {!(Array|Uint8Array|string)} buffer Data.
- * @return {!Array} compressed data byte array.
+ * @param {!(Array|Uint8Array)} buffer Data.
+ * @return {!(Array|Uint8Array)} compressed data byte array.
  */
 Zlib.Deflate.prototype.compress = function(buffer) {
-  var cmf, flg, cm, cinfo, fcheck, fdict, flevel,
-      clevel, compressedData, adler, error = false, deflate;
+  /** @type {Zlib.CompressionMethod} */
+  var cm;
+  /** @type {number} */
+  var cinfo;
+  /** @type {number} */
+  var cmf;
+  /** @type {number} */
+  var flg;
+  /** @type {number} */
+  var fcheck;
+  /** @type {number} */
+  var fdict;
+  /** @type {number} */
+  var flevel;
+  /** @type {number} */
+  var clevel;
+  /** @type {number} */
+  var adler;
+  /** @type {boolean} */
+  var error = false;
+  /** @type {!(Array|Uint8Array)} */
+  var deflate;
+  /** @type {number} */
+  var pos = 0;
+
+  deflate = this.output;
 
   // Compression Method and Flags
   cm = Zlib.CompressionMethod.DEFLATE;
@@ -113,9 +147,10 @@ Zlib.Deflate.prototype.compress = function(buffer) {
       cinfo = Math.LOG2E * Math.log(Zlib.RawDeflate.WindowSize) - 8;
       break;
     default:
-      throw 'invalid compression method';
+      throw new Error('invalid compression method');
   }
   cmf = (cinfo << 4) | cm;
+  deflate[pos++] = cmf;
 
   // Flags
   fdict = 0;
@@ -125,27 +160,40 @@ Zlib.Deflate.prototype.compress = function(buffer) {
         case Zlib.RawDeflate.CompressionType.NONE: flevel = 0; break;
         case Zlib.RawDeflate.CompressionType.FIXED: flevel = 1; break;
         case Zlib.RawDeflate.CompressionType.DYNAMIC: flevel = 2; break;
-        default: throw 'unsupported compression type';
+        default: throw new Error('unsupported compression type');
       }
       break;
     default:
-      throw 'invalid compression method';
+      throw new Error('invalid compression method');
   }
   flg = (flevel << 6) | (fdict << 5);
   fcheck = 31 - (cmf * 256 + flg) % 31;
   flg |= fcheck;
+  deflate[pos++] = flg;
 
   // Adler-32 checksum
-  adler = convertNetworkByteOrder(Zlib.Adler32(buffer), 4);
+  adler = Zlib.Adler32(buffer);
 
-  // compressed data
-  compressedData = this.rawDeflate.compress(buffer);
+  deflate = this.rawDeflate.compress(buffer, deflate, pos);
+  pos = deflate.length;
 
-  // make zlib string
-  deflate = [];
-  deflate.push(cmf, flg);
-  push(deflate, compressedData);
-  push(deflate, adler);
+  if (USE_TYPEDARRAY) {
+    // subarray 分を元にもどす
+    deflate = new Uint8Array(deflate.buffer);
+    // expand buffer
+    if (deflate.length <= pos + 4) {
+      this.output = new Uint8Array(deflate.length + 4);
+      this.output.set(deflate);
+      deflate = this.output;
+    }
+    deflate = deflate.subarray(0, pos + 4);
+  }
+
+  // adler32
+  deflate[pos++] = adler       & 0xff;
+  deflate[pos++] = adler >>  8 & 0xff;
+  deflate[pos++] = adler >> 16 & 0xff;
+  deflate[pos++] = adler >> 24 & 0xff;
 
   return deflate;
 };
