@@ -139,16 +139,20 @@ Zlib.RawDeflate.FixedHuffmanTable = (function() {
 
 /**
  * DEFLATE ブロックの作成
- * @param {!(Array.<number>|Uint8Array|string)}
- *     data plain data byte array / byte string.
+ * @param {!(Array.<number>|Uint8Array)}
+ *     data plain data byte array.
+ * @param {number=} pos output buffer position.
  * @return {!Array} 圧縮済み byte array.
  */
-Zlib.RawDeflate.prototype.makeBlocks = function(data) {
+Zlib.RawDeflate.prototype.makeBlocks = function(data, pos) {
   var blocks = [], blockArray, position, length;
 
-  // バッファが string だったら byte array に変換
-  if (typeof(data) === 'string') {
-    data = Zlib.Util.stringToByteArray(data);
+  // XXX: magic number
+  this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(0x8000);
+
+  //
+  if (typeof pos === 'number') {
+    this.op = pos;
   }
 
   // compression
@@ -158,10 +162,7 @@ Zlib.RawDeflate.prototype.makeBlocks = function(data) {
       for (position = 0, length = data.length; position < length;) {
         blockArray = slice(data, position, 0xffff);
         position += blockArray.length;
-        push(
-          blocks,
-          this.makeNocompressBlock(blockArray, (position === length))
-        );
+        this.makeNocompressBlock(blockArray, (position === length));
       }
       break;
     case Zlib.RawDeflate.CompressionType.FIXED:
@@ -180,13 +181,14 @@ Zlib.RawDeflate.prototype.makeBlocks = function(data) {
       throw 'invalid compression type';
   }
 
-  return blocks;
+  return this.output;
 };
 
 /**
  * DEFLATE ブロックの作成
- * @param {!(Array.<number>|Uint8Array|string)}
- *     data plain data byte array / byte string.
+ * @param {!(Array.<number>|Uint8Array)}
+ *     data plain data byte array.
+ * @param {number=} pos output buffer position.
  * @return {!Array} 圧縮済み byte array.
  */
 Zlib.RawDeflate.prototype.compress = Zlib.RawDeflate.prototype.makeBlocks;
@@ -199,26 +201,48 @@ Zlib.RawDeflate.prototype.compress = Zlib.RawDeflate.prototype.makeBlocks;
  */
 Zlib.RawDeflate.prototype.makeNocompressBlock =
 function(blockArray, isFinalBlock) {
-  var block = [], bfinal, btype, len, nlen, i, l;
+  var block = [], bfinal, btype, len, nlen, i, il;
+  var output = this.output;
+  var op = this.op;
+
+  // expand buffer
+  if (USE_TYPEDARRAY) {
+    output = new Uint8Array(this.output.buffer);
+    while (output.length <= op + blockArray.length + 5) {
+      output = new Uint8Array(output.length << 1);
+    }
+    output.set(this.output.buffer);
+  }
 
   // header
   bfinal = isFinalBlock ? 1 : 0;
   btype = Zlib.RawDeflate.CompressionType.NONE;
-  block.push((bfinal) | (btype << 1));
+  output[op++] = (bfinal) | (btype << 1);
 
   // length
   len = blockArray.length;
   nlen = (~len + 0x10000) & 0xffff;
-  block.push(
-             len & 0xff,
-     (len >>> 8) & 0xff,
-            nlen & 0xff,
-    (nlen >>> 8) & 0xff
-  );
+  output[op++] =          len & 0xff;
+  output[op++] =  (len >>> 8) & 0xff;
+  output[op++] =         nlen & 0xff;
+  output[op++] = (nlen >>> 8) & 0xff;
 
-  push(block, blockArray);
+  // copy buffer
+  if (USE_TYPEDARRAY) {
+     output.set(blockArray);
+     op += blockArray.length;
+     output = output.subarray(0, op);
+  } else {
+    for (i = 0, il = blockArray.length; i < il; ++i) {
+      output[op++] = blockArray[i];
+    }
+    output.length = op;
+  }
 
-  return block;
+  this.op = op;
+  this.output = output;
+
+  return output;
 };
 
 /**
@@ -229,7 +253,11 @@ function(blockArray, isFinalBlock) {
  */
 Zlib.RawDeflate.prototype.makeFixedHuffmanBlock =
 function(blockArray, isFinalBlock) {
-  var stream = new Zlib.BitStream(), bfinal, btype, data;
+  var op = this.output.length;
+  var stream = new Zlib.BitStream(new Uint8Array(this.output.buffer), op);
+  var bfinal;
+  var btype;
+  var data;
 
   // header
   bfinal = isFinalBlock ? 1 : 0;
@@ -241,7 +269,7 @@ function(blockArray, isFinalBlock) {
   data = this.lz77(blockArray);
   data = this.fixedHuffman(data, stream);
 
-  return data;
+  return stream.finish();
 };
 
 /**
@@ -252,7 +280,9 @@ function(blockArray, isFinalBlock) {
  */
 Zlib.RawDeflate.prototype.makeDynamicHuffmanBlock =
 function(blockArray, isFinalBlock) {
-  var stream = new Zlib.BitStream(), bfinal, btype, data,
+  var op = this.output.length;
+  var stream = new Zlib.BitStream(new Uint8Array(this.output.buffer), op);
+  var bfinal, btype, data,
       hlit, hdist, hclen,
       hclenOrder =
         [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15],
@@ -336,17 +366,13 @@ function(blockArray, isFinalBlock) {
 /**
  * 動的ハフマン符号化(カスタムハフマンテーブル)
  * @param {!(Array|Uint16Array)} dataArray LZ77 符号化済み byte array.
- * @param {Zlib.BitStream=} stream 書き込み用ビットストリーム.
+ * @param {!Zlib.BitStream} stream 書き込み用ビットストリーム.
  * @return {!Zlib.BitStream} ハフマン符号化済みビットストリームオブジェクト.
  */
 Zlib.RawDeflate.prototype.dynamicHuffman =
 function(dataArray, litLen, dist, stream) {
   var index, length, literal, code, bitlen, extra,
       litLenCodes, litLenLengths, distCodes, distLengths;
-
-  if (!(stream instanceof Zlib.BitStream)) {
-    stream = new Zlib.BitStream();
-  }
 
   litLenCodes = litLen[0];
   litLenLengths = litLen[1];
@@ -381,15 +407,11 @@ function(dataArray, litLen, dist, stream) {
 /**
  * 固定ハフマン符号化
  * @param {!(Array|Uint16Array)} dataArray LZ77 符号化済み byte array.
- * @param {Zlib.BitStream=} stream 書き込み用ビットストリーム.
- * @return {!(Array|Uint8Array)} ハフマン符号化済み byte array.
+ * @param {!Zlib.BitStream} stream 書き込み用ビットストリーム.
+ * @return {!Zlib.BitStream} ハフマン符号化済みビットストリームオブジェクト.
  */
 Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
   var index, length, literal, code, bitlen, extra;
-
-  if (!(stream instanceof Zlib.BitStream)) {
-    stream = new Zlib.BitStream();
-  }
 
   // 符号を BitStream に書き込んでいく
   for (index = 0, length = dataArray.length; index < length; index++) {
@@ -415,7 +437,7 @@ Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
     }
   }
 
-  return stream.finish();
+  return stream;
 };
 
 /**

@@ -38,9 +38,6 @@ decodeB64.DecodeTable = (function(chars){
 //-----------------------------------------------------------------------------
 function arrayEquals(expected, actuals) {
   var i, il;
-  if (!(expected instanceof actuals.constructor)) {
-    return false;
-  }
 
   if (expected.length !== actuals.length) {
     return false;
