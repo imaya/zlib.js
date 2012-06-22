@@ -125,7 +125,7 @@ Zlib.RawDeflate.FixedHuffmanTable = (function() {
 
   for (i = 0; i < 288; i++) {
     switch (true) {
-      case (i <= 143): table.push([i - 0 + 0x030, 8]); break;
+      case (i <= 143): table.push([i       + 0x030, 8]); break;
       case (i <= 255): table.push([i - 144 + 0x190, 9]); break;
       case (i <= 279): table.push([i - 256 + 0x000, 7]); break;
       case (i <= 287): table.push([i - 280 + 0x0C0, 8]); break;
@@ -141,14 +141,16 @@ Zlib.RawDeflate.FixedHuffmanTable = (function() {
  * DEFLATE ブロックの作成
  * @param {!(Array.<number>|Uint8Array)}
  *     data plain data byte array.
+ * @param {!(Array|Uint8Array)=} output output buffer.
  * @param {number=} pos output buffer position.
- * @return {!Array} 圧縮済み byte array.
+ * @return {!(Array|Uint8Array)} 圧縮済み byte array.
  */
-Zlib.RawDeflate.prototype.makeBlocks = function(data, pos) {
+Zlib.RawDeflate.prototype.makeBlocks = function(data, output, pos) {
   var blocks = [], blockArray, position, length;
 
   // XXX: magic number
-  this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(0x8000);
+  this.output = output instanceof (USE_TYPEDARRAY ? Uint8Array : Array) ?
+    output : new (USE_TYPEDARRAY ? Uint8Array : Array)(0x8000);
 
   //
   if (typeof pos === 'number') {
@@ -166,16 +168,12 @@ Zlib.RawDeflate.prototype.makeBlocks = function(data, pos) {
       }
       break;
     case Zlib.RawDeflate.CompressionType.FIXED:
-      push(
-        blocks,
-        this.makeFixedHuffmanBlock(data, true)
-      );
+      this.output = this.makeFixedHuffmanBlock(data, true);
+      this.op = this.output.length;
       break;
     case Zlib.RawDeflate.CompressionType.DYNAMIC:
-      push(
-        blocks,
-        this.makeDynamicHuffmanBlock(data, true)
-      );
+      this.output = this.makeDynamicHuffmanBlock(data, true);
+      this.op = this.output.length;
       break;
     default:
       throw 'invalid compression type';
@@ -188,8 +186,9 @@ Zlib.RawDeflate.prototype.makeBlocks = function(data, pos) {
  * DEFLATE ブロックの作成
  * @param {!(Array.<number>|Uint8Array)}
  *     data plain data byte array.
+ * @param {!(Array|Uint8Array)=} output output buffer.
  * @param {number=} pos output buffer position.
- * @return {!Array} 圧縮済み byte array.
+ * @return {!(Array|Uint8Array)} 圧縮済み byte array.
  */
 Zlib.RawDeflate.prototype.compress = Zlib.RawDeflate.prototype.makeBlocks;
 
@@ -201,7 +200,19 @@ Zlib.RawDeflate.prototype.compress = Zlib.RawDeflate.prototype.makeBlocks;
  */
 Zlib.RawDeflate.prototype.makeNocompressBlock =
 function(blockArray, isFinalBlock) {
-  var block = [], bfinal, btype, len, nlen, i, il;
+  /** @type {number} */
+  var bfinal;
+  /** @type {Zlib.RawDeflate.CompressionType} */
+  var btype;
+  /** @type {number} */
+  var len;
+  /** @type {number} */
+  var nlen;
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var il;
+
   var output = this.output;
   var op = this.op;
 
@@ -211,7 +222,7 @@ function(blockArray, isFinalBlock) {
     while (output.length <= op + blockArray.length + 5) {
       output = new Uint8Array(output.length << 1);
     }
-    output.set(this.output.buffer);
+    output.set(this.output);
   }
 
   // header
@@ -229,7 +240,7 @@ function(blockArray, isFinalBlock) {
 
   // copy buffer
   if (USE_TYPEDARRAY) {
-     output.set(blockArray);
+     output.set(blockArray, op);
      op += blockArray.length;
      output = output.subarray(0, op);
   } else {
@@ -253,10 +264,13 @@ function(blockArray, isFinalBlock) {
  */
 Zlib.RawDeflate.prototype.makeFixedHuffmanBlock =
 function(blockArray, isFinalBlock) {
-  var op = this.output.length;
-  var stream = new Zlib.BitStream(new Uint8Array(this.output.buffer), op);
+  /** @type {Zlib.BitStream} */
+  var stream = new Zlib.BitStream(new Uint8Array(this.output.buffer), this.op);
+  /** @type {number} */
   var bfinal;
+  /** @type {Zlib.RawDeflate.CompressionType} */
   var btype;
+  /** @type {!(Array|Uint16Array)} */
   var data;
 
   // header
@@ -267,7 +281,7 @@ function(blockArray, isFinalBlock) {
   stream.writeBits(btype, 2, true);
 
   data = this.lz77(blockArray);
-  data = this.fixedHuffman(data, stream);
+  this.fixedHuffman(data, stream);
 
   return stream.finish();
 };
@@ -280,17 +294,49 @@ function(blockArray, isFinalBlock) {
  */
 Zlib.RawDeflate.prototype.makeDynamicHuffmanBlock =
 function(blockArray, isFinalBlock) {
-  var op = this.output.length;
-  var stream = new Zlib.BitStream(new Uint8Array(this.output.buffer), op);
-  var bfinal, btype, data,
-      hlit, hdist, hclen,
-      hclenOrder =
-        [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15],
-      litLenLengths, litLenCodes, distLengths, distCodes,
-      treeSymbols, treeLengths,
-      transLengths = new Array(19),
-      codeLengths, codeCodes, code, bitlen,
-      i, l;
+  /** @type {Zlib.BitStream} */
+  var stream = new Zlib.BitStream(new Uint8Array(this.output.buffer), this.op);
+  /** @type {number} */
+  var bfinal;
+  /** @type {Zlib.RawDeflate.CompressionType} */
+  var btype;
+  /** @type {!(Array|Uint16Array)} */
+  var data;
+  /** @type {number} */
+  var hlit;
+  /** @type {number} */
+  var hdist;
+  /** @type {number} */
+  var hclen;
+  /** @const @type {Array.<number>} */
+  var hclenOrder =
+        [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
+  /** @type {Array.<number>} */
+  var litLenLengths;
+  /** @type {Array} */
+  var litLenCodes;
+  /** @type {Array.<number>} */
+  var distLengths;
+  /** @type {Array} */
+  var distCodes;
+  /** @type {{codes: (Array.<number>), freqs: (Array.<number>)}} */
+  var treeSymbols;
+  /** @type {Array.<number>} */
+  var treeLengths;
+  /** @type {Array} */
+  var transLengths = new Array(19);
+  /** @type {Array.<number>} */
+  var codeLengths
+  /** @type {Array} */
+  var codeCodes
+  /** @type {number} */
+  var code
+  /** @type {number} */
+  var bitlen
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var il;
 
   // header
   bfinal = isFinalBlock ? 1 : 0;
@@ -332,7 +378,7 @@ function(blockArray, isFinalBlock) {
   }
 
   // ツリーの出力
-  for (i = 0, l = treeSymbols.codes.length; i < l; i++) {
+  for (i = 0, il = treeSymbols.codes.length; i < il; i++) {
     code = treeSymbols.codes[i];
 
     stream.writeBits(codeCodes[code], codeLengths[code], true);
@@ -371,8 +417,26 @@ function(blockArray, isFinalBlock) {
  */
 Zlib.RawDeflate.prototype.dynamicHuffman =
 function(dataArray, litLen, dist, stream) {
-  var index, length, literal, code, bitlen, extra,
-      litLenCodes, litLenLengths, distCodes, distLengths;
+  /** @type {number} */
+  var index;
+  /** @type {number} */
+  var length;
+  /** @type {number} */
+  var literal;
+  /** @type {number} */
+  var code;
+  /** @type {number} */
+  var bitlen;
+  /** @type {number} */
+  var extra;
+  /** @type {number} */
+  var litLenCodes;
+  /** @type {number} */
+  var litLenLengths;
+  /** @type {number} */
+  var distCodes;
+  /** @type {number} */
+  var distLengths;
 
   litLenCodes = litLen[0];
   litLenLengths = litLen[1];
@@ -411,7 +475,18 @@ function(dataArray, litLen, dist, stream) {
  * @return {!Zlib.BitStream} ハフマン符号化済みビットストリームオブジェクト.
  */
 Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
-  var index, length, literal, code, bitlen, extra;
+  /** @type {number} */
+  var index;
+  /** @type {number} */
+  var length;
+  /** @type {number} */
+  var literal;
+  /** @type {number} */
+  var code;
+  /** @type {number} */
+  var bitlen;
+  /** @type {number} */
+  var extra;
 
   // 符号を BitStream に書き込んでいく
   for (index = 0, length = dataArray.length; index < length; index++) {
@@ -443,12 +518,14 @@ Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
 /**
  * マッチ情報
  * @param {!number} length マッチした長さ.
- * @param {!number} backwordDistance マッチ位置との距離.
+ * @param {!number} backwardDistance マッチ位置との距離.
  * @constructor
  */
-function Lz77Match(length, backwordDistance) {
+function Lz77Match(length, backwardDistance) {
+  /** @type {number} match length. */
   this.length = length;
-  this.backwordDistance = backwordDistance;
+  /** @type {number} backward distance. */
+  this.backwardDistance = backwardDistance;
 }
 /**
  * 長さ符号テーブル.
@@ -458,8 +535,11 @@ function Lz77Match(length, backwordDistance) {
 Lz77Match.LengthCodeTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint32Array(table) : table;
 })((function() {
+  /** @type {!Array} */
   var table = [];
+  /** @type {number} */
   var i;
+  /** @type {!Array.<number>} */
   var c;
 
   for (i = 3; i <= 258; i++) {
@@ -467,6 +547,10 @@ Lz77Match.LengthCodeTable = (function(table) {
     table[i] = (c[2] << 24) | (c[1] << 16) | c[0];
   }
 
+  /**
+   * @param {number} length lz77 length.
+   * @return {!Array.<number>} lz77 codes.
+   */
   function code(length) {
     switch (true) {
       case (length === 3): return [257, length - 3, 0]; break;
@@ -512,6 +596,7 @@ Lz77Match.LengthCodeTable = (function(table) {
  * @private
  */
 Lz77Match.prototype.getDistanceCode_ = function(dist) {
+  /** @type {!Array.<number>} distance code table. */
   var r;
 
   switch (true) {
@@ -558,10 +643,15 @@ Lz77Match.prototype.getDistanceCode_ = function(dist) {
  * @return {!Array} LZ77 符号化 byte array.
  */
 Lz77Match.prototype.toLz77Array = function() {
-  var length = this.length,
-      dist = this.backwordDistance,
-      codeArray = [];
+  /** @type {number} */
+  var length = this.length;
+  /** @type {number} */
+  var dist = this.backwardDistance;
+  /** @type {Array} */
+  var codeArray = [];
+  /** @type {number} */
   var pos = 0;
+  /** @type {!Array.<number>} */
   var code;
 
   // length
@@ -597,7 +687,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var matchKey;
   /** @type {Object.<Array.<Array.<number>>>} chained-hash-table */
   var table = {};
-  /** @const {number} */
+  /** @const @type {number} */
   var windowSize = Zlib.RawDeflate.WindowSize;
   /** @type {Array.<Array.<number>>} match list */
   var matchList;
@@ -635,8 +725,11 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
    * @private
    */
   function writeMatch(match, offset) {
+    /** @type {Array.<number>} */
     var lz77Array = match.toLz77Array();
+    /** @type {number} */
     var i;
+    /** @type {number} */
     var il;
 
     for (i = 0, il = lz77Array.length; i < il; ++i) {

@@ -39,8 +39,11 @@ goog.scope(function() {
  * @param {number=} bufferPosition start buffer pointer.
  */
 Zlib.BitStream = function(buffer, bufferPosition) {
+  /** @type {number} buffer index. */
   this.index = typeof bufferPosition === 'number' ? bufferPosition : 0;
+  /** @type {number} bit index. */
   this.bitindex = 0;
+  /** @type {!(Array|Uint8Array)} bit-stream output buffer. */
   this.buffer = buffer instanceof (USE_TYPEDARRAY ? Uint8Array : Array) ?
     buffer :
     new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.BitStream.DefaultBlockSize);
@@ -55,7 +58,8 @@ Zlib.BitStream = function(buffer, bufferPosition) {
 
 /**
  * デフォルトブロックサイズ.
- * @const {number}
+ * @const
+ * @type {number}
  */
 Zlib.BitStream.DefaultBlockSize = 0x8000;
 
@@ -64,7 +68,6 @@ Zlib.BitStream.DefaultBlockSize = 0x8000;
  * @return {!(Array|Uint8Array)} new buffer.
  */
 Zlib.BitStream.prototype.expandBuffer = function() {
-  eval('console.log("expand", new Error().stack, this.buffer.length);');
   /** @type {!(Array|Uint8Array)} old buffer. */
   var oldbuf = this.buffer;
   /** @type {number} loop counter. */
@@ -183,7 +186,8 @@ Zlib.BitStream.prototype.finish = function() {
 
 /**
  * 0-255 のビット順を反転したテーブル
- * @const {!(Uint8Array|Array.<number>)}
+ * @const
+ * @type {!(Uint8Array|Array.<number>)}
  */
 Zlib.BitStream.ReverseTable = (function(table) {
   return table;

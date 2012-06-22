@@ -174,7 +174,7 @@ Zlib.Deflate.prototype.compress = function(buffer) {
   // Adler-32 checksum
   adler = Zlib.Adler32(buffer);
 
-  deflate = this.rawDeflate.compress(buffer, pos);
+  deflate = this.rawDeflate.compress(buffer, deflate, pos);
   pos = deflate.length;
 
   if (USE_TYPEDARRAY) {
@@ -195,7 +195,6 @@ Zlib.Deflate.prototype.compress = function(buffer) {
   deflate[pos++] = adler >> 16 & 0xff;
   deflate[pos++] = adler >> 24 & 0xff;
 
-  console.log("0,1 --- ", deflate[0], deflate[1]);
   return deflate;
 };
 
