@@ -109,10 +109,10 @@ Zlib.RawInflateStream.Status = {
 };
 
 /**
- * inflate.
+ * decompress.
  * @return {!(Uint8Array|Array)} inflated buffer.
  */
-Zlib.RawInflateStream.prototype.inflate = function(newInput, ip) {
+Zlib.RawInflateStream.prototype.decompress = function(newInput, ip) {
   /** @type {boolean} */
   var stop = false;
 
@@ -825,8 +825,8 @@ Zlib.RawInflateStream.prototype.concatBuffer = function() {
 if (ZLIB_RAW_INFLATE_STREAM_EXPORT) {
   goog.exportSymbol('Zlib.RawInflateStream', Zlib.RawInflateStream);
   goog.exportSymbol(
-    'Zlib.RawInflateStream.prototype.inflate',
-    Zlib.RawInflateStream.prototype.inflate
+    'Zlib.RawInflateStream.prototype.decompress',
+    Zlib.RawInflateStream.prototype.decompress
   );
 }
 

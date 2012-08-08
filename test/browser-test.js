@@ -108,7 +108,7 @@ buster.testCase(
       assert.equals(decodedData.length, 1203, "base64 decoded data size");
 
       var inflator = new Zlib.Inflate(decodedData);
-      var inflated = inflator.inflate();
+      var inflated = inflator.decompress();
 
       assert.equals(inflated.length, size, "inflated data size");
       assert(arrayEquals(inflated, plain));
@@ -167,7 +167,7 @@ function inflateTest(mode, testData, compressionType) {
   console.log("deflated data size:", deflate.length);
 
   // inflate
-  inflate = (new Zlib.Inflate(deflate)).inflate();
+  inflate = (new Zlib.Inflate(deflate)).decompress();
   console.log("inflated data size:", inflate.length)
 
   // assertion

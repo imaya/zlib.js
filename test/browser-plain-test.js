@@ -124,7 +124,7 @@ buster.testCase(
       assert.equals(decodedData.length, 1202, "base64 decoded data size");
 
       var inflator = new Zlib.Inflate(decodedData);
-      var inflated = inflator.inflate();
+      var inflated = inflator.decompress();
 
       assert.equals(inflated.length, size, "inflated data size");
       assert(arrayEquals(inflated, plain));
@@ -316,7 +316,7 @@ function inflateTest(mode, testData, compressionType) {
   console.log("deflated data size:", deflate.length);
 
   // inflate
-  inflate = (new Zlib.Inflate(deflate)).inflate();
+  inflate = (new Zlib.Inflate(deflate)).decompress();
   console.log("inflated data size:", inflate.length)
 
   // assertion
@@ -327,7 +327,7 @@ function inflateTest(mode, testData, compressionType) {
 function inflateStreamTest(mode, testData, compressionType) {
   var deflate;
   var inflate;
-  var inflator = new Zlib.InflateStream();
+  var inflator;
   var buf;
   var tmp;
   var i;
@@ -346,7 +346,7 @@ function inflateStreamTest(mode, testData, compressionType) {
   inflator = new Zlib.InflateStream();
   inflate = new (USE_TYPEDARRAY ? Uint8Array : Array)();
   for (i = 0, il = deflate.length; i < il; ++i) {
-    buf = inflator.inflate(deflate.subarray(i, i + 1));
+    buf = inflator.decompress(deflate.subarray(i, i + 1));
     tmp = new (USE_TYPEDARRAY ? Uint8Array : Array)(buf.length + inflate.length);
     tmp.set(inflate, 0);
     tmp.set(buf, inflate.length);

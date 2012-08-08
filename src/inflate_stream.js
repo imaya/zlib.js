@@ -54,10 +54,10 @@ Zlib.InflateStream = function(input) {
 };
 
 /**
- * inflate.
+ * decompress.
  * @return {!(Uint8Array|Array)} inflated buffer.
  */
-Zlib.InflateStream.prototype.inflate = function(input) {
+Zlib.InflateStream.prototype.decompress = function(input) {
   /** @type {!(Uint8Array|Array)} inflated buffer. */
   var buffer;
   /** @type {number} adler-32 checksum */
@@ -82,7 +82,7 @@ Zlib.InflateStream.prototype.inflate = function(input) {
     }
   }
 
-  buffer = this.rawinflate.inflate(this.input, this.ip);
+  buffer = this.rawinflate.decompress(this.input, this.ip);
   this.ip = this.rawinflate.ip;
 
   // verify adler-32
@@ -140,10 +140,10 @@ Zlib.InflateStream.prototype.readHeader = function() {
 // export
 //*****************************************************************************
 if (ZLIB_INFLATE_STREAM_EXPORT) {
-  goog.exportSymbol('Zlib.Inflate', Zlib.Inflate);
+  goog.exportSymbol('Zlib.InflateStream', Zlib.InflateStream);
   goog.exportSymbol(
-    'Zlib.Inflate.prototype.inflate',
-    Zlib.Inflate.prototype.inflate
+    'Zlib.InflateStream.prototype.decompress',
+    Zlib.InflateStream.prototype.decompress
   );
 }
 

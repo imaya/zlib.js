@@ -109,10 +109,10 @@ Zlib.RawInflate.Mode = {
 };
 
 /**
- * inflate.
+ * decompress.
  * @return {!(Uint8Array|Array)} inflated buffer.
  */
-Zlib.RawInflate.prototype.inflate = function() {
+Zlib.RawInflate.prototype.decompress = function() {
   while (!this.bfinal) {
     this.parseBlock();
   }
@@ -866,8 +866,8 @@ Zlib.RawInflate.prototype.concatBufferDynamic = function() {
 if (ZLIB_RAW_INFLATE_EXPORT) {
   goog.exportSymbol('Zlib.RawInflate', Zlib.RawInflate);
   goog.exportSymbol(
-    'Zlib.RawInflate.prototype.inflate',
-    Zlib.RawInflate.prototype.inflate
+    'Zlib.RawInflate.prototype.decompress',
+    Zlib.RawInflate.prototype.decompress
   );
 }
 

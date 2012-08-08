@@ -108,7 +108,7 @@ function inflateSync(buffer, opt_params) {
 
   buffer.subarray = buffer.slice;
   inflate = new Zlib.Inflate(buffer);
-  inflated = inflate.inflate();
+  inflated = inflate.decompress();
 
   if (!opt_params) {
     opt_params = {};

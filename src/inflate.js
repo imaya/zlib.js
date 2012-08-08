@@ -82,10 +82,10 @@ Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
 }
 
 /**
- * inflate.
+ * decompress.
  * @return {!(Uint8Array|Array)} inflated buffer.
  */
-Zlib.Inflate.prototype.inflate = function() {
+Zlib.Inflate.prototype.decompress = function() {
   /** @type {!(Array|Uint8Array)} input buffer. */
   var input = this.input;
   /** @type {!(Uint8Array|Array)} inflated buffer. */
@@ -93,7 +93,7 @@ Zlib.Inflate.prototype.inflate = function() {
   /** @type {number} adler-32 checksum */
   var adler32;
 
-  buffer = this.rawinflate.inflate();
+  buffer = this.rawinflate.decompress();
 
   // verify adler-32
   if (this.verify) {
@@ -115,8 +115,8 @@ Zlib.Inflate.prototype.inflate = function() {
 if (ZLIB_INFLATE_EXPORT) {
   goog.exportSymbol('Zlib.Inflate', Zlib.Inflate);
   goog.exportSymbol(
-    'Zlib.Inflate.prototype.inflate',
-    Zlib.Inflate.prototype.inflate
+    'Zlib.Inflate.prototype.decompress',
+    Zlib.Inflate.prototype.decompress
   );
 }
 
