@@ -12,6 +12,8 @@ exports['deflate'] = deflate;
 exports['deflateSync'] = deflateSync;
 exports['inflate'] = inflate;
 exports['inflateSync'] = inflateSync;
+exports['gzip'] = gzip;
+exports['gzipSync'] = gzipSync;
 exports['gunzip'] = gunzip;
 exports['gunzipSync'] = gunzipSync;
 
@@ -117,6 +119,53 @@ function inflateSync(buffer, opt_params) {
 
 /**
  * gunzip async.
+ * @param {!(Array|Uint8Array)} buffer inflated buffer.
+ * @param {function(Error, !(Buffer|Array|Uint8Array))} callback
+ *     error calllback function.
+ * @param {Object=} opt_params option parameters.
+ */
+function gzip(buffer, callback, opt_params) {
+  process.nextTick(function(){
+    /** @type {Error} error */
+    var error;
+    /** @type {!(Buffer|Array|Uint8Array)} deflated buffer. */
+    var deflated;
+
+    try {
+      deflated = gzipSync(buffer, opt_params);
+    } catch(e){
+      error = e;
+    }
+
+    callback(error, deflated);
+  });
+}
+
+/**
+ * deflate sync.
+ * @param {!(Array|Uint8Array)} buffer inflated buffer.
+ * @param {Object=} opt_params option parameters.
+ * @return {!(Buffer|Array|Uint8Array)} deflated buffer.
+ */
+function gzipSync(buffer, opt_params) {
+  /** @type {Zlib.Gzip} deflate compressor. */
+  var deflate;
+  /** @type {!(Buffer|Array|Uint8Array)} deflated buffer. */
+  var deflated;
+
+  buffer.subarray = buffer.slice;
+  deflate = new Zlib.Gzip(buffer);
+  deflated = deflate.compress();
+
+  if (!opt_params) {
+    opt_params = {};
+  }
+
+  return opt_params.noBuffer ? deflated : toBuffer(deflated);
+}
+
+/**
+ * gunzip async.
  * @param {!(Array|Uint8Array)} buffer deflated buffer.
  * @param {function(Error, !(Buffer|Array|Uint8Array))} callback
  *     error calllback function.
@@ -137,8 +186,7 @@ function gunzip(buffer, callback, opt_params) {
 
     callback(error, inflated);
   });
-};
-
+}
 
 /**
  * inflate sync.
@@ -147,14 +195,14 @@ function gunzip(buffer, callback, opt_params) {
  * @return {!(Buffer|Array|Uint8Array)} inflated plain buffer.
  */
 function gunzipSync(buffer, opt_params) {
-  /** @type {Zlib.Gunzip} deflate decoder. */
+  /** @type {Zlib.Gunzip} deflate decompressor. */
   var inflate;
   /** @type {!(Buffer|Array|Uint8Array)} inflated plain buffer. */
   var inflated;
 
   buffer.subarray = buffer.slice;
   inflate = new Zlib.Gunzip(buffer);
-  inflated = inflate.inflate();
+  inflated = inflate.decompress();
 
   if (!opt_params) {
     opt_params = {};

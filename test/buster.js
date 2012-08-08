@@ -22,7 +22,7 @@ config["plain"] = mixin(
     libs: [
       "closure-primitives/base.js",
       "define/typedarray/hybrid.js",
-      "depend.js",
+      "deps.js",
       "src/util.js",
       "src/*.js"
     ]

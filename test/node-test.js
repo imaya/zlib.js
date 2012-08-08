@@ -28,7 +28,7 @@ function arrayEquals(expected, actuals) {
 // test cases
 //-----------------------------------------------------------------------------
 buster.testCase(
-  "inflate and deflate",
+  "node inflate and deflate",
   {
     setUp: function() {
       var size = 1234567;
@@ -125,17 +125,30 @@ buster.testCase(
       inflateTest(done, this.testData);
     },
     // native gzip, js gunzip
-    "gzip random data": function(done) {
+    "gunzip random data": function(done) {
       makeRandomData(this.testData);
       gunzipTest(done, this.testData);
     },
-    "gzip sequential data": function(done) {
+    "gunzip sequential data": function(done) {
       makeSequentialData(this.testData);
       gunzipTest(done, this.testData);
     },
-    "gzip random sequential data": function(done) {
+    "gunzip random sequential data": function(done) {
       makeRandomSequentialData(this.testData);
       gunzipTest(done, this.testData);
+    },
+    // js gzip, native gunzip
+    "gzip random data": function(done) {
+      makeRandomData(this.testData);
+      gzipTest(done, this.testData);
+    },
+    "gzip sequential data": function(done) {
+      makeSequentialData(this.testData);
+      gzipTest(done, this.testData);
+    },
+    "gzip random sequential data": function(done) {
+      makeRandomSequentialData(this.testData);
+      gzipTest(done, this.testData);
     },
     // 過去に失敗したことのあるテスト
     "bitbuflen error": function(done) {
@@ -165,13 +178,28 @@ function inflateTest(done, testData) {
   });
 }
 
+// gzip test
+function gzipTest(done, testData) {
+  var deflated = zlib.gzipSync(testData);
+
+  console.log("Source:", testData.length);
+  console.log("Deflate:", deflated.length);
+  nodeZlib.gunzip(deflated, function(err, buf) {
+    console.log("Inflate:", buf.length);
+    assert.equals(buf.length, testData.length);
+    assert(arrayEquals(buf, testData));
+
+    done();
+  });
+}
+
 // gunzip test
 function gunzipTest(done, testData) {
   nodeZlib.gzip(testData, function(err, buf) {
     var inflated = zlib.gunzipSync(buf);
 
     assert.equals(inflated.length, testData.length);
-    assert.equals(inflated, testData);
+    assert(arrayEquals(inflated, testData));
 
     done();
   });

@@ -66,7 +66,7 @@ buster.testCase(
   "inflate and deflate",
   {
     setUp: function() {
-      var size = 1234567;
+      var size = 123456;
       var testData = new (USE_TYPEDARRAY ? Uint8Array : Array)(size);
 
       console.log("use typedarray:", USE_TYPEDARRAY);
@@ -201,6 +201,47 @@ buster.testCase(
       refute(this.fixed.called);
       assert(this.dynamic.called);
     },
+    //-------------------------------------------------------------------------
+    // gzip
+    //-------------------------------------------------------------------------
+    "gzip": function() {
+      makeRandomSequentialData(this.testData);
+
+      var deflator = new Zlib.Gzip(this.testData);
+      var deflated = deflator.compress();
+
+      console.log(deflated.length);
+      var inflator = new Zlib.Gunzip(deflated);
+      var inflated = inflator.decompress();
+
+      assert.equals(inflated.length, this.testData.length, "inflated data size");
+      assert.equals(inflated, this.testData);
+    },
+    "gzip with filename": function() {
+      makeRandomSequentialData(this.testData);
+
+      var deflator =
+        new Zlib.Gzip(
+          this.testData,
+          {
+            flags: {
+              fname: true,
+              fcommenct: false,
+              fhcrc: false
+            },
+            filename: 'foobar.filename'
+          }
+        );
+      var deflated = deflator.compress();
+
+      console.log(deflated.length);
+      var inflator = new Zlib.Gunzip(deflated);
+      var inflated = inflator.decompress();
+
+      assert.equals(inflated.length, this.testData.length, "inflated data size");
+      assert.equals(inflated, this.testData);
+      assert.equals(inflator.name, 'foobar.filename');
+    },
     "gunzip": function() {
       var testData =
         "H4sIAAAAAAAAA0tMTEwEAEXlmK0EAAAA";
@@ -209,7 +250,7 @@ buster.testCase(
       var decodedData = decodeB64(testData);
 
       var inflator = new Zlib.Gunzip(decodedData);
-      var inflated = inflator.inflate();
+      var inflated = inflator.decompress();
 
       assert.equals(inflated.length, plain.length, "inflated data size");
       assert.equals(inflated, plain);
@@ -224,7 +265,7 @@ buster.testCase(
       var decodedData = decodeB64(testData);
 
       var inflator = new Zlib.Gunzip(decodedData);
-      var inflated = inflator.inflate();
+      var inflated = inflator.decompress();
 
       assert.equals(inflated.length, plain.length, "inflated data size");
       assert.equals(inflated, plain);
