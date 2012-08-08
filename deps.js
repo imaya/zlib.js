@@ -10,8 +10,11 @@ goog.addDependency('../src/deflate.js', ['Zlib.Deflate'], ['Zlib.Adler32', 'Zlib
 goog.addDependency('../src/gunzip.js', ['Zlib.Gunzip'], ['Zlib.CRC32', 'Zlib.Gzip', 'Zlib.RawInflate']);
 goog.addDependency('../src/gzip.js', ['Zlib.Gzip'], ['Zlib.CRC32', 'Zlib.RawDeflate']);
 goog.addDependency('../src/heap.js', ['Zlib.Heap'], []);
+goog.addDependency('../src/huffman.js', ['Zlib.Huffman'], []);
 goog.addDependency('../src/inflate.js', ['Zlib.Inflate'], ['Zlib.Adler32', 'Zlib.RawInflate']);
+goog.addDependency('../src/inflate_stream.js', ['Zlib.InflateStream'], ['Zlib.RawInflateStream']);
 goog.addDependency('../src/rawdeflate.js', ['Zlib.RawDeflate'], ['Zlib.BitStream', 'Zlib.Heap', 'Zlib.Util']);
-goog.addDependency('../src/rawinflate.js', ['Zlib.RawInflate'], []);
+goog.addDependency('../src/rawinflate.js', ['Zlib.RawInflate'], ['Zlib.Huffman']);
+goog.addDependency('../src/rawinflate_stream.js', ['Zlib.RawInflateStream'], ['Zlib.Huffman']);
 goog.addDependency('../src/util.js', ['Zlib.Util'], []);
 goog.addDependency('../src/zlib.js', ['Zlib'], ['Zlib.Deflate', 'Zlib.Inflate']);

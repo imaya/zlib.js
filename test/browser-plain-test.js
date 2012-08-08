@@ -202,6 +202,33 @@ buster.testCase(
       assert(this.dynamic.called);
     },
     //-------------------------------------------------------------------------
+    // stream
+    //-------------------------------------------------------------------------
+    "uncompressed random sequential data (stream)": function() {
+      makeRandomSequentialData(this.testData);
+      inflateStreamTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.NONE);
+
+      assert(this.none.called);
+      refute(this.fixed.called);
+      refute(this.dynamic.called);
+    },
+    "fixed random sequential data (stream)": function() {
+      makeRandomSequentialData(this.testData);
+      inflateStreamTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.FIXED);
+
+      refute(this.none.called);
+      assert(this.fixed.called);
+      refute(this.dynamic.called);
+    },
+    "dynamic random sequential data (stream)": function() {
+      makeRandomSequentialData(this.testData);
+      inflateStreamTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.DYNAMIC);
+
+      refute(this.none.called);
+      refute(this.fixed.called);
+      assert(this.dynamic.called);
+    },
+    //-------------------------------------------------------------------------
     // gzip
     //-------------------------------------------------------------------------
     "gzip": function() {
@@ -290,6 +317,41 @@ function inflateTest(mode, testData, compressionType) {
 
   // inflate
   inflate = (new Zlib.Inflate(deflate)).inflate();
+  console.log("inflated data size:", inflate.length)
+
+  // assertion
+  assert(inflate.length, testData.length);
+  assert(arrayEquals(inflate, testData));
+}
+// inflate test
+function inflateStreamTest(mode, testData, compressionType) {
+  var deflate;
+  var inflate;
+  var inflator = new Zlib.InflateStream();
+  var buf;
+  var tmp;
+  var i;
+  var il;
+
+  console.log("mode:", mode);
+  console.log("type:", compressionType);
+
+  // deflate
+  deflate = Zlib.Deflate.compress(testData, {
+    compressionType: compressionType
+  });
+  console.log("deflated data size:", deflate.length);
+
+  // inflate
+  inflator = new Zlib.InflateStream();
+  inflate = new (USE_TYPEDARRAY ? Uint8Array : Array)();
+  for (i = 0, il = deflate.length; i < il; ++i) {
+    buf = inflator.inflate(deflate.subarray(i, i + 1));
+    tmp = new (USE_TYPEDARRAY ? Uint8Array : Array)(buf.length + inflate.length);
+    tmp.set(inflate, 0);
+    tmp.set(buf, inflate.length);
+    inflate = tmp;
+  }
   console.log("inflated data size:", inflate.length)
 
   // assertion
