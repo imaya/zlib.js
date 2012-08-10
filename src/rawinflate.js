@@ -42,44 +42,60 @@ goog.scope(function() {
 
 var buildHuffmanTable = Zlib.Huffman.buildHuffmanTable;
 
-// XXX: length 指定も出来るようにする
 /**
- * @param {!(Uint8Array|Array.<number>)} input input buffer.
- * @param {number} ip input buffer pointer.
- * @param {number=} opt_blocksize buffer block size.
  * @constructor
+ * @param {!(Uint8Array|Array.<number>)} input input buffer.
+ * @param {Object} opt_params option parameter.
+ *
+ * opt_params は以下のプロパティを指定する事ができます。
+ *   - index: input buffer の deflate コンテナの開始位置.
+ *   - blockSize: バッファのブロックサイズ.
+ *   - bufferType: Zlib.RawInflate.BufferType の値によってバッファの管理方法を指定する.
  */
-Zlib.RawInflate = function(input, ip, opt_blocksize) {
-  /** @type {!(Array|Uint8Array)} inflated buffer */
+Zlib.RawInflate = function(input, opt_params) {
+  /** @type {!(Array.<number>|Uint8Array)} inflated buffer */
   this.buffer;
-  /** @type {!Array.<(Array|Uint8Array)>} */
+  /** @type {!Array.<(Array.<number>|Uint8Array)>} */
   this.blocks = [];
   /** @type {number} block size. */
-  this.blockSize = opt_blocksize ? opt_blocksize : ZLIB_BUFFER_BLOCK_SIZE;
+  this.blockSize = ZLIB_BUFFER_BLOCK_SIZE;
   /** @type {!number} total output buffer pointer. */
   this.totalpos = 0;
   /** @type {!number} input buffer pointer. */
-  this.ip = ip === void 0 ? 0 : ip;
+  this.ip = 0;
   /** @type {!number} bit stream reader buffer. */
   this.bitsbuf = 0;
   /** @type {!number} bit stream reader buffer size. */
   this.bitsbuflen = 0;
-  /** @type {!(Array|Uint8Array)} input buffer. */
+  /** @type {!(Array.<number>|Uint8Array)} input buffer. */
   this.input = USE_TYPEDARRAY ? new Uint8Array(input) : input;
-  /** @type {!(Uint8Array|Array)} output buffer. */
+  /** @type {!(Uint8Array|Array.<number>)} output buffer. */
   this.output;
   /** @type {!number} output buffer pointer. */
   this.op;
   /** @type {boolean} is final block flag. */
   this.bfinal = false;
-  /** @type {Zlib.RawInflate.Mode} inflate mode */
-  this.mode = Zlib.RawInflate.Mode.ADAPTIVE;
+  /** @type {Zlib.RawInflate.BufferType} buffer management. */
+  this.bufferType = Zlib.RawInflate.BufferType.ADAPTIVE;
   /** @type {boolean} resize flag for memory size optimization. */
   this.resize = false;
 
+  // option parameters
+  if (opt_params) {
+    if (opt_params.index) {
+      this.ip = opt_params.index;
+    }
+    if (opt_params.blocksize) {
+      this.blockSize = opt_params.blockSize;
+    }
+    if (opt_params.bufferType) {
+      this.bufferType = opt_params.bufferType;
+    }
+  }
+
   // initialize
-  switch (this.mode) {
-    case Zlib.RawInflate.Mode.BLOCK:
+  switch (this.bufferType) {
+    case Zlib.RawInflate.BufferType.BLOCK:
       this.op = Zlib.RawInflate.MaxBackwardLength;
       this.output =
         new (USE_TYPEDARRAY ? Uint8Array : Array)(
@@ -88,7 +104,7 @@ Zlib.RawInflate = function(input, ip, opt_blocksize) {
           Zlib.RawInflate.MaxCopyLength
         );
       break;
-    case Zlib.RawInflate.Mode.ADAPTIVE:
+    case Zlib.RawInflate.BufferType.ADAPTIVE:
       this.op = 0;
       this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(this.blockSize);
       this.expandBuffer = this.expandBufferDynamic;
@@ -103,14 +119,14 @@ Zlib.RawInflate = function(input, ip, opt_blocksize) {
 /**
  * @enum {number}
  */
-Zlib.RawInflate.Mode = {
+Zlib.RawInflate.BufferType = {
   BLOCK: 0,
   ADAPTIVE: 1
 };
 
 /**
  * decompress.
- * @return {!(Uint8Array|Array)} inflated buffer.
+ * @return {!(Uint8Array|Array.<number>)} inflated buffer.
  */
 Zlib.RawInflate.prototype.decompress = function() {
   while (!this.bfinal) {
@@ -121,18 +137,21 @@ Zlib.RawInflate.prototype.decompress = function() {
 };
 
 /**
- * @const {number} max backward length for LZ77.
+ * @const
+ * @type {number} max backward length for LZ77.
  */
 Zlib.RawInflate.MaxBackwardLength = 32768;
 
 /**
- * @const {number} max copy length for LZ77.
+ * @const
+ * @type {number} max copy length for LZ77.
  */
 Zlib.RawInflate.MaxCopyLength = 258;
 
 /**
  * huffman order
- * @const {!(Array.<number>|Uint8Array)}
+ * @const
+ * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflate.Order = (function(table) {
   return USE_TYPEDARRAY ? new Uint16Array(table) : table;
@@ -140,7 +159,8 @@ Zlib.RawInflate.Order = (function(table) {
 
 /**
  * huffman length code table.
- * @const {!(Array.<number>|Uint16Array)}
+ * @const
+ * @type {!(Array.<number>|Uint16Array)}
  */
 Zlib.RawInflate.LengthCodeTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint16Array(table) : table;
@@ -153,7 +173,8 @@ Zlib.RawInflate.LengthCodeTable = (function(table) {
 
 /**
  * huffman length extra-bits table.
- * @const {!(Array.<number>|Uint8Array)}
+ * @const
+ * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflate.LengthExtraTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint8Array(table) : table;
@@ -164,7 +185,8 @@ Zlib.RawInflate.LengthExtraTable = (function(table) {
 
 /**
  * huffman dist code table.
- * @const {!(Array.<number>|Uint16Array)}
+ * @const
+ * @type {!(Array.<number>|Uint16Array)}
  */
 Zlib.RawInflate.DistCodeTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint16Array(table) : table;
@@ -177,7 +199,8 @@ Zlib.RawInflate.DistCodeTable = (function(table) {
 
 /**
  * huffman dist extra-bits table.
- * @const {!(Array.<number>|Uint8Array)}
+ * @const
+ * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflate.DistExtraTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint8Array(table) : table;
@@ -188,7 +211,8 @@ Zlib.RawInflate.DistExtraTable = (function(table) {
 
 /**
  * fixed huffman length code table
- * @const {!Array}
+ * @const
+ * @type {!Array}
  */
 Zlib.RawInflate.FixedLiteralLengthTable = (function(table) {
   return table;
@@ -209,7 +233,8 @@ Zlib.RawInflate.FixedLiteralLengthTable = (function(table) {
 
 /**
  * fixed huffman distance code table
- * @const {!Array}
+ * @const
+ * @type {!Array}
  */
 Zlib.RawInflate.FixedDistanceTable = (function(table) {
   return table;
@@ -307,7 +332,7 @@ Zlib.RawInflate.prototype.readCodeByTable = function(table) {
   var input = this.input;
   var ip = this.ip;
 
-  /** @type {!(Array|Uint8Array)} huffman code table */
+  /** @type {!(Array.<number>|Uint8Array)} huffman code table */
   var codeTable = table[0];
   /** @type {number} */
   var maxCodeLength = table[1];
@@ -402,8 +427,8 @@ Zlib.RawInflate.prototype.parseUncompressedBlock = function() {
   if (ip + len > input.length) { throw new Error('input buffer is broken'); }
 
   // expand buffer
-  switch (this.mode) {
-    case Zlib.RawInflate.Mode.BLOCK:
+  switch (this.bufferType) {
+    case Zlib.RawInflate.BufferType.BLOCK:
       // pre copy
       while (op + len >= output.length) {
         preCopy = olength - op;
@@ -422,7 +447,7 @@ Zlib.RawInflate.prototype.parseUncompressedBlock = function() {
         op = this.op;
       }
       break;
-    case Zlib.RawInflate.Mode.ADAPTIVE:
+    case Zlib.RawInflate.BufferType.ADAPTIVE:
       while (op + len > output.length) {
         output = this.expandBuffer({fixRatio: 2});
       }
@@ -467,14 +492,14 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
   var hdist = this.readBits(5) + 1;
   /** @type {number} number of code lengths. */
   var hclen = this.readBits(4) + 4;
-  /** @type {!(Uint8Array|Array)} code lengths. */
+  /** @type {!(Uint8Array|Array.<number>)} code lengths. */
   var codeLengths =
     new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.RawInflate.Order.length);
   /** @type {!Array} code lengths table. */
   var codeLengthsTable;
-  /** @type {!(Uint32Array|Array)} literal and length code lengths. */
+  /** @type {!(Uint32Array|Array.<number>)} literal and length code lengths. */
   var litlenLengths;
-  /** @type {!(Uint32Array|Array)} distance code lengths. */
+  /** @type {!(Uint32Array|Array.<number>)} distance code lengths. */
   var distLengths;
   /** @type {number} loop counter. */
   var i = 0;
@@ -679,10 +704,10 @@ Zlib.RawInflate.prototype.decodeHuffmanDynamic = function(litlen, dist) {
 /**
  * expand output buffer.
  * @param {Object=} opt_param option parameters.
- * @return {!(Array|Uint8Array)} output buffer.
+ * @return {!(Array.<number>|Uint8Array)} output buffer.
  */
 Zlib.RawInflate.prototype.expandBuffer = function(opt_param) {
-  /** @type {!(Array|Uint8Array)} store buffer. */
+  /** @type {!(Array.<number>|Uint8Array)} store buffer. */
   var buffer =
     new (USE_TYPEDARRAY ? Uint8Array : Array)(
         this.op - Zlib.RawInflate.MaxBackwardLength
@@ -727,10 +752,10 @@ Zlib.RawInflate.prototype.expandBuffer = function(opt_param) {
 /**
  * expand output buffer. (dynamic)
  * @param {Object=} opt_param option parameters.
- * @return {!(Array|Uint8Array)} output buffer pointer.
+ * @return {!(Array.<number>|Uint8Array)} output buffer pointer.
  */
 Zlib.RawInflate.prototype.expandBufferDynamic = function(opt_param) {
-  /** @type {!(Array|Uint8Array)} store buffer. */
+  /** @type {!(Array.<number>|Uint8Array)} store buffer. */
   var buffer;
   /** @type {number} expantion ratio. */
   var ratio = (this.input.length / this.ip + 1) | 0;
@@ -780,20 +805,20 @@ Zlib.RawInflate.prototype.expandBufferDynamic = function(opt_param) {
 
 /**
  * concat output buffer.
- * @return {!(Array|Uint8Array)} output buffer.
+ * @return {!(Array.<number>|Uint8Array)} output buffer.
  */
 Zlib.RawInflate.prototype.concatBuffer = function() {
   /** @type {number} buffer pointer. */
   var pos = 0;
   /** @type {number} buffer pointer. */
   var limit = this.totalpos + (this.op - Zlib.RawInflate.MaxBackwardLength);
-  /** @type {!(Array|Uint8Array)} output block array. */
+  /** @type {!(Array.<number>|Uint8Array)} output block array. */
   var output = this.output;
   /** @type {!Array} blocks array. */
   var blocks = this.blocks;
-  /** @type {!(Array|Uint8Array)} output block array. */
+  /** @type {!(Array.<number>|Uint8Array)} output block array. */
   var block;
-  /** @type {!(Array|Uint8Array)} output buffer. */
+  /** @type {!(Array.<number>|Uint8Array)} output buffer. */
   var buffer = new (USE_TYPEDARRAY ? Uint8Array : Array)(limit);
   /** @type {number} loop counter. */
   var i;
@@ -832,10 +857,10 @@ Zlib.RawInflate.prototype.concatBuffer = function() {
 
 /**
  * concat output buffer. (dynamic)
- * @return {!(Array|Uint8Array)} output buffer.
+ * @return {!(Array.<number>|Uint8Array)} output buffer.
  */
 Zlib.RawInflate.prototype.concatBufferDynamic = function() {
-  /** @type {Array|Uint8Array} output buffer. */
+  /** @type {Array.<number>|Uint8Array} output buffer. */
   var buffer;
   var resize = this.resize;
 

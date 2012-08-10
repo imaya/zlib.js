@@ -20,8 +20,8 @@ exports['gunzipSync'] = gunzipSync;
 
 /**
  * deflate async.
- * @param {!(Buffer|Array|Uint8Array)} buffer plain data buffer.
- * @param {function(Error, !(Buffer|Array|Uint8Array))} callback
+ * @param {!(Buffer|Array.<number>|Uint8Array)} buffer plain data buffer.
+ * @param {function(Error, !(Buffer|Array.<number>|Uint8Array))} callback
  *     error calllback function.
  * @param {Object=} opt_params option parameters.
  */
@@ -29,7 +29,7 @@ function deflate(buffer, callback, opt_params) {
   process.nextTick(function(){
     /** @type {Error} error */
     var error;
-    /** @type {!(Buffer|Array|Uint8Array)} deflated buffer. */
+    /** @type {!(Buffer|Array.<number>|Uint8Array)} deflated buffer. */
     var deflated;
 
     try {
@@ -45,21 +45,19 @@ function deflate(buffer, callback, opt_params) {
 
 /**
  * deflate sync.
- * @param {!(Buffer|Array|Uint8Array)} buffer plain data buffer.
+ * @param {!(Buffer|Array.<number>|Uint8Array)} buffer plain data buffer.
  * @param {Object=} opt_params option parameters.
- * @return {!(Buffer|Array|Uint8Array)} deflated buffer.
+ * @return {!(Buffer|Array.<number>|Uint8Array)} deflated buffer.
  */
 function deflateSync(buffer, opt_params) {
+  /** @type {!(Array.<number>|Uint8Array)} */
+  buffer;
   /** @type {Zlib.Deflate} deflate encoder. */
-  var deflate = new Zlib.Deflate();
-  /**
-   * compression method.
-   * @param {!(Buffer|Array|Uint8Array)} buffer plain data buffer.
-   * @return {!(Array|Uint8Array)} daflated buffer.
-   */
-  deflate.compress;
-  /** @type {!(Array|Uint8Array)} deflated buffer. */
-  var deflated = deflate.compress(buffer);
+  var deflate = new Zlib.Deflate(buffer);
+  /** @type {!(Array.<number>|Uint8Array)} deflated buffer. */
+  var deflated;
+
+  deflated = deflate.compress();
 
   if (!opt_params) {
     opt_params = {};
@@ -71,8 +69,8 @@ function deflateSync(buffer, opt_params) {
 
 /**
  * inflate async.
- * @param {!(Array|Uint8Array)} buffer deflated buffer.
- * @param {function(Error, !(Buffer|Array|Uint8Array))} callback
+ * @param {!(Array.<number>|Uint8Array)} buffer deflated buffer.
+ * @param {function(Error, !(Buffer|Array.<number>|Uint8Array))} callback
  *     error calllback function.
  * @param {Object=} opt_params option parameters.
  */
@@ -80,7 +78,7 @@ function inflate(buffer, callback, opt_params) {
   process.nextTick(function(){
     /** @type {Error} error */
     var error;
-    /** @type {!(Buffer|Array|Uint8Array)} inflated plain buffer. */
+    /** @type {!(Buffer|Array.<number>|Uint8Array)} inflated plain buffer. */
     var inflated;
 
     try {
@@ -96,14 +94,14 @@ function inflate(buffer, callback, opt_params) {
 
 /**
  * inflate sync.
- * @param {!(Array|Uint8Array)} buffer deflated buffer.
+ * @param {!(Array.<number>|Uint8Array)} buffer deflated buffer.
  * @param {Object=} opt_params option parameters.
- * @return {!(Buffer|Array|Uint8Array)} inflated plain buffer.
+ * @return {!(Buffer|Array.<number>|Uint8Array)} inflated plain buffer.
  */
 function inflateSync(buffer, opt_params) {
   /** @type {Zlib.Inflate} deflate decoder. */
   var inflate;
-  /** @type {!(Buffer|Array|Uint8Array)} inflated plain buffer. */
+  /** @type {!(Buffer|Array.<number>|Uint8Array)} inflated plain buffer. */
   var inflated;
 
   buffer.subarray = buffer.slice;
@@ -119,8 +117,8 @@ function inflateSync(buffer, opt_params) {
 
 /**
  * gunzip async.
- * @param {!(Array|Uint8Array)} buffer inflated buffer.
- * @param {function(Error, !(Buffer|Array|Uint8Array))} callback
+ * @param {!(Array.<number>|Uint8Array)} buffer inflated buffer.
+ * @param {function(Error, !(Buffer|Array.<number>|Uint8Array))} callback
  *     error calllback function.
  * @param {Object=} opt_params option parameters.
  */
@@ -128,7 +126,7 @@ function gzip(buffer, callback, opt_params) {
   process.nextTick(function(){
     /** @type {Error} error */
     var error;
-    /** @type {!(Buffer|Array|Uint8Array)} deflated buffer. */
+    /** @type {!(Buffer|Array.<number>|Uint8Array)} deflated buffer. */
     var deflated;
 
     try {
@@ -143,14 +141,14 @@ function gzip(buffer, callback, opt_params) {
 
 /**
  * deflate sync.
- * @param {!(Array|Uint8Array)} buffer inflated buffer.
+ * @param {!(Array.<number>|Uint8Array)} buffer inflated buffer.
  * @param {Object=} opt_params option parameters.
- * @return {!(Buffer|Array|Uint8Array)} deflated buffer.
+ * @return {!(Buffer|Array.<number>|Uint8Array)} deflated buffer.
  */
 function gzipSync(buffer, opt_params) {
   /** @type {Zlib.Gzip} deflate compressor. */
   var deflate;
-  /** @type {!(Buffer|Array|Uint8Array)} deflated buffer. */
+  /** @type {!(Buffer|Array.<number>|Uint8Array)} deflated buffer. */
   var deflated;
 
   buffer.subarray = buffer.slice;
@@ -166,8 +164,8 @@ function gzipSync(buffer, opt_params) {
 
 /**
  * gunzip async.
- * @param {!(Array|Uint8Array)} buffer deflated buffer.
- * @param {function(Error, !(Buffer|Array|Uint8Array))} callback
+ * @param {!(Array.<number>|Uint8Array)} buffer deflated buffer.
+ * @param {function(Error, !(Buffer|Array.<number>|Uint8Array))} callback
  *     error calllback function.
  * @param {Object=} opt_params option parameters.
  */
@@ -175,7 +173,7 @@ function gunzip(buffer, callback, opt_params) {
   process.nextTick(function(){
     /** @type {Error} error */
     var error;
-    /** @type {!(Buffer|Array|Uint8Array)} inflated plain buffer. */
+    /** @type {!(Buffer|Array.<number>|Uint8Array)} inflated plain buffer. */
     var inflated;
 
     try {
@@ -190,14 +188,14 @@ function gunzip(buffer, callback, opt_params) {
 
 /**
  * inflate sync.
- * @param {!(Array|Uint8Array)} buffer deflated buffer.
+ * @param {!(Array.<number>|Uint8Array)} buffer deflated buffer.
  * @param {Object=} opt_params option parameters.
- * @return {!(Buffer|Array|Uint8Array)} inflated plain buffer.
+ * @return {!(Buffer|Array.<number>|Uint8Array)} inflated plain buffer.
  */
 function gunzipSync(buffer, opt_params) {
   /** @type {Zlib.Gunzip} deflate decompressor. */
   var inflate;
-  /** @type {!(Buffer|Array|Uint8Array)} inflated plain buffer. */
+  /** @type {!(Buffer|Array.<number>|Uint8Array)} inflated plain buffer. */
   var inflated;
 
   buffer.subarray = buffer.slice;

@@ -13,7 +13,7 @@ goog.addDependency('../src/heap.js', ['Zlib.Heap'], []);
 goog.addDependency('../src/huffman.js', ['Zlib.Huffman'], []);
 goog.addDependency('../src/inflate.js', ['Zlib.Inflate'], ['Zlib.Adler32', 'Zlib.RawInflate']);
 goog.addDependency('../src/inflate_stream.js', ['Zlib.InflateStream'], ['Zlib.RawInflateStream']);
-goog.addDependency('../src/rawdeflate.js', ['Zlib.RawDeflate'], ['Zlib.BitStream', 'Zlib.Heap', 'Zlib.Util']);
+goog.addDependency('../src/rawdeflate.js', ['Zlib.RawDeflate'], ['Zlib.BitStream', 'Zlib.Heap']);
 goog.addDependency('../src/rawinflate.js', ['Zlib.RawInflate'], ['Zlib.Huffman']);
 goog.addDependency('../src/rawinflate_stream.js', ['Zlib.RawInflateStream'], ['Zlib.Huffman']);
 goog.addDependency('../src/util.js', ['Zlib.Util'], []);

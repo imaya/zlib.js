@@ -39,12 +39,27 @@ goog.require('Zlib.RawInflate');
 goog.scope(function() {
 
 /**
- * @param {!(Uint8Array|Array)} input deflated buffer.
- * @param {number=} opt_blocksize buffer blocksize.
- * @param {boolean=} opt_verify verify adler-32 checksum.
  * @constructor
+ * @param {!(Uint8Array|Array)} input deflated buffer.
+ * @param {Object=} opt_params option parameters.
+ *
+ * opt_params は以下のプロパティを指定する事ができます。
+ *   - index: input buffer の deflate コンテナの開始位置.
+ *   - blockSize: バッファのブロックサイズ.
+ *   - verify: 伸張が終わった後 adler-32 checksum の検証を行うか.
+ *   - bufferType: Zlib.Inflate.BufferType の値によってバッファの管理方法を指定する.
+ *       Zlib.Inflate.BufferType は Zlib.RawInflate.BufferType のエイリアス.
  */
-Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
+Zlib.Inflate = function(input, opt_params) {
+  /** @type {number} */
+  var blockSize;
+  /** @type {Zlib.Inflate.BufferType} */
+  var bufferType;
+  /** @type {number} */
+  var cmf;
+  /** @type {number} */
+  var flg;
+
   /** @type {!(Uint8Array|Array)} */
   this.input = input;
   /** @type {number} */
@@ -52,11 +67,27 @@ Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
   /** @type {Zlib.RawInflate} */
   this.rawinflate;
   /** @type {(boolean|undefined)} verify flag. */
-  this.verify = opt_verify;
+  this.verify;
 
- // Compression Method and Flags
-  var cmf = input[this.ip++];
-  var flg = input[this.ip++];
+  // option parameters
+  if (opt_params) {
+    if (opt_params.index) {
+      this.ip = opt_params.index;
+    }
+    if (opt_params.blockSize) {
+      blockSize = opt_params.blockSize;
+    }
+    if (opt_params.verify) {
+      this.verify = opt_params.verify;
+    }
+    if (opt_params.bufferType) {
+      bufferType = opt_params.bufferType;
+    }
+  }
+
+  // Compression Method and Flags
+  cmf = input[this.ip++];
+  flg = input[this.ip++];
 
   // compression method
   switch (cmf & 0x0f) {
@@ -78,8 +109,16 @@ Zlib.Inflate = function(input, opt_blocksize, opt_verify) {
   }
 
   // RawInflate
-  this.rawinflate = new Zlib.RawInflate(input, this.ip, opt_blocksize);
+  this.rawinflate = new Zlib.RawInflate(input, {
+    index: this.ip,
+    blockSize: blockSize
+  });
 }
+
+/**
+ * @typedef {Zlib.RawInflate.BufferType}
+ */
+Zlib.Inflate.BufferType = Zlib.RawInflate.BufferType;
 
 /**
  * decompress.
@@ -114,6 +153,7 @@ Zlib.Inflate.prototype.decompress = function() {
 //*****************************************************************************
 if (ZLIB_INFLATE_EXPORT) {
   goog.exportSymbol('Zlib.Inflate', Zlib.Inflate);
+  goog.exportSymbol('Zlib.Inflate.BufferType', Zlib.Inflate.BufferType);
   goog.exportSymbol(
     'Zlib.Inflate.prototype.decompress',
     Zlib.Inflate.prototype.decompress

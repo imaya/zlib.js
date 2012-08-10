@@ -186,18 +186,21 @@ Zlib.RawInflateStream.prototype.decompress = function(newInput, ip) {
 };
 
 /**
- * @const {number} max backward length for LZ77.
+ * @const
+ * @type {number} max backward length for LZ77.
  */
 Zlib.RawInflateStream.MaxBackwardLength = 32768;
 
 /**
- * @const {number} max copy length for LZ77.
+ * @const
+ * @type {number} max copy length for LZ77.
  */
 Zlib.RawInflateStream.MaxCopyLength = 258;
 
 /**
  * huffman order
- * @const {!(Array.<number>|Uint8Array)}
+ * @const
+ * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflateStream.Order = (function(table) {
   return USE_TYPEDARRAY ? new Uint16Array(table) : table;
@@ -205,7 +208,8 @@ Zlib.RawInflateStream.Order = (function(table) {
 
 /**
  * huffman length code table.
- * @const {!(Array.<number>|Uint16Array)}
+ * @const
+ * @type {!(Array.<number>|Uint16Array)}
  */
 Zlib.RawInflateStream.LengthCodeTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint16Array(table) : table;
@@ -218,7 +222,8 @@ Zlib.RawInflateStream.LengthCodeTable = (function(table) {
 
 /**
  * huffman length extra-bits table.
- * @const {!(Array.<number>|Uint8Array)}
+ * @const
+ * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflateStream.LengthExtraTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint8Array(table) : table;
@@ -229,7 +234,8 @@ Zlib.RawInflateStream.LengthExtraTable = (function(table) {
 
 /**
  * huffman dist code table.
- * @const {!(Array.<number>|Uint16Array)}
+ * @const
+ * @type {!(Array.<number>|Uint16Array)}
  */
 Zlib.RawInflateStream.DistCodeTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint16Array(table) : table;
@@ -242,7 +248,8 @@ Zlib.RawInflateStream.DistCodeTable = (function(table) {
 
 /**
  * huffman dist extra-bits table.
- * @const {!(Array.<number>|Uint8Array)}
+ * @const
+ * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflateStream.DistExtraTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint8Array(table) : table;
@@ -253,7 +260,8 @@ Zlib.RawInflateStream.DistExtraTable = (function(table) {
 
 /**
  * fixed huffman length code table
- * @const {!Array}
+ * @const
+ * @type {!Array}
  */
 Zlib.RawInflateStream.FixedLiteralLengthTable = (function(table) {
   return table;
@@ -274,7 +282,8 @@ Zlib.RawInflateStream.FixedLiteralLengthTable = (function(table) {
 
 /**
  * fixed huffman distance code table
- * @const {!Array}
+ * @const
+ * @type {!Array}
  */
 Zlib.RawInflateStream.FixedDistanceTable = (function(table) {
   return table;

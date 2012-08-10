@@ -66,7 +66,7 @@ buster.testCase(
   "inflate and deflate",
   {
     setUp: function() {
-      var size = 123456;
+      var size = 76543;
       var testData = new (USE_TYPEDARRAY ? Uint8Array : Array)(size);
 
       console.log("use typedarray:", USE_TYPEDARRAY);

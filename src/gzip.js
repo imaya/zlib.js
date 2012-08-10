@@ -76,6 +76,10 @@ Zlib.Gzip = function(input, opt_params) {
       this.deflateOptions = opt_params.deflateOptions;
     }
   }
+
+  if (!this.deflateOptions) {
+    this.deflateOptions = {};
+  }
 };
 
 /**
@@ -181,10 +185,14 @@ Zlib.Gzip.prototype.compress = function() {
     output[op++] = (crc16 >>> 8) & 0xff;
   }
 
-  // compressed block
-  rawdeflate = new Zlib.RawDeflate(this.deflateOptions);
+  // add compress option
+  this.deflateOptions.outputBuffer = output;
+  this.deflateOptions.outputIndex = op;
+
+  // compress
+  rawdeflate = new Zlib.RawDeflate(input, this.deflateOptions);
   var bop = op;
-  output = rawdeflate.compress(input, output, op);
+  output = rawdeflate.compress();
   op = rawdeflate.op;
 
   // expand buffer
