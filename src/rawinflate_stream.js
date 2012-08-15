@@ -84,6 +84,16 @@ Zlib.RawInflateStream = function(input, ip, opt_blocksize) {
   this.sp = 0; // stream pointer
   /** @type {Zlib.RawInflateStream.Status} */
   this.status = Zlib.RawInflateStream.Status.INITIALIZED;
+
+  //
+  // backup
+  //
+  /** @type {!number} */
+  this.ip_;
+  /** @type {!number} */
+  this.bitsbuflen_;
+  /** @type {!number} */
+  this.bitsbuf_;
 };
 
 /**
@@ -307,11 +317,9 @@ Zlib.RawInflateStream.prototype.readBlockHeader = function() {
 
   this.status = Zlib.RawInflateStream.Status.BLOCK_HEADER_START;
 
-  try {
-    this.save();
-    hdr = this.readBits(3)
-  } catch(e) {
-    this.restore();
+  save(this);
+  if ((hdr = this.readBits(3)) < 0) {
+    restore(this);
     return -1;
   }
 
@@ -358,7 +366,7 @@ Zlib.RawInflateStream.prototype.readBits = function(length) {
     // input byte
     octet = input[ip++];
     if (octet === void 0) {
-      throw new Error('not enough input');
+      return -1;
     }
 
     // concat octet
@@ -406,7 +414,7 @@ Zlib.RawInflateStream.prototype.readCodeByTable = function(table) {
   while (bitsbuflen < maxCodeLength) {
     octet = input[ip++];
     if (octet === void 0) {
-      throw new Error('not enough input');
+      return -1;
     }
     bitsbuf |= octet << bitsbuflen;
     bitsbuflen += 8;
@@ -535,16 +543,26 @@ Zlib.RawInflateStream.prototype.parseFixedHuffmanBlock = function() {
   return 0;
 };
 
-Zlib.RawInflateStream.prototype.save = function() {
-  this.ip_ = this.ip;
-  this.bitsbuflen_ = this.bitsbuflen;
-  this.bitsbuf_ = this.bitsbuf;
-};
+/**
+ * オブジェクトのコンテキストを別のプロパティに退避する.
+ * @param {Zlib.RawInflateStream} target 対象オブジェクト.
+ * @private
+ */
+function save(target) {
+  target.ip_ = target.ip;
+  target.bitsbuflen_ = target.bitsbuflen;
+  target.bitsbuf_ = target.bitsbuf;
+}
 
-Zlib.RawInflateStream.prototype.restore = function() {
-  this.ip = this.ip_;
-  this.bitsbuflen = this.bitsbuflen_;
-  this.bitsbuf = this.bitsbuf_;
+/**
+ * 別のプロパティに退避したコンテキストを復元する.
+ * @param {Zlib.RawInflateStream} target 対象オブジェクト.
+ * @private
+ */
+function restore(target) {
+  target.ip = target.ip_;
+  target.bitsbuflen = target.bitsbuflen_;
+  target.bitsbuf = target.bitsbuf_;
 }
 
 /**
@@ -573,21 +591,32 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
 
   this.status = Zlib.RawInflateStream.Status.BLOCK_BODY_START;
 
+  save(this);
+  hlit = this.readBits(5) + 257;
+  hdist = this.readBits(5) + 1;
+  hclen = this.readBits(4) + 4;
+  if (hlit < 0 || hdist < 0 || hclen < 0) {
+    restore(this);
+    return -1;
+  }
+
   try {
-    this.save();
-    hlit = this.readBits(5) + 257;
-    hdist = this.readBits(5) + 1;
-    hclen = this.readBits(4) + 4;
     parseDynamicHuffmanBlockImpl.call(this);
   } catch(e) {
-    this.restore();
+    restore(this);
     return -1;
   }
 
   function parseDynamicHuffmanBlockImpl() {
+    /** @type {number} */
+    var bits;
+
     // decode code lengths
     for (i = 0; i < hclen; ++i) {
-      codeLengths[Zlib.RawInflateStream.Order[i]] = this.readBits(3);
+      if ((bits = this.readBits(3)) < 0) {
+        throw new Error('not enough input');
+      }
+      codeLengths[Zlib.RawInflateStream.Order[i]] = bits;
     }
     codeLengthsTable = buildHuffmanTable(codeLengths);
 
@@ -597,21 +626,34 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
       var prev;
       var repeat;
       var i = 0;
+      var bits;
 
       for (i = 0; i < num;) {
         code = this.readCodeByTable(table);
+        if (code < 0) {
+          throw new Error('not enough input');
+        }
         switch (code) {
           case 16:
-            repeat = 3 + this.readBits(2);
+            if ((bits = this.readBits(2)) < 0) {
+              throw new Error('not enough input');
+            };
+            repeat = 3 + bits;
             while (repeat--) { lengths[i++] = prev; }
             break;
           case 17:
-            repeat = 3 + this.readBits(3);
+            if ((bits = this.readBits(3)) < 0) {
+              throw new Error('not enough input');
+            };
+            repeat = 3 + bits;
             while (repeat--) { lengths[i++] = 0; }
             prev = 0;
             break;
           case 18:
-            repeat = 11 + this.readBits(7);
+            if ((bits = this.readBits(7)) < 0) {
+              throw new Error('not enough input');
+            };
+            repeat = 11 + bits;
             while (repeat--) { lengths[i++] = 0; }
             prev = 0;
             break;
@@ -664,14 +706,18 @@ Zlib.RawInflateStream.prototype.decodeHuffman = function() {
   var litlen = this.litlenTable;
   var dist = this.distTable;
 
+  var olength = output.length;
+  var bits;
+
   this.status = Zlib.RawInflateStream.Status.DECODE_BLOCK_START;
 
   while (true) {
-    try {
-      this.save();
-      code = this.readCodeByTable(litlen);
-    } catch(e) {
-      this.restore();
+    save(this);
+
+    code = this.readCodeByTable(litlen);
+    if (code < 0) {
+      this.op = op;
+      restore(this);
       return -1;
     }
 
@@ -681,10 +727,11 @@ Zlib.RawInflateStream.prototype.decodeHuffman = function() {
 
     // literal
     if (code < 256) {
-      if (this.op === output.length) {
+      if (op === olength) {
         output = this.expandBuffer();
+        olength = output.length;
       }
-      output[this.op++] = code;
+      output[op++] = code;
 
       continue;
     }
@@ -693,44 +740,46 @@ Zlib.RawInflateStream.prototype.decodeHuffman = function() {
     ti = code - 257;
     codeLength = Zlib.RawInflateStream.LengthCodeTable[ti];
     if (Zlib.RawInflateStream.LengthExtraTable[ti] > 0) {
-      try {
-        codeLength += this.readBits(Zlib.RawInflateStream.LengthExtraTable[ti]);
-      } catch(e) {
-        this.restore();
+      bits = this.readBits(Zlib.RawInflateStream.LengthExtraTable[ti]);
+      if (bits < 0) {
+        this.op = op;
+        restore(this);
         return -1;
       }
+      codeLength += bits;
     }
 
     // dist code
-    try {
-      code = this.readCodeByTable(dist);
-    } catch(e) {
-      this.restore();
+    code = this.readCodeByTable(dist);
+    if (code < 0) {
+      this.op = op;
+      restore(this);
       return -1;
     }
     codeDist = Zlib.RawInflateStream.DistCodeTable[code];
     if (Zlib.RawInflateStream.DistExtraTable[code] > 0) {
-      try {
-        codeDist += this.readBits(Zlib.RawInflateStream.DistExtraTable[code]);
-      } catch(e) {
-        this.restore();
+      bits = this.readBits(Zlib.RawInflateStream.DistExtraTable[code]);
+      if (bits < 0) {
+        this.op = op;
+        restore(this);
         return -1;
       }
+      codeDist += bits;
     }
 
     // lz77 decode
-    if (this.op + codeLength >= output.length) {
+    if (op + codeLength >= olength) {
       output = this.expandBuffer();
+      olength = output.length;
     }
 
-    op = this.op;
     while (codeLength--) {
       output[op] = output[(op++) - codeDist];
     }
-    this.op = op;
 
     // break
     if (this.ip === this.input.length) {
+      this.op = op;
       return -1;
     }
   }
@@ -740,6 +789,7 @@ Zlib.RawInflateStream.prototype.decodeHuffman = function() {
     this.ip--;
   }
 
+  this.op = op;
   this.status = Zlib.RawInflateStream.Status.DECODE_BLOCK_END;
 };
 

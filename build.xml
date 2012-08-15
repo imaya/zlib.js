@@ -306,7 +306,7 @@
   </target>
 
   <!-- 全て作成 -->
-  <target name="all" depends="zlib,zlib_and_gzip,inflate,deflate,gzip,gunzip,node"></target>
+  <target name="all" depends="zlib,zlib_and_gzip,inflate,inflate_stream,deflate,gzip,gunzip,node"></target>
 
   <!--  削除 -->
   <target name="clean">
