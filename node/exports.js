@@ -112,7 +112,7 @@ function inflateSync(buffer, opt_params) {
     opt_params = {};
   }
 
-  return opt_params.noBuffer ? inflated : toBuffer(inflated);
+  return opt_params['noBuffer'] ? inflated : toBuffer(inflated);
 }
 
 /**

@@ -51,6 +51,8 @@ Zlib.InflateStream = function(input) {
   this.rawinflate = new Zlib.RawInflateStream(this.input, this.ip);
   /** @type {Zlib.CompressionMethod} */
   this.method;
+  /** @type {!(Array|Uint8Array)} */
+  this.output = this.rawinflate.output;
 };
 
 /**
@@ -101,6 +103,13 @@ Zlib.InflateStream.prototype.decompress = function(input) {
   return buffer;
 };
 
+/**
+ * @return {!(Uint8Array|Array)} current output buffer.
+ */
+Zlib.InflateStream.prototype.getBytes = function() {
+  return this.rawinflate.getBytes();
+};
+
 Zlib.InflateStream.prototype.readHeader = function() {
   var ip = this.ip;
   var input = this.input;
@@ -144,6 +153,10 @@ if (ZLIB_INFLATE_STREAM_EXPORT) {
   goog.exportSymbol(
     'Zlib.InflateStream.prototype.decompress',
     Zlib.InflateStream.prototype.decompress
+  );
+  goog.exportSymbol(
+    'Zlib.InflateStream.prototype.getBytes',
+    Zlib.InflateStream.prototype.getBytes
   );
 }
 

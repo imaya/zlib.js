@@ -82,14 +82,14 @@ Zlib.RawInflate = function(input, opt_params) {
 
   // option parameters
   if (opt_params) {
-    if (opt_params.index) {
-      this.ip = opt_params.index;
+    if (opt_params['index']) {
+      this.ip = opt_params['index'];
     }
-    if (opt_params.blocksize) {
-      this.blockSize = opt_params.blockSize;
+    if (opt_params['blockSize']) {
+      this.blockSize = opt_params['blockSize'];
     }
-    if (opt_params.bufferType) {
-      this.bufferType = opt_params.bufferType;
+    if (opt_params['bufferType']) {
+      this.bufferType = opt_params['bufferType'];
     }
   }
 

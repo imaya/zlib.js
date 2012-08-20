@@ -852,7 +852,7 @@ Zlib.RawInflateStream.prototype.expandBuffer = function(opt_param) {
  * @return {!(Array|Uint8Array)} output buffer.
  */
 Zlib.RawInflateStream.prototype.concatBuffer = function() {
-  /** @type {Array|Uint8Array} output buffer. */
+  /** @type {!(Array|Uint8Array)} output buffer. */
   var buffer;
 
   var resize = this.resize;
@@ -878,6 +878,14 @@ Zlib.RawInflateStream.prototype.concatBuffer = function() {
   return this.buffer;
 };
 
+/**
+ * @return {!(Array|Uint8Array)} current output buffer.
+ */
+Zlib.RawInflateStream.prototype.getBytes = function() {
+  return USE_TYPEDARRAY ?
+    this.output.subarray(0, this.op) : this.output.slice(0, this.op);
+};
+
 //*****************************************************************************
 // export
 //*****************************************************************************
@@ -886,6 +894,10 @@ if (ZLIB_RAW_INFLATE_STREAM_EXPORT) {
   goog.exportSymbol(
     'Zlib.RawInflateStream.prototype.decompress',
     Zlib.RawInflateStream.prototype.decompress
+  );
+  goog.exportSymbol(
+    'Zlib.RawInflateStream.prototype.getBytes',
+    Zlib.RawInflateStream.prototype.getBytes
   );
 }
 

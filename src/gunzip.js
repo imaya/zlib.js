@@ -200,12 +200,12 @@ Zlib.Gunzip.prototype.decodeMember = function() {
   // 1/128 になるとする
   // ここから入力バッファの残りが isize の 512 倍以上だったら
   // サイズ指定のバッファ確保は行わない事とする
-  if (this.input.length - ip - /* CRC-32 */4 - /* ISIZE */4  > isize * 512) {
+  if (input.length - ip - /* CRC-32 */4 - /* ISIZE */4 < isize * 512) {
     inflen = isize;
   }
 
   // compressed block
-  rawinflate = new Zlib.RawInflate(input, {index: ip, blockSize: inflen});
+  rawinflate = new Zlib.RawInflate(input, {'index': ip, 'blockSize': inflen});
   inflated = rawinflate.decompress();
   ip = rawinflate.ip;
 
