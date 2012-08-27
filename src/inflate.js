@@ -133,6 +133,7 @@ Zlib.Inflate.prototype.decompress = function() {
   var adler32;
 
   buffer = this.rawinflate.decompress();
+  this.ip = this.rawinflate.ip;
 
   // verify adler-32
   if (this.verify) {
