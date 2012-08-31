@@ -1,4 +1,4 @@
-var USE_TYPEDARRAY = typeof Uint8Array === 'function';
+var USE_TYPEDARRAY = window.Uint8Array !== void 0;
 
 //-----------------------------------------------------------------------------
 // base64 decoder
@@ -52,6 +52,34 @@ function arrayEquals(expected, actuals) {
   return true;
 }
 
+var fixedData =
+  'eJztzydhGAAAALDd/v////////////////////////////////9no6BxkF+///z99x8A' +
+  'EAgYBBQMHAISChoGFg4eAREJGQUVDR0DEwsbBxcPn4CQiJiElIycgpKKmoaWjp6BkYmZ' +
+  'hZWNnYOTi5uHl49fQFBIWERUTFxCUkpaRlZOXkFRSVlFVU1dQ1NLW0dXT9/A0MjYxNTM' +
+  '3MLSytrG1s7ewdHJ2cXVzd3D08vbx9fPPyAwKDgkNCw8IjIqOiY2Lj4hMSk5JTUtPSMz' +
+  'KzsnNy+/oLCouKS0rLyisqq6prauvqGxqbmlta29o7Oru6e3r39gcGh4ZHRsfGJyanpm' +
+  'dm5+YXFpeWV1bX1jc2t7Z3dv/+Dw6Pjk9Oz84vLq+ub27v7h8en55fXt/ePz5//z//n/' +
+  '/H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f' +
+  '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z' +
+  '//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+' +
+  'P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//' +
+  '5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n/' +
+  '/H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f' +
+  '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z' +
+  '//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+' +
+  'P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//' +
+  '5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n/' +
+  '/H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f' +
+  '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z' +
+  '//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+' +
+  'P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//' +
+  '5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n/' +
+  '/H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f' +
+  '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z' +
+  '//n//H/+P/+f/8//5//z//n//H/+3+P/Ba1OJPE=';
+
+
+
 //-----------------------------------------------------------------------------
 // test cases
 //-----------------------------------------------------------------------------
@@ -70,31 +98,7 @@ buster.testCase(
       var size = 123456;
       var plain = new (USE_TYPEDARRAY ? Uint8Array : Array)(size);
       var i, il;
-      var testData =
-        'eJztzydhGAAAALDd/v////////////////////////////////9no6BxkF+///z99x8A'+
-        'EAgYBBQMHAISChoGFg4eAREJGQUVDR0DEwsbBxcPn4CQiJiElIycgpKKmoaWjp6BkYmZ'+
-        'hZWNnYOTi5uHl49fQFBIWERUTFxCUkpaRlZOXkFRSVlFVU1dQ1NLW0dXT9/A0MjYxNTM'+
-        '3MLSytrG1s7ewdHJ2cXVzd3D08vbx9fPPyAwKDgkNCw8IjIqOiY2Lj4hMSk5JTUtPSMz'+
-        'KzsnNy+/oLCouKS0rLyisqq6prauvqGxqbmlta29o7Oru6e3r39gcGh4ZHRsfGJyanpm'+
-        'dm5+YXFpeWV1bX1jc2t7Z3dv/+Dw6Pjk9Oz84vLq+ub27v7h8en55fXt/ePz5//z//n/'+
-        '/H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f'+
-        '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z'+
-        '//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+'+
-        'P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//'+
-        '5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n/'+
-        '/H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f'+
-        '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z'+
-        '//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+'+
-        'P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//'+
-        '5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n/'+
-        '/H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f'+
-        '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z'+
-        '//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+'+
-        'P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//'+
-        '5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n/'+
-        '/H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f'+
-        '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z'+
-        '//n//H/+P/+f/8//5//z//n//H/+3+P/Ba1OJPE=';
+      var testData = fixedData;
 
       // make plain data
       for (i = 0, il = size; i < il; ++i) {
@@ -113,6 +117,89 @@ buster.testCase(
       assert.equals(inflated.length, size, "inflated data size");
       assert(arrayEquals(inflated, plain));
     },
+    "inflate pre-deflated data with inflate bufferSize option": function() {
+      var size = 123456;
+      var plain = new (USE_TYPEDARRAY ? Uint8Array : Array)(size);
+      var i, il;
+      var testData = fixedData;
+
+      // make plain data
+      for (i = 0, il = size; i < il; ++i) {
+        plain[i] = i & 0xff;
+      }
+
+      var decodedData = decodeB64(testData);
+
+      // testdata size
+      assert.equals(testData.length, 1604, "source data size");
+      assert.equals(decodedData.length, 1203, "base64 decoded data size");
+
+      var inflator = new Zlib.Inflate(decodedData, {bufferSize: 123456});
+      var inflated = inflator.decompress();
+
+      console.log("buffer size:", inflated.buffer.byteLength);
+      assert.equals(inflated.length, size, "inflated data size");
+      assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
+      assert(arrayEquals(inflated, plain));
+    },
+    "inflate pre-deflated data with inflate bufferType option": function() {
+      var size = 123456;
+      var plain = new (USE_TYPEDARRAY ? Uint8Array : Array)(size);
+      var i, il;
+      var testData = fixedData;
+
+      // make plain data
+      for (i = 0, il = size; i < il; ++i) {
+        plain[i] = i & 0xff;
+      }
+
+      var decodedData = decodeB64(testData);
+
+      // testdata size
+      assert.equals(testData.length, 1604, "source data size");
+      assert.equals(decodedData.length, 1203, "base64 decoded data size");
+
+      var inflator = new Zlib.Inflate(decodedData, {
+        bufferType: Zlib.Inflate.BufferType.BLOCK,
+        bufferSize: 41152
+      });
+      var inflated = inflator.decompress();
+
+      console.log("buffer size:", inflated.buffer.byteLength);
+      assert.equals(inflated.length, size, "inflated data size");
+      assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
+      assert(arrayEquals(inflated, plain));
+    },
+    "inflate pre-deflated data with inflate resize option": function() {
+      var size = 123456;
+      var plain = new (USE_TYPEDARRAY ? Uint8Array : Array)(size);
+      var i, il;
+      var testData = fixedData;
+
+      // make plain data
+      for (i = 0, il = size; i < il; ++i) {
+        plain[i] = i & 0xff;
+      }
+
+      var decodedData = decodeB64(testData);
+
+      // testdata size
+      assert.equals(testData.length, 1604, "source data size");
+      assert.equals(decodedData.length, 1203, "base64 decoded data size");
+
+      var inflator = new Zlib.Inflate(decodedData, {
+        bufferType: Zlib.Inflate.BufferType.BLOCK,
+        bufferSize: 41153,
+        resize: true
+      });
+      var inflated = inflator.decompress();
+
+      console.log("buffer size:", inflated.buffer.byteLength);
+      assert.equals(inflated.length, size, "inflated data size");
+      assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
+      assert(arrayEquals(inflated, plain));
+    },
+
     "uncompressed random data": function() {
       makeRandomData(this.testData);
       inflateTest('random', this.testData, Zlib.RawDeflate.CompressionType.NONE);
@@ -153,7 +240,7 @@ buster.testCase(
 );
 
 // inflate test
-function inflateTest(mode, testData, compressionType) {
+function inflateTest(mode, testData, compressionType, inflateOption) {
   var deflate;
   var inflate;
 
@@ -167,7 +254,7 @@ function inflateTest(mode, testData, compressionType) {
   console.log("deflated data size:", deflate.length);
 
   // inflate
-  inflate = (new Zlib.Inflate(deflate)).decompress();
+  inflate = (new Zlib.Inflate(deflate, inflateOption)).decompress();
   console.log("inflated data size:", inflate.length)
 
   // assertion

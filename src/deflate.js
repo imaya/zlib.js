@@ -62,25 +62,26 @@ Zlib.Deflate = function(input, opt_params) {
   /** @type {Zlib.RawDeflate} */
   this.rawDeflate;
   /** @type {Object} */
-  this.rawDeflateOption = {};
+  var rawDeflateOption = {};
   /** @type {string} */
   var prop;
 
   // option parameters
-  if (opt_params) {
-    if (typeof opt_params.compressionType === 'number') {
-      this.compressionType = this.rawDeflateOption.compressionType =
-        /** @type {Zlib.RawDeflate.CompressionType} */opt_params.compressionType;
+  if (opt_params || !(opt_params = {})) {
+    if (typeof opt_params['compressionType'] === 'number') {
+      this.compressionType = opt_params['compressionType'];
     }
   }
 
-  // copy option
-  if (opt_params) {
-    for (prop in opt_params) {
-      this.rawDeflateOption[prop] = opt_params[prop];
-    }
+  // copy options
+  for (prop in opt_params) {
+    rawDeflateOption[prop] = opt_params[prop];
   }
-  this.rawDeflateOption.outputBuffer = this.output;
+
+  // set raw-deflate output buffer
+  rawDeflateOption['outputBuffer'] = this.output;
+
+  this.rawDeflate = new Zlib.RawDeflate(this.input, rawDeflateOption);
 };
 
 /**
@@ -128,8 +129,6 @@ Zlib.Deflate.prototype.compress = function() {
   var output;
   /** @type {number} */
   var pos = 0;
-
-  this.rawDeflate = new Zlib.RawDeflate(this.input, this.rawDeflateOption);
 
   output = this.output;
 

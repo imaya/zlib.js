@@ -167,11 +167,12 @@ Zlib.BitStream.prototype.finish = function() {
   /** @type {!(Array|Uint8Array)} output buffer. */
   var output;
 
+  // bitindex が 0 の時は余分に index が進んでいる状態
   if (this.bitindex > 0) {
     buffer[index] <<= 8 - this.bitindex;
+    buffer[index] = Zlib.BitStream.ReverseTable[buffer[index]];
+    index++;
   }
-  buffer[index] = Zlib.BitStream.ReverseTable[buffer[index]];
-  index++;
 
   // array truncation
   if (USE_TYPEDARRAY) {

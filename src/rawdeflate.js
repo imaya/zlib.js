@@ -72,18 +72,19 @@ Zlib.RawDeflate = function(input, opt_params) {
 
   // option parameters
   if (opt_params) {
-    if (opt_params.lazy !== void 0) {
-      this.lazy = opt_params.lazy;
+    if (opt_params['lazy']) {
+      this.lazy = opt_params['lazy'];
     }
-    if (opt_params.compressionType !== void 0) {
-      this.compressionType = opt_params.compressionType;
+    if (typeof opt_params['compressionType'] === 'number') {
+      this.compressionType = opt_params['compressionType'];
     }
-    if (opt_params.outputBuffer) {
-      this.output = USE_TYPEDARRAY && opt_params.outputBuffer instanceof Array ?
-        new Uint8Array(opt_params.outputBuffer) : opt_params.outputBuffer;
+    if (opt_params['outputBuffer']) {
+      this.output =
+        (USE_TYPEDARRAY && opt_params['outputBuffer'] instanceof Array) ?
+        new Uint8Array(opt_params['outputBuffer']) : opt_params['outputBuffer'];
     }
-    if (opt_params.outputIndex !== void 0) {
-      this.op = opt_params.outputIndex;
+    if (typeof opt_params['outputIndex'] === 'number') {
+      this.op = opt_params['outputIndex'];
     }
   }
 
@@ -438,10 +439,6 @@ function(dataArray, litLen, dist, stream) {
   /** @type {number} */
   var code;
   /** @type {number} */
-  var bitlen;
-  /** @type {number} */
-  var extra;
-  /** @type {number} */
   var litLenCodes;
   /** @type {number} */
   var litLenLengths;
@@ -493,12 +490,6 @@ Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
   var length;
   /** @type {number} */
   var literal;
-  /** @type {number} */
-  var code;
-  /** @type {number} */
-  var bitlen;
-  /** @type {number} */
-  var extra;
 
   // 符号を BitStream に書き込んでいく
   for (index = 0, length = dataArray.length; index < length; index++) {

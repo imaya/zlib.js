@@ -205,7 +205,7 @@ Zlib.Gunzip.prototype.decodeMember = function() {
   }
 
   // compressed block
-  rawinflate = new Zlib.RawInflate(input, {'index': ip, 'blockSize': inflen});
+  rawinflate = new Zlib.RawInflate(input, {'index': ip, 'bufferSize': inflen});
   inflated = rawinflate.decompress();
   ip = rawinflate.ip;
 

@@ -34,7 +34,7 @@ goog.require('Zlib.Huffman');
 var ZLIB_RAW_INFLATE_EXPORT = false;
 
 /** @define {number} buffer block size. */
-var ZLIB_BUFFER_BLOCK_SIZE = 0x8000; // [ 0x8000 >= ZLIB_BUFFER_BLOCK_SIZE ]
+var ZLIB_RAW_INFLATE_BUFFER_SIZE = 0x8000; // [ 0x8000 >= ZLIB_BUFFER_BLOCK_SIZE ]
 
 //-----------------------------------------------------------------------------
 
@@ -51,6 +51,7 @@ var buildHuffmanTable = Zlib.Huffman.buildHuffmanTable;
  *   - index: input buffer の deflate コンテナの開始位置.
  *   - blockSize: バッファのブロックサイズ.
  *   - bufferType: Zlib.RawInflate.BufferType の値によってバッファの管理方法を指定する.
+ *   - resize: 確保したバッファが実際の大きさより大きかった場合に切り詰める.
  */
 Zlib.RawInflate = function(input, opt_params) {
   /** @type {!(Array.<number>|Uint8Array)} inflated buffer */
@@ -58,7 +59,7 @@ Zlib.RawInflate = function(input, opt_params) {
   /** @type {!Array.<(Array.<number>|Uint8Array)>} */
   this.blocks = [];
   /** @type {number} block size. */
-  this.blockSize = ZLIB_BUFFER_BLOCK_SIZE;
+  this.bufferSize = ZLIB_RAW_INFLATE_BUFFER_SIZE;
   /** @type {!number} total output buffer pointer. */
   this.totalpos = 0;
   /** @type {!number} input buffer pointer. */
@@ -81,15 +82,18 @@ Zlib.RawInflate = function(input, opt_params) {
   this.resize = false;
 
   // option parameters
-  if (opt_params) {
+  if (opt_params || !(opt_params = {})) {
     if (opt_params['index']) {
       this.ip = opt_params['index'];
     }
-    if (opt_params['blockSize']) {
-      this.blockSize = opt_params['blockSize'];
+    if (opt_params['bufferSize']) {
+      this.bufferSize = opt_params['bufferSize'];
     }
     if (opt_params['bufferType']) {
       this.bufferType = opt_params['bufferType'];
+    }
+    if (opt_params['resize']) {
+      this.resize = opt_params['resize'];
     }
   }
 
@@ -100,16 +104,16 @@ Zlib.RawInflate = function(input, opt_params) {
       this.output =
         new (USE_TYPEDARRAY ? Uint8Array : Array)(
           Zlib.RawInflate.MaxBackwardLength +
-          this.blockSize +
+          this.bufferSize +
           Zlib.RawInflate.MaxCopyLength
         );
       break;
     case Zlib.RawInflate.BufferType.ADAPTIVE:
       this.op = 0;
-      this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(this.blockSize);
-      this.expandBuffer = this.expandBufferDynamic;
+      this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(this.bufferSize);
+      this.expandBuffer = this.expandBufferAdaptive;
       this.concatBuffer = this.concatBufferDynamic;
-      this.decodeHuffman = this.decodeHuffmanDynamic;
+      this.decodeHuffman = this.decodeHuffmanAdaptive;
       break;
     default:
       throw new Error('invalid inflate mode');
@@ -338,8 +342,6 @@ Zlib.RawInflate.prototype.readCodeByTable = function(table) {
   var maxCodeLength = table[1];
   /** @type {number} input byte */
   var octet;
-  /** @type {number} code */
-  var code;
   /** @type {number} code length & code (16bit, 16bit) */
   var codeWithLength;
   /** @type {number} code bits length */
@@ -430,7 +432,7 @@ Zlib.RawInflate.prototype.parseUncompressedBlock = function() {
   switch (this.bufferType) {
     case Zlib.RawInflate.BufferType.BLOCK:
       // pre copy
-      while (op + len >= output.length) {
+      while (op + len > output.length) {
         preCopy = olength - op;
         len -= preCopy;
         if (USE_TYPEDARRAY) {
@@ -497,14 +499,12 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
     new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.RawInflate.Order.length);
   /** @type {!Array} code lengths table. */
   var codeLengthsTable;
-  /** @type {!(Uint32Array|Array.<number>)} literal and length code lengths. */
+  /** @type {!(Uint8Array|Array.<number>)} literal and length code lengths. */
   var litlenLengths;
-  /** @type {!(Uint32Array|Array.<number>)} distance code lengths. */
+  /** @type {!(Uint8Array|Array.<number>)} distance code lengths. */
   var distLengths;
   /** @type {number} loop counter. */
-  var i = 0;
-  /** @type {number} loop counter. */
-  var j = 0;
+  var i;
 
   // decode code lengths
   for (i = 0; i < hclen; ++i) {
@@ -512,12 +512,22 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
   }
   codeLengthsTable = buildHuffmanTable(codeLengths);
 
-  // decode function
+  /**
+   * decode function
+   * @param {number} num number of lengths.
+   * @param {!Array} table code lengths table.
+   * @param {!(Uint8Array|Array.<number>)} lengths code lengths buffer.
+   * @return {!(Uint8Array|Array.<number>)} code lengths buffer.
+   */
   function decode(num, table, lengths) {
+    /** @type {number} */
     var code;
+    /** @type {number} */
     var prev;
+    /** @type {number} */
     var repeat;
-    var i = 0;
+    /** @type {number} */
+    var i;
 
     for (i = 0; i < num;) {
       code = this.readCodeByTable(table);
@@ -569,7 +579,6 @@ Zlib.RawInflate.prototype.decodeHuffman = function(litlen, dist) {
   var op = this.op;
 
   this.currentLitlenTable = litlen;
-  this.currentDistTable = dist;
 
   /** @type {number} output position limit. */
   var olength = output.length - Zlib.RawInflate.MaxCopyLength;
@@ -581,10 +590,6 @@ Zlib.RawInflate.prototype.decodeHuffman = function(litlen, dist) {
   var codeDist;
   /** @type {number} huffman code length. */
   var codeLength;
-  /** @type {number} buffer position. */
-  var bpos;
-  /** @type {number} pre-copy counter. */
-  var preCopy;
 
   while ((code = this.readCodeByTable(litlen)) !== 256) {
     // literal
@@ -632,16 +637,15 @@ Zlib.RawInflate.prototype.decodeHuffman = function(litlen, dist) {
 };
 
 /**
- * decode huffman code (dynamic)
+ * decode huffman code (adaptive)
  * @param {!Array} litlen literal and length code table.
  * @param {!Array} dist distination code table.
  */
-Zlib.RawInflate.prototype.decodeHuffmanDynamic = function(litlen, dist) {
+Zlib.RawInflate.prototype.decodeHuffmanAdaptive = function(litlen, dist) {
   var output = this.output;
   var op = this.op;
 
   this.currentLitlenTable = litlen;
-  this.currentDistTable = dist;
 
   /** @type {number} output position limit. */
   var olength = output.length;
@@ -653,15 +657,11 @@ Zlib.RawInflate.prototype.decodeHuffmanDynamic = function(litlen, dist) {
   var codeDist;
   /** @type {number} huffman code length. */
   var codeLength;
-  /** @type {number} buffer position. */
-  var bpos;
-  /** @type {number} pre-copy counter. */
-  var preCopy;
 
   while ((code = this.readCodeByTable(litlen)) !== 256) {
     // literal
     if (code < 256) {
-      if (op === olength) {
+      if (op >= olength) {
         output = this.expandBuffer();
         olength = output.length;
       }
@@ -685,7 +685,7 @@ Zlib.RawInflate.prototype.decodeHuffmanDynamic = function(litlen, dist) {
     }
 
     // lz77 decode
-    if (op + codeLength >= olength) {
+    if (op + codeLength > olength) {
       output = this.expandBuffer();
       olength = output.length;
     }
@@ -750,11 +750,11 @@ Zlib.RawInflate.prototype.expandBuffer = function(opt_param) {
 };
 
 /**
- * expand output buffer. (dynamic)
+ * expand output buffer. (adaptive)
  * @param {Object=} opt_param option parameters.
  * @return {!(Array.<number>|Uint8Array)} output buffer pointer.
  */
-Zlib.RawInflate.prototype.expandBufferDynamic = function(opt_param) {
+Zlib.RawInflate.prototype.expandBufferAdaptive = function(opt_param) {
   /** @type {!(Array.<number>|Uint8Array)} store buffer. */
   var buffer;
   /** @type {number} expantion ratio. */
@@ -862,22 +862,21 @@ Zlib.RawInflate.prototype.concatBuffer = function() {
 Zlib.RawInflate.prototype.concatBufferDynamic = function() {
   /** @type {Array.<number>|Uint8Array} output buffer. */
   var buffer;
-  var resize = this.resize;
-
   var op = this.op;
 
-  if (resize) {
-    if (USE_TYPEDARRAY) {
+  if (USE_TYPEDARRAY) {
+    if (this.resize) {
       buffer = new Uint8Array(op);
       buffer.set(this.output.subarray(0, op));
     } else {
-      buffer = this.output.slice(0, op);
+      buffer = this.output.subarray(0, op);
     }
   } else {
-    buffer =
-      USE_TYPEDARRAY ?  this.output.subarray(0, op) : this.output.slice(0, op);
+    if (this.output.length > op) {
+      this.output.length = op;
+    }
+    buffer = this.output;
   }
-
 
   this.buffer = buffer;
 

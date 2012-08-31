@@ -35,7 +35,7 @@ goog.require('Zlib.Huffman');
 var ZLIB_RAW_INFLATE_STREAM_EXPORT = false;
 
 /** @define {number} buffer block size. */
-var ZLIB_STREAM_BUFFER_BLOCK_SIZE = 0x8000; // [ 0x8000 >= ZLIB_BUFFER_BLOCK_SIZE ]
+var ZLIB_STREAM_RAW_INFLATE_BUFFER_SIZE = 0x8000;
 
 //-----------------------------------------------------------------------------
 
@@ -46,16 +46,17 @@ var buildHuffmanTable = Zlib.Huffman.buildHuffmanTable;
 /**
  * @param {!(Uint8Array|Array.<number>)} input input buffer.
  * @param {number} ip input buffer pointer.
- * @param {number=} opt_blocksize buffer block size.
+ * @param {number=} opt_buffersize buffer block size.
  * @constructor
  */
-Zlib.RawInflateStream = function(input, ip, opt_blocksize) {
+Zlib.RawInflateStream = function(input, ip, opt_buffersize) {
   /** @type {!(Array|Uint8Array)} inflated buffer */
   this.buffer;
   /** @type {!Array.<(Array|Uint8Array)>} */
   this.blocks = [];
   /** @type {number} block size. */
-  this.blockSize = opt_blocksize ? opt_blocksize : ZLIB_STREAM_BUFFER_BLOCK_SIZE;
+  this.bufferSize =
+    opt_buffersize ? opt_buffersize : ZLIB_STREAM_RAW_INFLATE_BUFFER_SIZE;
   /** @type {!number} total output buffer pointer. */
   this.totalpos = 0;
   /** @type {!number} input buffer pointer. */
@@ -67,7 +68,7 @@ Zlib.RawInflateStream = function(input, ip, opt_blocksize) {
   /** @type {!(Array|Uint8Array)} input buffer. */
   this.input = USE_TYPEDARRAY ? new Uint8Array(input) : input;
   /** @type {!(Uint8Array|Array)} output buffer. */
-  this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(this.blockSize);
+  this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(this.bufferSize);
   /** @type {!number} output buffer pointer. */
   this.op = 0;
   /** @type {boolean} is final block flag. */

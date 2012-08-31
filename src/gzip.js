@@ -65,15 +65,15 @@ Zlib.Gzip = function(input, opt_params) {
   this.deflateOptions;
 
   // option parameters
-  if (typeof opt_params === 'object') {
-    if (typeof opt_params.flags === 'object') {
-      this.flags = opt_params.flags;
+  if (opt_params) {
+    if (opt_params['flags']) {
+      this.flags = opt_params['flags'];
     }
-    if (typeof opt_params.filename === 'string') {
-      this.filename = opt_params.filename;
+    if (typeof opt_params['filename'] === 'string') {
+      this.filename = opt_params['filename'];
     }
-    if (typeof opt_params.deflateOptions === 'object') {
-      this.deflateOptions = opt_params.deflateOptions;
+    if (opt_params['deflateOptions']) {
+      this.deflateOptions = opt_params['deflateOptions'];
     }
   }
 
@@ -103,14 +103,8 @@ Zlib.Gzip.prototype.compress = function() {
   var crc32;
   /** @type {!Zlib.RawDeflate} raw deflate object. */
   var rawdeflate;
-  /** @type {!(Array|Uint8Array)} deflated buffer. */
-  var deflated;
   /** @type {number} character code */
   var c;
-  /** @type {number} character index in string. */
-  var ci;
-  /** @type {Array.<string>} character array. */
-  var str;
   /** @type {number} loop counter. */
   var i;
   /** @type {number} loop limiter. */
@@ -135,9 +129,9 @@ Zlib.Gzip.prototype.compress = function() {
 
   // flags
   flg = 0;
-  if (this.flags.fname)    flg |= Zlib.Gzip.FlagsMask.FNAME;
-  if (this.flags.fcomment) flg |= Zlib.Gzip.FlagsMask.FCOMMENT;
-  if (this.flags.fhcrc)    flg |= Zlib.Gzip.FlagsMask.FHCRC;
+  if (this.flags['fname'])    flg |= Zlib.Gzip.FlagsMask.FNAME;
+  if (this.flags['fcomment']) flg |= Zlib.Gzip.FlagsMask.FCOMMENT;
+  if (this.flags['fhcrc'])    flg |= Zlib.Gzip.FlagsMask.FHCRC;
   // XXX: FTEXT
   // XXX: FEXTRA
   output[op++] = flg;
@@ -159,8 +153,8 @@ Zlib.Gzip.prototype.compress = function() {
   /* NOP */
 
   // fname
-  if (this.flags.fname) {
-    for(i = 0, il = filename.length; i < il; ++i) {
+  if (this.flags['fname'] !== void 0) {
+    for (i = 0, il = filename.length; i < il; ++i) {
       c = filename.charCodeAt(i);
       if (c > 0xff) { output[op++] = (c >>> 8) & 0xff; }
       output[op++] = c & 0xff;
@@ -169,8 +163,8 @@ Zlib.Gzip.prototype.compress = function() {
   }
 
   // fcomment
-  if (this.flags.fcomment) {
-    for(i = 0, il = comment.length; i < il; ++i) {
+  if (this.flags['comment']) {
+    for (i = 0, il = comment.length; i < il; ++i) {
       c = comment.charCodeAt(i);
       if (c > 0xff) { output[op++] = (c >>> 8) & 0xff; }
       output[op++] = c & 0xff;
@@ -179,19 +173,18 @@ Zlib.Gzip.prototype.compress = function() {
   }
 
   // fhcrc
-  if (this.flags.fhcrc) {
+  if (this.flags['fhcrc']) {
     crc16 = Zlib.CRC32.calc(output, 0, op) & 0xffff;
     output[op++] = (crc16      ) & 0xff;
     output[op++] = (crc16 >>> 8) & 0xff;
   }
 
   // add compress option
-  this.deflateOptions.outputBuffer = output;
-  this.deflateOptions.outputIndex = op;
+  this.deflateOptions['outputBuffer'] = output;
+  this.deflateOptions['outputIndex'] = op;
 
   // compress
   rawdeflate = new Zlib.RawDeflate(input, this.deflateOptions);
-  var bop = op;
   output = rawdeflate.compress();
   op = rawdeflate.op;
 

@@ -52,7 +52,7 @@ goog.scope(function() {
  */
 Zlib.Inflate = function(input, opt_params) {
   /** @type {number} */
-  var blockSize;
+  var bufferSize;
   /** @type {Zlib.Inflate.BufferType} */
   var bufferType;
   /** @type {number} */
@@ -70,18 +70,12 @@ Zlib.Inflate = function(input, opt_params) {
   this.verify;
 
   // option parameters
-  if (opt_params) {
-    if (opt_params.index) {
-      this.ip = opt_params.index;
+  if (opt_params || !(opt_params = {})) {
+    if (opt_params['index']) {
+      this.ip = opt_params['index'];
     }
-    if (opt_params.blockSize) {
-      blockSize = opt_params.blockSize;
-    }
-    if (opt_params.verify) {
-      this.verify = opt_params.verify;
-    }
-    if (opt_params.bufferType) {
-      bufferType = opt_params.bufferType;
+    if (opt_params['verify']) {
+      this.verify = opt_params['verify'];
     }
   }
 
@@ -110,13 +104,15 @@ Zlib.Inflate = function(input, opt_params) {
 
   // RawInflate
   this.rawinflate = new Zlib.RawInflate(input, {
-    index: this.ip,
-    blockSize: blockSize
+    'index': this.ip,
+    'bufferSize': opt_params['bufferSize'],
+    'bufferType': opt_params['bufferType'],
+    'resize': opt_params['resize']
   });
 }
 
 /**
- * @typedef {Zlib.RawInflate.BufferType}
+ * @enum {number}
  */
 Zlib.Inflate.BufferType = Zlib.RawInflate.BufferType;
 
@@ -155,6 +151,14 @@ Zlib.Inflate.prototype.decompress = function() {
 if (ZLIB_INFLATE_EXPORT) {
   goog.exportSymbol('Zlib.Inflate', Zlib.Inflate);
   goog.exportSymbol('Zlib.Inflate.BufferType', Zlib.Inflate.BufferType);
+  goog.exportProperty(
+    Zlib.Inflate.BufferType, 'ADAPTIVE',
+    Zlib.Inflate.BufferType.ADAPTIVE
+  );
+  goog.exportProperty(
+    Zlib.Inflate.BufferType, 'BLOCK',
+    Zlib.Inflate.BufferType.BLOCK
+  );
   goog.exportSymbol(
     'Zlib.Inflate.prototype.decompress',
     Zlib.Inflate.prototype.decompress

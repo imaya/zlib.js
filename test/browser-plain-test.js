@@ -297,6 +297,31 @@ buster.testCase(
       assert.equals(inflated.length, plain.length, "inflated data size");
       assert.equals(inflated, plain);
       assert.equals(inflator.name, 'hoge.txt');
+    },
+    "gzip with filename (seed: 1346432776267)": function() {
+      makeRandomSequentialData(this.testData, 1346432776267);
+
+      var deflator =
+        new Zlib.Gzip(
+          this.testData,
+          {
+            flags: {
+              fname: true,
+              fcommenct: false,
+              fhcrc: false
+            },
+            filename: 'foobar.filename'
+          }
+        );
+      var deflated = deflator.compress();
+
+      console.log(deflated.length);
+      var inflator = new Zlib.Gunzip(deflated);
+      var inflated = inflator.decompress();
+
+      assert.equals(inflated.length, this.testData.length, "inflated data size");
+      assert.equals(inflated, this.testData);
+      assert.equals(inflator.name, 'foobar.filename');
     }
   }
 );
@@ -360,9 +385,8 @@ function inflateStreamTest(mode, testData, compressionType) {
 }
 
 // random
-function makeRandomData(data) {
-  var seed = +new Date();
-  var mt = new MersenneTwister(seed);
+function makeRandomData(data, seed) {
+  var mt = new MersenneTwister(typeof seed === 'number' ? seed : +new Date());
   var i, il;
 
   console.log("seed:", seed);
@@ -384,9 +408,8 @@ function makeSequentialData(data) {
 }
 
 // random sequential
-function makeRandomSequentialData(data) {
-  var seed = +new Date();
-  var mt = new MersenneTwister(seed);
+function makeRandomSequentialData(data, seed) {
+  var mt = new MersenneTwister(typeof seed === 'number' ? seed : +new Date());
   var i, il;
   var random1, random2;
 
