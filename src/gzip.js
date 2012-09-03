@@ -137,7 +137,7 @@ Zlib.Gzip.prototype.compress = function() {
   output[op++] = flg;
 
   // modification time
-  mtime = (Date.now ? Date.now : +new Date()) / 1000 | 0;
+  mtime = (Date.now ? Date.now() : +new Date()) / 1000 | 0;
   output[op++] = mtime        & 0xff;
   output[op++] = mtime >>>  8 & 0xff;
   output[op++] = mtime >>> 16 & 0xff;
