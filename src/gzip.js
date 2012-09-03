@@ -207,7 +207,7 @@ Zlib.Gzip.prototype.compress = function() {
   output[op++] = (crc32 >>> 24) & 0xff;
 
   // input size
-  il = input.length
+  il = input.length;
   output[op++] = (il       ) & 0xff;
   output[op++] = (il >>>  8) & 0xff;
   output[op++] = (il >>> 16) & 0xff;
