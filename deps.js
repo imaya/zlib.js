@@ -6,7 +6,7 @@ goog.addDependency('../define/typedarray/use.js', ['USE_TYPEDARRAY'], []);
 goog.addDependency('../src/adler32.js', ['Zlib.Adler32'], []);
 goog.addDependency('../src/bitstream.js', ['Zlib.BitStream'], []);
 goog.addDependency('../src/crc32.js', ['Zlib.CRC32'], []);
-goog.addDependency('../src/deflate.js', ['Zlib.Deflate'], ['Zlib.Adler32', 'Zlib.BitStream', 'Zlib.RawDeflate', 'Zlib.Util']);
+goog.addDependency('../src/deflate.js', ['Zlib.Deflate'], ['Zlib.Adler32', 'Zlib.RawDeflate']);
 goog.addDependency('../src/gunzip.js', ['Zlib.Gunzip'], ['Zlib.CRC32', 'Zlib.Gzip', 'Zlib.RawInflate']);
 goog.addDependency('../src/gzip.js', ['Zlib.Gzip'], ['Zlib.CRC32', 'Zlib.RawDeflate']);
 goog.addDependency('../src/heap.js', ['Zlib.Heap'], []);

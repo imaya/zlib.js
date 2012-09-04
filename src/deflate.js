@@ -39,9 +39,7 @@ var ZLIB_DEFLATE_EXPORT = false;
 //-----------------------------------------------------------------------------
 
 goog.require('Zlib.Adler32');
-goog.require('Zlib.BitStream');
 goog.require('Zlib.RawDeflate');
-goog.require('Zlib.Util');
 
 goog.scope(function() {
 
@@ -57,8 +55,8 @@ Zlib.Deflate = function(input, opt_params) {
   /** @type {!(Array|Uint8Array)} */
   this.output =
     new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.Deflate.DefaultBufferSize);
-  /** @type {Zlib.RawDeflate.CompressionType} */
-  this.compressionType = Zlib.RawDeflate.CompressionType.DYNAMIC;
+  /** @type {Zlib.Deflate.CompressionType} */
+  this.compressionType = Zlib.Deflate.CompressionType.DYNAMIC;
   /** @type {Zlib.RawDeflate} */
   this.rawDeflate;
   /** @type {Object} */
@@ -89,6 +87,11 @@ Zlib.Deflate = function(input, opt_params) {
  * @type {number} デフォルトバッファサイズ.
  */
 Zlib.Deflate.DefaultBufferSize = 0x8000;
+
+/**
+ * @enum {number}
+ */
+Zlib.Deflate.CompressionType = Zlib.RawDeflate.CompressionType;
 
 /**
  * 直接圧縮に掛ける.
@@ -149,9 +152,9 @@ Zlib.Deflate.prototype.compress = function() {
   switch (cm) {
     case Zlib.CompressionMethod.DEFLATE:
       switch (this.compressionType) {
-        case Zlib.RawDeflate.CompressionType.NONE: flevel = 0; break;
-        case Zlib.RawDeflate.CompressionType.FIXED: flevel = 1; break;
-        case Zlib.RawDeflate.CompressionType.DYNAMIC: flevel = 2; break;
+        case Zlib.Deflate.CompressionType.NONE: flevel = 0; break;
+        case Zlib.Deflate.CompressionType.FIXED: flevel = 1; break;
+        case Zlib.Deflate.CompressionType.DYNAMIC: flevel = 2; break;
         default: throw new Error('unsupported compression type');
       }
       break;
@@ -199,6 +202,22 @@ if (ZLIB_DEFLATE_EXPORT) {
   goog.exportSymbol(
     'Zlib.Deflate.compress',
     Zlib.Deflate.compress
+  );
+  goog.exportSymbol(
+    'Zlib.Deflate.CompressionType',
+    Zlib.Deflate.CompressionType
+  );
+  goog.exportSymbol(
+    'Zlib.Deflate.CompressionType.NONE',
+    Zlib.Deflate.CompressionType.NONE
+  );
+  goog.exportSymbol(
+    'Zlib.Deflate.CompressionType.FIXED',
+    Zlib.Deflate.CompressionType.FIXED
+  );
+  goog.exportSymbol(
+    'Zlib.Deflate.CompressionType.DYNAMIC',
+    Zlib.Deflate.CompressionType.DYNAMIC
   );
 }
 

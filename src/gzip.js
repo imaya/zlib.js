@@ -72,6 +72,9 @@ Zlib.Gzip = function(input, opt_params) {
     if (typeof opt_params['filename'] === 'string') {
       this.filename = opt_params['filename'];
     }
+    if (typeof opt_params['comment'] === 'string') {
+      this.comment = opt_params['comment'];
+    }
     if (opt_params['deflateOptions']) {
       this.deflateOptions = opt_params['deflateOptions'];
     }

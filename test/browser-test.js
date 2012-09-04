@@ -202,39 +202,39 @@ buster.testCase(
 
     "uncompressed random data": function() {
       makeRandomData(this.testData);
-      inflateTest('random', this.testData, Zlib.RawDeflate.CompressionType.NONE);
+      inflateTest('random', this.testData, Zlib.Deflate.CompressionType.NONE);
     },
     "fixed random data": function() {
       makeRandomData(this.testData);
-      inflateTest('random', this.testData, Zlib.RawDeflate.CompressionType.FIXED);
+      inflateTest('random', this.testData, Zlib.Deflate.CompressionType.FIXED);
     },
     "dynamic random data": function() {
       makeRandomData(this.testData);
-      inflateTest('random', this.testData, Zlib.RawDeflate.CompressionType.DYNAMIC);
+      inflateTest('random', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
     },
     "uncompressed sequential data": function() {
       makeSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.NONE);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.NONE);
     },
     "fixed sequential data": function() {
       makeSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.FIXED);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.FIXED);
     },
     "dynamic sequential data": function() {
       makeSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.DYNAMIC);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
     },
     "uncompressed random sequential data": function() {
       makeRandomSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.NONE);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.NONE);
     },
     "fixed random sequential data": function() {
       makeRandomSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.FIXED);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.FIXED);
     },
     "dynamic random sequential data": function() {
       makeRandomSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.DYNAMIC);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
     }
   }
 );

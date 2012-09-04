@@ -21,9 +21,10 @@ config["plain"] = mixin(
   {
     libs: [
       "closure-primitives/base.js",
-      "define/typedarray/hybrid.js",
       "deps.js",
+      "define/typedarray/hybrid.js",
       "src/util.js",
+      "src/rawdeflate.js",
       "src/*.js"
     ]
   }

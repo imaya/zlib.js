@@ -1,5 +1,3 @@
-var USE_TYPEDARRAY = typeof Uint8Array === 'function';
-
 //-----------------------------------------------------------------------------
 // base64 decoder
 //-----------------------------------------------------------------------------
@@ -72,7 +70,6 @@ buster.testCase(
       console.log("use typedarray:", USE_TYPEDARRAY);
 
       this.testData = testData;
-
       this.none = sinon.spy(Zlib.RawDeflate.prototype, "makeNocompressBlock");
       this.fixed = sinon.spy(Zlib.RawDeflate.prototype, "makeFixedHuffmanBlock");
       this.dynamic = sinon.spy(Zlib.RawDeflate.prototype, "makeDynamicHuffmanBlock");
@@ -131,7 +128,7 @@ buster.testCase(
     },
     "uncompressed random data": function() {
       makeRandomData(this.testData);
-      inflateTest('random', this.testData, Zlib.RawDeflate.CompressionType.NONE);
+      inflateTest('random', this.testData, Zlib.Deflate.CompressionType.NONE);
 
       assert(this.none.called);
       refute(this.fixed.called);
@@ -139,7 +136,7 @@ buster.testCase(
     },
     "fixed random data": function() {
       makeRandomData(this.testData);
-      inflateTest('random', this.testData, Zlib.RawDeflate.CompressionType.FIXED);
+      inflateTest('random', this.testData, Zlib.Deflate.CompressionType.FIXED);
 
       refute(this.none.called);
       assert(this.fixed.called);
@@ -147,7 +144,7 @@ buster.testCase(
     },
     "dynamic random data": function() {
       makeRandomData(this.testData);
-      inflateTest('random', this.testData, Zlib.RawDeflate.CompressionType.DYNAMIC);
+      inflateTest('random', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
 
       refute(this.none.called);
       refute(this.fixed.called);
@@ -155,7 +152,7 @@ buster.testCase(
     },
     "uncompressed sequential data": function() {
       makeSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.NONE);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.NONE);
 
       assert(this.none.called);
       refute(this.fixed.called);
@@ -163,7 +160,7 @@ buster.testCase(
     },
     "fixed sequential data": function() {
       makeSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.FIXED);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.FIXED);
 
       refute(this.none.called);
       assert(this.fixed.called);
@@ -171,7 +168,7 @@ buster.testCase(
     },
     "dynamic sequential data": function() {
       makeSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.DYNAMIC);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
 
       refute(this.none.called);
       refute(this.fixed.called);
@@ -179,7 +176,7 @@ buster.testCase(
     },
     "uncompressed random sequential data": function() {
       makeRandomSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.NONE);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.NONE);
 
       assert(this.none.called);
       refute(this.fixed.called);
@@ -187,7 +184,7 @@ buster.testCase(
     },
     "fixed random sequential data": function() {
       makeRandomSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.FIXED);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.FIXED);
 
       refute(this.none.called);
       assert(this.fixed.called);
@@ -195,7 +192,7 @@ buster.testCase(
     },
     "dynamic random sequential data": function() {
       makeRandomSequentialData(this.testData);
-      inflateTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.DYNAMIC);
+      inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
 
       refute(this.none.called);
       refute(this.fixed.called);
@@ -206,7 +203,7 @@ buster.testCase(
     //-------------------------------------------------------------------------
     "uncompressed random sequential data (stream)": function() {
       makeRandomSequentialData(this.testData);
-      inflateStreamTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.NONE);
+      inflateStreamTest('sequential', this.testData, Zlib.Deflate.CompressionType.NONE);
 
       assert(this.none.called);
       refute(this.fixed.called);
@@ -214,7 +211,7 @@ buster.testCase(
     },
     "fixed random sequential data (stream)": function() {
       makeRandomSequentialData(this.testData);
-      inflateStreamTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.FIXED);
+      inflateStreamTest('sequential', this.testData, Zlib.Deflate.CompressionType.FIXED);
 
       refute(this.none.called);
       assert(this.fixed.called);
@@ -222,7 +219,7 @@ buster.testCase(
     },
     "dynamic random sequential data (stream)": function() {
       makeRandomSequentialData(this.testData);
-      inflateStreamTest('sequential', this.testData, Zlib.RawDeflate.CompressionType.DYNAMIC);
+      inflateStreamTest('sequential', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
 
       refute(this.none.called);
       refute(this.fixed.called);
@@ -386,7 +383,7 @@ function inflateStreamTest(mode, testData, compressionType) {
 
 // random
 function makeRandomData(data, seed) {
-  var mt = new MersenneTwister(typeof seed === 'number' ? seed : +new Date());
+  var mt = new MersenneTwister(typeof seed === 'number' ? seed : seed = +new Date());
   var i, il;
 
   console.log("seed:", seed);
@@ -409,7 +406,7 @@ function makeSequentialData(data) {
 
 // random sequential
 function makeRandomSequentialData(data, seed) {
-  var mt = new MersenneTwister(typeof seed === 'number' ? seed : +new Date());
+  var mt = new MersenneTwister(typeof seed === 'number' ? seed : seed = +new Date());
   var i, il;
   var random1, random2;
 

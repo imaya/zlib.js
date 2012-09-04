@@ -170,7 +170,6 @@
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
       <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
-      <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
@@ -204,7 +203,6 @@
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
       <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
-      <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=true"/>
       <arg line="--define=ZLIB_INFLATE_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
@@ -239,7 +237,6 @@
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
       <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
-      <arg line="--define=ZLIB_RAWDEFLATE_EXPORT=true"/>
       <arg line="--define=ZLIB_INFLATE_EXPORT=true"/>
       <arg line="--define=ZLIB_GZIP_EXPORT=true"/>
       <arg line="--define=ZLIB_GUNZIP_EXPORT=true"/>
@@ -306,7 +303,7 @@
   </target>
 
   <!-- 全て作成 -->
-  <target name="all" depends="zlib,zlib_and_gzip,inflate,inflate_stream,deflate,gzip,gunzip,node"></target>
+  <target name="all" depends="zlib,zlib_and_gzip,inflate,inflate_stream,deflate,gzip,gunzip,node" />
 
   <!--  削除 -->
   <target name="clean">
@@ -315,6 +312,6 @@
   </target>
 
   <!-- リビルド -->
-  <target name="rebuild" depends="clean,all"></target>
+  <target name="rebuild" depends="clean,all"/>
 </project>
 <!-- vim: set expandtab ts=2 sw=2: -->
