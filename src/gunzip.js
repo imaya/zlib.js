@@ -53,7 +53,7 @@ Zlib.Gunzip = function(input, opt_params) {
   /** @type {number} input buffer pointer. */
   this.ip = 0;
   /** @type {!(Array.<number>|Uint8Array)} output buffer. */
-  this.output;
+  this.output = USE_TYPEDARRAY ? new Uint8Array(0) : [];
   /** @type {number} output buffer. */
   this.op = 0;
   /** @type {string} filename. */
@@ -125,6 +125,7 @@ Zlib.Gunzip.prototype.decodeMember = function() {
 
   var input = this.input;
   var ip = this.ip;
+  var output;
 
   id1 = input[ip++];
   id2 = input[ip++];
@@ -189,32 +190,18 @@ Zlib.Gunzip.prototype.decodeMember = function() {
     }
   }
 
-  // isize を事前に取得すると展開後のサイズが分かるため、
-  // inflate処理のバッファサイズが事前に分かり、高速になる
-  isize = (input[input.length - 4])       | (input[input.length - 3] << 8) |
-          (input[input.length - 2] << 16) | (input[input.length - 1] << 24);
-
-  // isize の妥当性チェック
-  // ハフマン符号では最小 2-bit のため、最大で 1/4 になる
-  // LZ77 符号では 長さと距離 2-Byte で最大 258-Byte を表現できるため、
-  // 1/128 になるとする
-  // ここから入力バッファの残りが isize の 512 倍以上だったら
-  // サイズ指定のバッファ確保は行わない事とする
-  if (input.length - ip - /* CRC-32 */4 - /* ISIZE */4 < isize * 512) {
-    inflen = isize;
-  }
-
   // compressed block
-  rawinflate = new Zlib.RawInflate(input, {'index': ip, 'bufferSize': inflen});
+  rawinflate = new Zlib.RawInflate(input, {'index': ip});
   inflated = rawinflate.decompress();
   ip = rawinflate.ip;
 
   if (USE_TYPEDARRAY) {
-    this.output = new Uint8Array(inflated.length);
-    this.output.set(inflated, this.op);
+    output = new Uint8Array(this.output.length + inflated.length);
+    output.set(this.output);
+    output.set(inflated, this.output.length);
+    this.output = output;
     this.op += inflated.length;
   } else {
-    this.output = new Array(inflated.length);
     // XXX: unrolling
     for (i = 0, il = inflated.length; i < il; ++i) {
       this.output[this.op++] = inflated[i];
@@ -232,9 +219,9 @@ Zlib.Gunzip.prototype.decodeMember = function() {
   // input size
   isize = ((input[ip++])       | (input[ip++] << 8) |
            (input[ip++] << 16) | (input[ip++] << 24)) >>> 0;
-  if ((this.output.length & 0xffffffff) !== isize) {
+  if ((inflated.length & 0xffffffff) !== isize) {
     throw new Error('invalid input size: ' +
-        (this.output.length & 0xffffffff) + ' / ' + isize);
+        (inflated.length & 0xffffffff) + ' / ' + isize);
   }
 
   this.ip = ip;
