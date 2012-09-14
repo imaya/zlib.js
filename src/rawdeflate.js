@@ -39,35 +39,59 @@ var ZLIB_RAWDEFLATE_EXPORT = false;
 
 goog.require('Zlib.BitStream');
 goog.require('Zlib.Heap');
-goog.require('Zlib.Util');
 
 goog.scope(function() {
 
 /**
  * Raw Deflate 実装
- * @param {Object=} opt_param compression options.
+ *
  * @constructor
+ * @param {!(Array.<number>|Uint8Array)} input 符号化する対象のバッファ.
+ * @param {Object=} opt_params option parameters.
+ *
+ * typed array が使用可能なとき、outputBuffer が Array は自動的に Uint8Array に
+ * 変換されます.
+ * 別のオブジェクトになるため出力バッファを参照している変数などは
+ * 更新する必要があります.
  */
-Zlib.RawDeflate = function(opt_param) {
+Zlib.RawDeflate = function(input, opt_params) {
+  /** @type {Zlib.RawDeflate.CompressionType} */
   this.compressionType = Zlib.RawDeflate.CompressionType.DYNAMIC;
+  /** @type {number} */
   this.lazy = 0;
-  this.freqsLitLen = [];
-  this.freqsDist = [];
+  /** @type {!(Array.<number>|Uint32Array)} */
+  this.freqsLitLen;
+  /** @type {!(Array.<number>|Uint32Array)} */
+  this.freqsDist;
+  /** @type {!(Array.<number>|Uint8Array)} */
+  this.input = input;
+  /** @type {!(Array.<number>|Uint8Array)} output output buffer. */
+  this.output;
+  /** @type {number} pos output buffer position. */
+  this.op = 0;
 
   // option parameters
-  if (typeof(opt_param) === 'object' && opt_param !== null) {
-    if (typeof(opt_param.lazy) === 'number') {
-      this.lazy = opt_param['lazy'];
+  if (opt_params) {
+    if (opt_params['lazy']) {
+      this.lazy = opt_params['lazy'];
     }
-    if (typeof(opt_param.compressionType) === 'number') {
-      this.compressionType = opt_param.compressionType;
+    if (typeof opt_params['compressionType'] === 'number') {
+      this.compressionType = opt_params['compressionType'];
+    }
+    if (opt_params['outputBuffer']) {
+      this.output =
+        (USE_TYPEDARRAY && opt_params['outputBuffer'] instanceof Array) ?
+        new Uint8Array(opt_params['outputBuffer']) : opt_params['outputBuffer'];
+    }
+    if (typeof opt_params['outputIndex'] === 'number') {
+      this.op = opt_params['outputIndex'];
     }
   }
-};
 
-// Zlib.Util のエイリアス
-var push = Zlib.Util.push;
-var slice = Zlib.Util.slice;
+  if (!this.output) {
+    this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(0x8000);
+  }
+};
 
 /**
  * @enum {number}
@@ -82,50 +106,50 @@ Zlib.RawDeflate.CompressionType = {
 
 /**
  * LZ77 の最小マッチ長
- * @type {number}
  * @const
+ * @type {number}
  */
 Zlib.RawDeflate.Lz77MinLength = 3;
 
 /**
  * LZ77 の最大マッチ長
- * @type {number}
  * @const
+ * @type {number}
  */
 Zlib.RawDeflate.Lz77MaxLength = 258;
 
 /**
  * LZ77 のウィンドウサイズ
- * @type {number}
  * @const
+ * @type {number}
  */
 Zlib.RawDeflate.WindowSize = 0x8000;
 
 /**
  * 最長の符号長
- * @type {number}
  * @const
+ * @type {number}
  */
 Zlib.RawDeflate.MaxCodeLength = 16;
 
 /**
  * ハフマン符号の最大数値
- * @type {number}
  * @const
+ * @type {number}
  */
 Zlib.RawDeflate.HUFMAX = 286;
 
 /**
  * 固定ハフマン符号の符号化テーブル
- * @type {Array.<Array.<number, number>>}
  * @const
+ * @type {Array.<Array.<number, number>>}
  */
 Zlib.RawDeflate.FixedHuffmanTable = (function() {
   var table = [], i;
 
   for (i = 0; i < 288; i++) {
     switch (true) {
-      case (i <= 143): table.push([i - 0 + 0x030, 8]); break;
+      case (i <= 143): table.push([i       + 0x030, 8]); break;
       case (i <= 255): table.push([i - 144 + 0x190, 9]); break;
       case (i <= 279): table.push([i - 256 + 0x000, 7]); break;
       case (i <= 287): table.push([i - 280 + 0x0C0, 8]); break;
@@ -139,97 +163,125 @@ Zlib.RawDeflate.FixedHuffmanTable = (function() {
 
 /**
  * DEFLATE ブロックの作成
- * @param {!(Array.<number>|Uint8Array|string)}
- *     data plain data byte array / byte string.
- * @return {!Array} 圧縮済み byte array.
+ * @return {!(Array.<number>|Uint8Array)} 圧縮済み byte array.
  */
-Zlib.RawDeflate.prototype.makeBlocks = function(data) {
-  var blocks = [], blockArray, position, length;
+Zlib.RawDeflate.prototype.compress = function() {
+  /** @type {!(Array.<number>|Uint8Array)} */
+  var blockArray;
+  /** @type {number} */
+  var position;
+  /** @type {number} */
+  var length;
 
-  // バッファが string だったら byte array に変換
-  if (typeof(data) === 'string') {
-    data = Zlib.Util.stringToByteArray(data);
-  }
+  var input = this.input;
 
   // compression
   switch (this.compressionType) {
     case Zlib.RawDeflate.CompressionType.NONE:
       // each 65535-Byte (length header: 16-bit)
-      for (position = 0, length = data.length; position < length;) {
-        blockArray = slice(data, position, 0xffff);
+      for (position = 0, length = input.length; position < length;) {
+        blockArray = USE_TYPEDARRAY ?
+          input.subarray(position, position + 0xffff) :
+          input.slice(position, position + 0xffff);
         position += blockArray.length;
-        push(
-          blocks,
-          this.makeNocompressBlock(blockArray, (position === length))
-        );
+        this.makeNocompressBlock(blockArray, (position === length));
       }
       break;
     case Zlib.RawDeflate.CompressionType.FIXED:
-      push(
-        blocks,
-        this.makeFixedHuffmanBlock(data, true)
-      );
+      this.output = this.makeFixedHuffmanBlock(input, true);
+      this.op = this.output.length;
       break;
     case Zlib.RawDeflate.CompressionType.DYNAMIC:
-      push(
-        blocks,
-        this.makeDynamicHuffmanBlock(data, true)
-      );
+      this.output = this.makeDynamicHuffmanBlock(input, true);
+      this.op = this.output.length;
       break;
     default:
       throw 'invalid compression type';
   }
 
-  return blocks;
+  return this.output;
 };
 
 /**
- * DEFLATE ブロックの作成
- * @param {!(Array.<number>|Uint8Array|string)}
- *     data plain data byte array / byte string.
- * @return {!Array} 圧縮済み byte array.
- */
-Zlib.RawDeflate.prototype.compress = Zlib.RawDeflate.prototype.makeBlocks;
-
-/**
  * 非圧縮ブロックの作成
- * @param {!(Array|Uint8Array)} blockArray ブロックデータ byte array.
+ * @param {!(Array.<number>|Uint8Array)} blockArray ブロックデータ byte array.
  * @param {!boolean} isFinalBlock 最後のブロックならばtrue.
- * @return {!Array} 非圧縮ブロック byte array.
+ * @return {!(Array.<number>|Uint8Array)} 非圧縮ブロック byte array.
  */
 Zlib.RawDeflate.prototype.makeNocompressBlock =
 function(blockArray, isFinalBlock) {
-  var block = [], bfinal, btype, len, nlen, i, l;
+  /** @type {number} */
+  var bfinal;
+  /** @type {Zlib.RawDeflate.CompressionType} */
+  var btype;
+  /** @type {number} */
+  var len;
+  /** @type {number} */
+  var nlen;
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var il;
+
+  var output = this.output;
+  var op = this.op;
+
+  // expand buffer
+  if (USE_TYPEDARRAY) {
+    output = new Uint8Array(this.output.buffer);
+    while (output.length <= op + blockArray.length + 5) {
+      output = new Uint8Array(output.length << 1);
+    }
+    output.set(this.output);
+  }
 
   // header
   bfinal = isFinalBlock ? 1 : 0;
   btype = Zlib.RawDeflate.CompressionType.NONE;
-  block.push((bfinal) | (btype << 1));
+  output[op++] = (bfinal) | (btype << 1);
 
   // length
   len = blockArray.length;
   nlen = (~len + 0x10000) & 0xffff;
-  block.push(
-             len & 0xff,
-     (len >>> 8) & 0xff,
-            nlen & 0xff,
-    (nlen >>> 8) & 0xff
-  );
+  output[op++] =          len & 0xff;
+  output[op++] =  (len >>> 8) & 0xff;
+  output[op++] =         nlen & 0xff;
+  output[op++] = (nlen >>> 8) & 0xff;
 
-  push(block, blockArray);
+  // copy buffer
+  if (USE_TYPEDARRAY) {
+     output.set(blockArray, op);
+     op += blockArray.length;
+     output = output.subarray(0, op);
+  } else {
+    for (i = 0, il = blockArray.length; i < il; ++i) {
+      output[op++] = blockArray[i];
+    }
+    output.length = op;
+  }
 
-  return block;
+  this.op = op;
+  this.output = output;
+
+  return output;
 };
 
 /**
  * 固定ハフマンブロックの作成
- * @param {!(Array|Uint8Array)} blockArray ブロックデータ byte array.
+ * @param {!(Array.<number>|Uint8Array)} blockArray ブロックデータ byte array.
  * @param {!boolean} isFinalBlock 最後のブロックならばtrue.
- * @return {!(Array|Uint8Array)} 固定ハフマン符号化ブロック byte array.
+ * @return {!(Array.<number>|Uint8Array)} 固定ハフマン符号化ブロック byte array.
  */
 Zlib.RawDeflate.prototype.makeFixedHuffmanBlock =
 function(blockArray, isFinalBlock) {
-  var stream = new Zlib.BitStream(), bfinal, btype, data;
+  /** @type {Zlib.BitStream} */
+  var stream = new Zlib.BitStream(new Uint8Array(this.output.buffer), this.op);
+  /** @type {number} */
+  var bfinal;
+  /** @type {Zlib.RawDeflate.CompressionType} */
+  var btype;
+  /** @type {!(Array.<number>|Uint16Array)} */
+  var data;
 
   // header
   bfinal = isFinalBlock ? 1 : 0;
@@ -239,28 +291,65 @@ function(blockArray, isFinalBlock) {
   stream.writeBits(btype, 2, true);
 
   data = this.lz77(blockArray);
-  data = this.fixedHuffman(data, stream);
+  this.fixedHuffman(data, stream);
 
-  return data;
+  return stream.finish();
 };
 
 /**
  * 動的ハフマンブロックの作成
- * @param {!(Array|Uint8Array)} blockArray ブロックデータ byte array.
+ * @param {!(Array.<number>|Uint8Array)} blockArray ブロックデータ byte array.
  * @param {!boolean} isFinalBlock 最後のブロックならばtrue.
- * @return {!(Array|Uint8Array)} 動的ハフマン符号ブロック byte array.
+ * @return {!(Array.<number>|Uint8Array)} 動的ハフマン符号ブロック byte array.
  */
 Zlib.RawDeflate.prototype.makeDynamicHuffmanBlock =
 function(blockArray, isFinalBlock) {
-  var stream = new Zlib.BitStream(), bfinal, btype, data,
-      hlit, hdist, hclen,
-      hclenOrder =
-        [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15],
-      litLenLengths, litLenCodes, distLengths, distCodes,
-      treeSymbols, treeLengths,
-      transLengths = new Array(19),
-      codeLengths, codeCodes, code, bitlen,
-      i, l;
+  /** @type {Zlib.BitStream} */
+  var stream = new Zlib.BitStream(new Uint8Array(this.output), this.op);
+  /** @type {number} */
+  var bfinal;
+  /** @type {Zlib.RawDeflate.CompressionType} */
+  var btype;
+  /** @type {!(Array.<number>|Uint16Array)} */
+  var data;
+  /** @type {number} */
+  var hlit;
+  /** @type {number} */
+  var hdist;
+  /** @type {number} */
+  var hclen;
+  /** @const @type {Array.<number>} */
+  var hclenOrder =
+        [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
+  /** @type {Array.<number>} */
+  var litLenLengths;
+  /** @type {Array} */
+  var litLenCodes;
+  /** @type {Array.<number>} */
+  var distLengths;
+  /** @type {Array} */
+  var distCodes;
+  /** @type {{
+   *   codes: !(Array.<number>|Uint32Array),
+   *   freqs: !(Array.<number>|Uint32Array)
+   * }} */
+  var treeSymbols;
+  /** @type {Array.<number>} */
+  var treeLengths;
+  /** @type {Array} */
+  var transLengths = new Array(19);
+  /** @type {Array.<number>} */
+  var codeLengths
+  /** @type {Array} */
+  var codeCodes
+  /** @type {number} */
+  var code
+  /** @type {number} */
+  var bitlen
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var il;
 
   // header
   bfinal = isFinalBlock ? 1 : 0;
@@ -302,7 +391,7 @@ function(blockArray, isFinalBlock) {
   }
 
   // ツリーの出力
-  for (i = 0, l = treeSymbols.codes.length; i < l; i++) {
+  for (i = 0, il = treeSymbols.codes.length; i < il; i++) {
     code = treeSymbols.codes[i];
 
     stream.writeBits(codeCodes[code], codeLengths[code], true);
@@ -335,18 +424,28 @@ function(blockArray, isFinalBlock) {
 
 /**
  * 動的ハフマン符号化(カスタムハフマンテーブル)
- * @param {!(Array|Uint16Array)} dataArray LZ77 符号化済み byte array.
- * @param {Zlib.BitStream=} stream 書き込み用ビットストリーム.
+ * @param {!(Array.<number>|Uint16Array)} dataArray LZ77 符号化済み byte array.
+ * @param {!Zlib.BitStream} stream 書き込み用ビットストリーム.
  * @return {!Zlib.BitStream} ハフマン符号化済みビットストリームオブジェクト.
  */
 Zlib.RawDeflate.prototype.dynamicHuffman =
 function(dataArray, litLen, dist, stream) {
-  var index, length, literal, code, bitlen, extra,
-      litLenCodes, litLenLengths, distCodes, distLengths;
-
-  if (!(stream instanceof Zlib.BitStream)) {
-    stream = new Zlib.BitStream();
-  }
+  /** @type {number} */
+  var index;
+  /** @type {number} */
+  var length;
+  /** @type {number} */
+  var literal;
+  /** @type {number} */
+  var code;
+  /** @type {number} */
+  var litLenCodes;
+  /** @type {number} */
+  var litLenLengths;
+  /** @type {number} */
+  var distCodes;
+  /** @type {number} */
+  var distLengths;
 
   litLenCodes = litLen[0];
   litLenLengths = litLen[1];
@@ -380,16 +479,17 @@ function(dataArray, litLen, dist, stream) {
 
 /**
  * 固定ハフマン符号化
- * @param {!(Array|Uint16Array)} dataArray LZ77 符号化済み byte array.
- * @param {Zlib.BitStream=} stream 書き込み用ビットストリーム.
- * @return {!(Array|Uint8Array)} ハフマン符号化済み byte array.
+ * @param {!(Array.<number>|Uint16Array)} dataArray LZ77 符号化済み byte array.
+ * @param {!Zlib.BitStream} stream 書き込み用ビットストリーム.
+ * @return {!Zlib.BitStream} ハフマン符号化済みビットストリームオブジェクト.
  */
 Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
-  var index, length, literal, code, bitlen, extra;
-
-  if (!(stream instanceof Zlib.BitStream)) {
-    stream = new Zlib.BitStream();
-  }
+  /** @type {number} */
+  var index;
+  /** @type {number} */
+  var length;
+  /** @type {number} */
+  var literal;
 
   // 符号を BitStream に書き込んでいく
   for (index = 0, length = dataArray.length; index < length; index++) {
@@ -415,29 +515,35 @@ Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
     }
   }
 
-  return stream.finish();
+  return stream;
 };
 
 /**
  * マッチ情報
  * @param {!number} length マッチした長さ.
- * @param {!number} backwordDistance マッチ位置との距離.
+ * @param {!number} backwardDistance マッチ位置との距離.
  * @constructor
  */
-function Lz77Match(length, backwordDistance) {
+function Lz77Match(length, backwardDistance) {
+  /** @type {number} match length. */
   this.length = length;
-  this.backwordDistance = backwordDistance;
+  /** @type {number} backward distance. */
+  this.backwardDistance = backwardDistance;
 }
 /**
  * 長さ符号テーブル.
  * [コード, 拡張ビット, 拡張ビット長] の配列となっている.
- * @const {Array.<Array.<number>>}
+ * @const
+ * @type {!(Array.<number>|Uint32Array)}
  */
 Lz77Match.LengthCodeTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint32Array(table) : table;
 })((function() {
+  /** @type {!Array} */
   var table = [];
+  /** @type {number} */
   var i;
+  /** @type {!Array.<number>} */
   var c;
 
   for (i = 3; i <= 258; i++) {
@@ -445,6 +551,10 @@ Lz77Match.LengthCodeTable = (function(table) {
     table[i] = (c[2] << 24) | (c[1] << 16) | c[0];
   }
 
+  /**
+   * @param {number} length lz77 length.
+   * @return {!Array.<number>} lz77 codes.
+   */
   function code(length) {
     switch (true) {
       case (length === 3): return [257, length - 3, 0]; break;
@@ -490,6 +600,7 @@ Lz77Match.LengthCodeTable = (function(table) {
  * @private
  */
 Lz77Match.prototype.getDistanceCode_ = function(dist) {
+  /** @type {!Array.<number>} distance code table. */
   var r;
 
   switch (true) {
@@ -533,13 +644,18 @@ Lz77Match.prototype.getDistanceCode_ = function(dist) {
  * マッチ情報を LZ77 符号化配列で返す.
  * なお、ここでは以下の内部仕様で符号化している
  * [ CODE, EXTRA-BIT-LEN, EXTRA, CODE, EXTRA-BIT-LEN, EXTRA ]
- * @return {!Array} LZ77 符号化 byte array.
+ * @return {!Array.<number>} LZ77 符号化 byte array.
  */
 Lz77Match.prototype.toLz77Array = function() {
-  var length = this.length,
-      dist = this.backwordDistance,
-      codeArray = [];
+  /** @type {number} */
+  var length = this.length;
+  /** @type {number} */
+  var dist = this.backwardDistance;
+  /** @type {Array} */
+  var codeArray = [];
+  /** @type {number} */
   var pos = 0;
+  /** @type {!Array.<number>} */
   var code;
 
   // length
@@ -559,8 +675,8 @@ Lz77Match.prototype.toLz77Array = function() {
 
 /**
  * LZ77 実装
- * @param {!(Array|Uint8Array)} dataArray LZ77 符号化するバイト配列.
- * @return {!(Array|Uint16Array)} LZ77 符号化した配列.
+ * @param {!(Array.<number>|Uint8Array)} dataArray LZ77 符号化するバイト配列.
+ * @return {!(Array.<number>|Uint16Array)} LZ77 符号化した配列.
  */
 Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   /** @type {number} input position */
@@ -575,7 +691,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var matchKey;
   /** @type {Object.<Array.<Array.<number>>>} chained-hash-table */
   var table = {};
-  /** @const {number} */
+  /** @const @type {number} */
   var windowSize = Zlib.RawDeflate.WindowSize;
   /** @type {Array.<Array.<number>>} match list */
   var matchList;
@@ -590,9 +706,9 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var pos = 0;
   /** @type {number} lz77 skip length */
   var skipLength = 0;
-  /** @type {(Array.<number>|Uint32Array)} */
+  /** @type {!(Array.<number>|Uint32Array)} */
   var freqsLitLen = new (USE_TYPEDARRAY ? Uint32Array : Array)(286);
-  /** @type {(Array.<number>|Uint32Array)} */
+  /** @type {!(Array.<number>|Uint32Array)} */
   var freqsDist = new (USE_TYPEDARRAY ? Uint32Array : Array)(30);
   /** @type {number} */
   var lazy = this.lazy;
@@ -613,8 +729,11 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
    * @private
    */
   function writeMatch(match, offset) {
+    /** @type {Array.<number>} */
     var lz77Array = match.toLz77Array();
+    /** @type {number} */
     var i;
+    /** @type {number} */
     var il;
 
     for (i = 0, il = lz77Array.length; i < il; ++i) {
@@ -706,7 +825,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   this.freqsLitLen = freqsLitLen;
   this.freqsDist = freqsDist;
 
-  return /** @type {!(Uint16Array|Array)} */ (
+  return /** @type {!(Uint16Array|Array.<number>)} */ (
     USE_TYPEDARRAY ?  lz77buf.subarray(0, pos) : lz77buf
   );
 };
@@ -771,8 +890,10 @@ function(data, position, matchList) {
  * @param {Array} litlenLengths リテラルと長さ符号の符号長配列.
  * @param {number} hdist HDIST.
  * @param {Array} distLengths 距離符号の符号長配列.
- * @return {{codes: Array.<number>, freqs: Array.<number>}} Tree-Transmit
- *     Symbols.
+ * @return {{
+ *   codes: !(Array.<number>|Uint32Array),
+ *   freqs: !(Array.<number>|Uint32Array)
+ * }} Tree-Transmit Symbols.
  */
 Zlib.RawDeflate.prototype.getTreeSymbols_ =
 function(hlit, litlenLengths, hdist, distLengths) {
@@ -870,9 +991,7 @@ function(hlit, litlenLengths, hdist, distLengths) {
 
   return {
     codes:
-      USE_TYPEDARRAY ?
-      result.subarray(0, nResult) :
-      result.slice(0, nResult),
+      USE_TYPEDARRAY ? result.subarray(0, nResult) : result.slice(0, nResult),
     freqs: freqs
   };
 };
@@ -880,7 +999,7 @@ function(hlit, litlenLengths, hdist, distLengths) {
 /**
  * ハフマン符号の長さを取得する
  * reference: PuTTY Deflate implementation
- * @param {Array} freqs 出現カウント.
+ * @param {!(Array.<number>|Uint32Array)} freqs 出現カウント.
  * @param {number=} opt_limit 符号長の制限.
  * @return {Array.<number>} 符号長配列.
  * @private
