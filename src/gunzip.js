@@ -32,6 +32,7 @@ goog.provide('Zlib.Gunzip');
 goog.require('Zlib.CRC32');
 goog.require('Zlib.Gzip');
 goog.require('Zlib.RawInflate');
+goog.require('Zlib.GunzipMember');
 
 //-----------------------------------------------------------------------------
 
@@ -52,16 +53,8 @@ Zlib.Gunzip = function(input, opt_params) {
   this.input = input;
   /** @type {number} input buffer pointer. */
   this.ip = 0;
-  /** @type {!(Array.<number>|Uint8Array)} output buffer. */
-  this.output;
-  /** @type {number} output buffer. */
-  this.op = 0;
-  /** @type {string} filename. */
-  this.name;
-  /** @type {Date} modification time. */
-  this.mtime;
-  /** @type {string} comment. */
-  this.comment;
+  /** @expose @type {Array.<Zlib.GunzipMember>} */
+  this.member = [];
 };
 
 /**
@@ -76,34 +69,16 @@ Zlib.Gunzip.prototype.decompress = function() {
     this.decodeMember();
   }
 
-  return this.output;
+  return this.concatMember();
 };
 
 /**
  * decode gzip member.
  */
 Zlib.Gunzip.prototype.decodeMember = function() {
-  /** @type {number} signature first byte. */
-  var id1;
-  /** @type {number} signature second byte. */
-  var id2;
-  /** @type {number} compression method. */
-  var cm;
-  /** @type {number} flags. */
-  var flg;
-  /** @type {number} modification time. */
-  var mtime;
-  /** @type {number} extra flags. */
-  var xfl;
-  /** @type {number} operating system number. */
-  var os;
-  /** @type {number} CRC-16 value for FHCRC flag. */
-  var crc16;
-  /** @type {number} extra length. */
-  var xlen;
-  /** @type {number} CRC-32 value for verification. */
-  var crc32;
-  /** @type {number} input size modulo 32 value. */
+  /** @type {Zlib.GunzipMember} */
+  var member = new Zlib.GunzipMember();
+  /** @type {number} */
   var isize;
   /** @type {Zlib.RawInflate} RawInflate implementation. */
   var rawinflate;
@@ -111,80 +86,81 @@ Zlib.Gunzip.prototype.decodeMember = function() {
   var inflated;
   /** @type {number} inflate size */
   var inflen;
-
   /** @type {number} character code */
   var c;
   /** @type {number} character index in string. */
   var ci;
   /** @type {Array.<string>} character array. */
   var str;
-  /** @type {number} loop counter. */
-  var i;
-  /** @type {number} loop limiter. */
-  var il;
+  /** @type {number} modification time. */
+  var mtime;
+  /** @type {number} */
+  var crc32;
 
   var input = this.input;
   var ip = this.ip;
 
-  id1 = input[ip++];
-  id2 = input[ip++];
+  member.id1 = input[ip++];
+  member.id2 = input[ip++];
 
   // check signature
-  if (id1 !== 0x1f || id2 !== 0x8b) {
-    throw new Error('invalid file signature:', id1, id2);
+  if (member.id1 !== 0x1f || member.id2 !== 0x8b) {
+    throw new Error('invalid file signature:', member.id1, member.id2);
   }
 
   // check compression method
-  cm = input[ip++];
-  switch (cm) {
+  member.cm = input[ip++];
+  switch (member.cm) {
     case 8: /* XXX: use Zlib const */
       break;
     default:
-      throw new Error('unknown compression method: ' + cm);
+      throw new Error('unknown compression method: ' + member.cm);
   }
 
   // flags
-  flg = input[ip++];
+  member.flg = input[ip++];
 
   // modification time
   mtime = (input[ip++])       |
           (input[ip++] << 8)  |
           (input[ip++] << 16) |
           (input[ip++] << 24);
-  this.mtime = new Date(mtime * 1000);
+  member.mtime = new Date(mtime * 1000);
 
   // extra flags
-  xfl = input[ip++];
+  member.xfl = input[ip++];
 
   // operating system
-  os = input[ip++];
+  member.os = input[ip++];
 
   // extra
-  if ((flg & Zlib.Gzip.FlagsMask.FEXTRA) > 0) {
-    xlen = input[ip++] | (input[ip++] << 8);
-    ip = this.decodeSubField(ip, xlen);
+  if ((member.flg & Zlib.Gzip.FlagsMask.FEXTRA) > 0) {
+    member.xlen = input[ip++] | (input[ip++] << 8);
+    ip = this.decodeSubField(ip, member.xlen);
   }
 
   // fname
-  if ((flg & Zlib.Gzip.FlagsMask.FNAME) > 0) {
+  if ((member.flg & Zlib.Gzip.FlagsMask.FNAME) > 0) {
     for(str = [], ci = 0; (c = input[ip++]) > 0;) {
       str[ci++] = String.fromCharCode(c);
     }
-    this.name = str.join('');
+    /** @expose @type {string} */
+    member.name = str.join('');
   }
 
   // fcomment
-  if ((flg & Zlib.Gzip.FlagsMask.FCOMMENT) > 0) {
+  if ((member.flg & Zlib.Gzip.FlagsMask.FCOMMENT) > 0) {
     for(str = [], ci = 0; (c = input[ip++]) > 0;) {
       str[ci++] = String.fromCharCode(c);
     }
-    this.comment = str.join('');
+    /** @expose @type {string} */
+    member.comment = str.join('');
   }
 
   // fhcrc
-  if ((flg & Zlib.Gzip.FlagsMask.FHCRC) > 0) {
-    crc16 = Zlib.CRC32.calc(input, 0, ip) & 0xffff;
-    if (crc16 !== (input[ip++] | (input[ip++] << 8))) {
+  if ((member.flg & Zlib.Gzip.FlagsMask.FHCRC) > 0) {
+    member.crc16 = Zlib.CRC32.calc(input, 0, ip) & 0xffff;
+    if (member.crc16 !== (input[ip++] | (input[ip++] << 8))) {
       throw new Error('invalid header crc16');
     }
   }
@@ -206,37 +182,28 @@ Zlib.Gunzip.prototype.decodeMember = function() {
 
   // compressed block
   rawinflate = new Zlib.RawInflate(input, {'index': ip, 'bufferSize': inflen});
-  inflated = rawinflate.decompress();
+  member.data = inflated = rawinflate.decompress();
   ip = rawinflate.ip;
 
-  if (USE_TYPEDARRAY) {
-    this.output = new Uint8Array(inflated.length);
-    this.output.set(inflated, this.op);
-    this.op += inflated.length;
-  } else {
-    this.output = new Array(inflated.length);
-    // XXX: unrolling
-    for (i = 0, il = inflated.length; i < il; ++i) {
-      this.output[this.op++] = inflated[i];
-    }
-  }
-
   // crc32
-  crc32 = ((input[ip++])       | (input[ip++] << 8) |
-           (input[ip++] << 16) | (input[ip++] << 24)) >>> 0;
+  member.crc32 = crc32 =
+    ((input[ip++])       | (input[ip++] << 8) |
+     (input[ip++] << 16) | (input[ip++] << 24)) >>> 0;
   if (Zlib.CRC32.calc(inflated) !== crc32) {
     throw new Error('invalid CRC-32 checksum: 0x' +
         Zlib.CRC32.calc(inflated).toString(16) + ' / 0x' + crc32.toString(16));
   }
 
   // input size
-  isize = ((input[ip++])       | (input[ip++] << 8) |
-           (input[ip++] << 16) | (input[ip++] << 24)) >>> 0;
-  if ((this.output.length & 0xffffffff) !== isize) {
+  member.isize = isize =
+    ((input[ip++])       | (input[ip++] << 8) |
+     (input[ip++] << 16) | (input[ip++] << 24)) >>> 0;
+  if ((inflated.length & 0xffffffff) !== isize) {
     throw new Error('invalid input size: ' +
-        (this.output.length & 0xffffffff) + ' / ' + isize);
+        (inflated.length & 0xffffffff) + ' / ' + isize);
   }
 
+  this.member.push(member);
   this.ip = ip;
 };
 
@@ -248,6 +215,43 @@ Zlib.Gunzip.prototype.decodeSubField = function(ip, length) {
   return ip + length;
 };
 
+/**
+ * @return {!(Array.<Number>|Uint8Array)}
+ */
+Zlib.Gunzip.prototype.concatMember = function() {
+  /** @type {Array.<Zlib.GunzipMember>} */
+  var member = this.member;
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var il;
+  /** @type {number} */
+  var p = 0;
+  /** @type {number} */
+  var size = 0;
+  /** @type {!(Array.<number>|Uint8Array)} */
+  var buffer;
+
+  for (i = 0, il = member.length; i < il; ++i) {
+    size += member[i].data.length;
+  }
+
+  if (USE_TYPEDARRAY) {
+    buffer = new Uint8Array(size);
+    for (i = 0; i < il; ++i) {
+      buffer.set(member[i].data, p);
+      p += member[i].data.length;
+    }
+  } else {
+    buffer = [];
+    for (i = 0; i < il; ++i) {
+      buffer[i] = member[i].data;
+    }
+    buffer = Array.prototype.concat.apply([], buffer);
+  }
+
+  return buffer;
+};
 
 
 //*****************************************************************************
