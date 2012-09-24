@@ -83,7 +83,8 @@ Zlib.Adler32.update = function(adler, array) {
  * Adler32 最適化パラメータ
  * 現状では 1024 程度が最適.
  * @see http://jsperf.com/adler-32-simple-vs-optimized/3
- * @const {number}
+ * @const
+ * @type {number}
  */
 Zlib.Adler32.OptimizationParameter = 1024;
 

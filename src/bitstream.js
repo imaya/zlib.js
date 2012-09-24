@@ -35,19 +35,31 @@ goog.scope(function() {
 /**
  * ビットストリーム
  * @constructor
+ * @param {!(Array|Uint8Array)=} buffer output buffer.
+ * @param {number=} bufferPosition start buffer pointer.
  */
-Zlib.BitStream = function() {
-  this.index = 0;
+Zlib.BitStream = function(buffer, bufferPosition) {
+  /** @type {number} buffer index. */
+  this.index = typeof bufferPosition === 'number' ? bufferPosition : 0;
+  /** @type {number} bit index. */
   this.bitindex = 0;
-  this.buffer =
+  /** @type {!(Array|Uint8Array)} bit-stream output buffer. */
+  this.buffer = buffer instanceof (USE_TYPEDARRAY ? Uint8Array : Array) ?
+    buffer :
     new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.BitStream.DefaultBlockSize);
-  this.blocks = [];
-  this.totalpos = 0;
+
+  // 入力された index が足りなかったら拡張するが、倍にしてもダメなら不正とする
+  if (this.buffer.length * 2 <= this.index) {
+    throw new Error("invalid index");
+  } else if (this.buffer.length <= this.index) {
+    this.expandBuffer();
+  }
 };
 
 /**
  * デフォルトブロックサイズ.
- * @const {number}
+ * @const
+ * @type {number}
  */
 Zlib.BitStream.DefaultBlockSize = 0x8000;
 
@@ -56,16 +68,27 @@ Zlib.BitStream.DefaultBlockSize = 0x8000;
  * @return {!(Array|Uint8Array)} new buffer.
  */
 Zlib.BitStream.prototype.expandBuffer = function() {
+  /** @type {!(Array|Uint8Array)} old buffer. */
+  var oldbuf = this.buffer;
+  /** @type {number} loop counter. */
+  var i;
+  /** @type {number} loop limiter. */
+  var il = oldbuf.length;
   /** @type {!(Array|Uint8Array)} new buffer. */
   var buffer =
-    new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.BitStream.DefaultBlockSize);
+    new (USE_TYPEDARRAY ? Uint8Array : Array)(il << 1);
 
-  this.totalpos += this.buffer.length;
-  this.blocks.push(this.buffer);
-  this.buffer = buffer;
-  this.index = 0;
+  // copy buffer
+  if (USE_TYPEDARRAY) {
+    buffer.set(oldbuf);
+  } else {
+    // XXX: loop unrolling
+    for (i = 0; i < il; ++i) {
+      buffer[i] = oldbuf[i];
+    }
+  }
 
-  return this.buffer;
+  return (this.buffer = buffer);
 };
 
 
@@ -104,13 +127,12 @@ Zlib.BitStream.prototype.writeBits = function(number, n, reverse) {
       if (++bitindex === 8) {
         bitindex = 0;
         buffer[index++] = Zlib.BitStream.ReverseTable[current];
+        current = 0;
 
         // expand
         if (index === buffer.length) {
           buffer = this.expandBuffer();
-          index = 0;
         }
-        current = 0;
       }
     }
   }
@@ -141,49 +163,32 @@ function rev32_(n) {
 Zlib.BitStream.prototype.finish = function() {
   var buffer = this.buffer;
   var index = this.index;
-  var limit = this.totalpos + index + 1;
 
-  /** @type {!(Array|Uint8Array)} output buffer */
-  var output = new (USE_TYPEDARRAY ? Uint8Array : Array)(limit);
-  /** @type {number} output buffer pointer. */
-  var op;
-  /** @type {!(Array|Uint8Array)} block buffer. */
-  var block;
-  /** @type {number} loop counter. */
-  var i;
-  /** @type {number} loop limiter. */
-  var il;
-  /** @type {number} loop counter. */
-  var j;
-  /** @type {number} loop limiter. */
-  var jl;
+  /** @type {!(Array|Uint8Array)} output buffer. */
+  var output;
 
+  // bitindex が 0 の時は余分に index が進んでいる状態
   if (this.bitindex > 0) {
     buffer[index] <<= 8 - this.bitindex;
-  }
-  buffer[index] = Zlib.BitStream.ReverseTable[buffer[index]];
-
-  // concat blocks
-  for (i = 0, il = this.blocks.length, op = 0; i < il; ++i) {
-    block = this.blocks[i];
-    for (j = 0, jl = block.length; j < jl; ++j) {
-      output[op++] = block[j];
-    }
+    buffer[index] = Zlib.BitStream.ReverseTable[buffer[index]];
+    index++;
   }
 
-  // current
-  for (i = 0; i <= index; ++i) {
-    output[op++] = buffer[i];
+  // array truncation
+  if (USE_TYPEDARRAY) {
+    output = buffer.subarray(0, index);
+  } else {
+    buffer.length = index;
+    output = buffer;
   }
 
   return output;
 };
 
-
-
 /**
  * 0-255 のビット順を反転したテーブル
- * @const {!(Uint8Array|Array.<number>)}
+ * @const
+ * @type {!(Uint8Array|Array.<number>)}
  */
 Zlib.BitStream.ReverseTable = (function(table) {
   return table;

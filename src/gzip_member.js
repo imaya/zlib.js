@@ -1,12 +1,9 @@
 /**
- * @license
- * zlib.deflate.js
- * JavaScript Zlib and Deflate Library
- * https://github.com/imaya/CanvasTool.PngEncoder
+ * gzip_member.js
  *
  * The MIT License
  *
- * Copyright (c) 2011 imaya
+ * Copyright (c) 2012 imaya
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,3 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+goog.provide('Zlib.GunzipMember');
+
+goog.scope(function() {
+
+/**
+ * @constructor
+ */
+Zlib.GunzipMember = function() {
+  /** @expose @type {number} signature first byte. */
+  this.id1;
+  /** @expose @type {number} signature second byte. */
+  this.id2;
+  /** @expose @type {number} compression method. */
+  this.cm;
+  /** @expose @type {number} flags. */
+  this.flg;
+  /** @expose @type {Date} modification time. */
+  this.mtime;
+  /** @expose @type {number} extra flags. */
+  this.xfl;
+  /** @expose @type {number} operating system number. */
+  this.os;
+  /** @expose @type {number} CRC-16 value for FHCRC flag. */
+  this.crc16;
+  /** @expose @type {number} extra length. */
+  this.xlen;
+  /** @expose @type {number} CRC-32 value for verification. */
+  this.crc32;
+  /** @expose @type {number} input size modulo 32 value. */
+  this.isize;
+};
+
+});

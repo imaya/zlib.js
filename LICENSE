@@ -1,12 +1,12 @@
 /**
  * @license
- * zlib.deflate.js
- * JavaScript Zlib and Deflate Library
- * https://github.com/imaya/CanvasTool.PngEncoder
+ * zlib.js
+ * JavaScript Zlib Library
+ * https://github.com/imaya/zlib.js
  *
  * The MIT License
  *
- * Copyright (c) 2011 imaya
+ * Copyright (c) 2012 imaya
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
