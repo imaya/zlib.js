@@ -80,8 +80,8 @@ Zlib.Heap.prototype.push = function(index, value) {
   while (current > 0) {
     parent = this.getParent(current);
 
-    // 親ノードと比較して親の方が大きければ値と index を入れ替える
-    if (heap[current + 1] < heap[parent + 1]) {
+    // 親ノードと比較して親の方が小さければ入れ替える
+    if (heap[current] > heap[parent]) {
       swap = heap[current];
       heap[current] = heap[parent];
       heap[parent] = swap;
@@ -101,7 +101,7 @@ Zlib.Heap.prototype.push = function(index, value) {
 };
 
 /**
- * Heapから一番小さい値を返す
+ * Heapから一番大きい値を返す
  * @return {{index: number, value: number, length: number}} {index: キーindex,
  *     value: 値, length: ヒープ長} の Object.
  */
@@ -128,13 +128,13 @@ Zlib.Heap.prototype.pop = function() {
       break;
     }
 
-    // 隣のノードと比較して、隣の方が値が小さければ隣を現在ノードとして選択
-    if (current + 2 < this.length && heap[current + 3] < heap[current + 1]) {
+    // 隣のノードと比較して、隣の方が値が大きければ隣を現在ノードとして選択
+    if (current + 2 < this.length && heap[current + 2] > heap[current]) {
       current += 2;
     }
 
-    // 親ノードと比較して親の方が大きい場合は入れ替える
-    if (heap[parent + 1] > heap[current + 1]) {
+    // 親ノードと比較して親の方が小さい場合は入れ替える
+    if (heap[current] > heap[parent]) {
       swap = heap[parent];
       heap[parent] = heap[current];
       heap[current] = swap;

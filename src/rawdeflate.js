@@ -321,27 +321,25 @@ function(blockArray, isFinalBlock) {
   /** @const @type {Array.<number>} */
   var hclenOrder =
         [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
-  /** @type {Array.<number>} */
+  /** @type {!(Array.<number>|Uint8Array)} */
   var litLenLengths;
-  /** @type {Array} */
+  /** @type {!(Array.<number>|Uint16Array)} */
   var litLenCodes;
-  /** @type {Array.<number>} */
+  /** @type {!(Array.<number>|Uint8Array)} */
   var distLengths;
-  /** @type {Array} */
+  /** @type {!(Array.<number>|Uint16Array)} */
   var distCodes;
   /** @type {{
    *   codes: !(Array.<number>|Uint32Array),
    *   freqs: !(Array.<number>|Uint32Array)
    * }} */
   var treeSymbols;
-  /** @type {Array.<number>} */
+  /** @type {!(Array.<number>|Uint8Array)} */
   var treeLengths;
   /** @type {Array} */
   var transLengths = new Array(19);
-  /** @type {Array.<number>} */
-  var codeLengths
-  /** @type {Array} */
-  var codeCodes
+  /** @type {!(Array.<number>|Uint16Array)} */
+  var treeCodes
   /** @type {number} */
   var code
   /** @type {number} */
@@ -361,9 +359,9 @@ function(blockArray, isFinalBlock) {
   data = this.lz77(blockArray);
 
   // リテラル・長さ, 距離のハフマン符号と符号長の算出
-  litLenLengths = this.getLengths_(this.freqsLitLen);
+  litLenLengths = this.getLengths_(this.freqsLitLen, 15);
   litLenCodes = this.getCodesFromLengths_(litLenLengths);
-  distLengths = this.getLengths_(this.freqsDist);
+  distLengths = this.getLengths_(this.freqsDist, 7);
   distCodes = this.getCodesFromLengths_(distLengths);
 
   // HLIT, HDIST の決定
@@ -379,8 +377,7 @@ function(blockArray, isFinalBlock) {
   }
   for (hclen = 19; hclen > 4 && transLengths[hclen - 1] === 0; hclen--) {}
 
-  codeLengths = this.getLengths_(treeSymbols.freqs);
-  codeCodes = this.getCodesFromLengths_(codeLengths);
+  treeCodes = this.getCodesFromLengths_(treeLengths);
 
   // 出力
   stream.writeBits(hlit - 257, 5, true);
@@ -394,7 +391,7 @@ function(blockArray, isFinalBlock) {
   for (i = 0, il = treeSymbols.codes.length; i < il; i++) {
     code = treeSymbols.codes[i];
 
-    stream.writeBits(codeCodes[code], codeLengths[code], true);
+    stream.writeBits(treeCodes[code], treeLengths[code], true);
 
     // extra bits
     if (code >= 16) {
@@ -887,9 +884,9 @@ function(data, position, matchList) {
  * Tree-Transmit Symbols の算出
  * reference: PuTTY Deflate implementation
  * @param {number} hlit HLIT.
- * @param {Array} litlenLengths リテラルと長さ符号の符号長配列.
+ * @param {!(Array.<number>|Uint8Array)} litlenLengths リテラルと長さ符号の符号長配列.
  * @param {number} hdist HDIST.
- * @param {Array} distLengths 距離符号の符号長配列.
+ * @param {!(Array.<number>|Uint8Array)} distLengths 距離符号の符号長配列.
  * @return {{
  *   codes: !(Array.<number>|Uint32Array),
  *   freqs: !(Array.<number>|Uint32Array)
@@ -998,108 +995,193 @@ function(hlit, litlenLengths, hdist, distLengths) {
 
 /**
  * ハフマン符号の長さを取得する
- * reference: PuTTY Deflate implementation
  * @param {!(Array.<number>|Uint32Array)} freqs 出現カウント.
- * @param {number=} opt_limit 符号長の制限.
- * @return {Array.<number>} 符号長配列.
+ * @param {number} limit 符号長の制限.
+ * @return {!(Array.<number>|Uint8Array)} 符号長配列.
  * @private
  */
-Zlib.RawDeflate.prototype.getLengths_ = function(freqs, opt_limit) {
-  var nSymbols = freqs.length,
-      nActiveSymbols,
-      max = 2 * Zlib.RawDeflate.HUFMAX - 1,
-      heap = new Zlib.Heap(2 * Zlib.RawDeflate.HUFMAX),
-      parent = new (USE_TYPEDARRAY ? Uint32Array : Array)(max),
-      length = new (USE_TYPEDARRAY ? Uint32Array : Array)(max),
-      i, node1, node2,
-      freqsZero = [],
-      maxProb, smallestFreq = Infinity, totalFreq,
-      num, denom, adjust;
-
-  // 0 の要素を調べる, 最小出現数を調べる, 合計出現数を調べる
-  for (i = 0; i < nSymbols; i++) {
-    if (freqs[i] === 0) {
-      freqsZero.push(i);
-    } else {
-      if (smallestFreq > freqs[i]) {
-        smallestFreq = freqs[i];
-      }
-      totalFreq += freqs[i];
-    }
-  }
-
-  // 非 0 の要素が 2 より小さかったら 2 になるまで 1 で埋める
-  for (i = 0; nSymbols - freqsZero.length < 2; i++) {
-    freqs[freqsZero.shift()] = 1;
-  }
-
-  // limit が決まっている場合は調整する
-  if ((opt_limit | 0) > 0) {
-    totalFreq = 0;
-
-    // 引数チェック
-    if (opt_limit !== 7 && opt_limit !== 15) {
-      throw 'invalid limit number';
-    }
-
-    // 調整用パラメータの算出
-    maxProb = (opt_limit === 15) ? 2584 : 55;
-    nActiveSymbols = nSymbols - freqsZero.length;
-    num = totalFreq - smallestFreq * maxProb;
-    denom = maxProb - nActiveSymbols;
-    adjust = ((num + denom - 1) / denom) | 0;
-
-    // 非 0 要素の値を調整する
-    for (i = 0; i < nSymbols; i++) {
-      if (freqs[i] !== 0) {
-        freqs[i] += adjust;
-      }
-    }
-  }
+Zlib.RawDeflate.prototype.getLengths_ = function(freqs, limit) {
+  /** @type {number} */
+  var nSymbols = freqs.length;
+  /** @type {Zlib.Heap} */
+  var heap = new Zlib.Heap(2 * Zlib.RawDeflate.HUFMAX);
+  /** @type {!(Array.<number>|Uint8Array)} */
+  var length = new (USE_TYPEDARRAY ? Uint8Array : Array)(nSymbols);
+  /** @type {Array} */
+  var nodes;
+  /** @type {!(Array.<number>|Uint8Array)} */
+  var values;
+  /** @type {!(Array.<number>|Uint8Array)} */
+  var codeLength;
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var il;
+  /** @type {Array.<number>} */
+  var freqsZero = [];
 
   // 配列の初期化
   if (!USE_TYPEDARRAY) {
-    for (i = 0; i < max; i++) {
-      parent[i] = 0;
+    for (i = 0; i < nSymbols; i++) {
       length[i] = 0;
     }
   }
 
   // ヒープの構築
-  for (i = 0; i < nSymbols; i++) {
+  for (i = 0; i < nSymbols; ++i) {
     if (freqs[i] > 0) {
       heap.push(i, freqs[i]);
     }
   }
+  nodes = new Array(heap.length / 2);
+  values = new (USE_TYPEDARRAY ? Uint32Array : Array)(heap.length / 2);
 
-  // ハフマン木の構築
-  // ノードを2つ取り、その値の合計をヒープを戻していくことでハフマン木になる
-  for (i = Zlib.RawDeflate.HUFMAX; heap.length > 2; i++) {
-    node1 = heap.pop();
-    node2 = heap.pop();
-    parent[node1.index] = parent[node2.index] = i;
-    heap.push(i, node1.value + node2.value);
+  // 非 0 の要素が一つだけだった場合は、そのシンボルに符号長 1 を割り当てて終了
+  if (nodes.length === 1) {
+    length[heap.pop().index] = 1;
+    return length;
   }
 
-  // ハフマン木から符号長に変換する
-  for (; i >= 0; i--) {
-    if (parent[i] > 0) {
-      length[i] = 1 + length[parent[i]];
+  // Reverse Package Merge Algorithm による Canonical Huffman Code の符号長決定
+  for (i = 0, il = heap.length / 2; i < il; ++i) {
+    nodes[i] = heap.pop();
+    values[i] = nodes[i].value;
+  }
+  codeLength = this.reversePackageMerge_(values, values.length, limit);
+
+  for (i = 0, il = nodes.length; i < il; ++i) {
+    length[nodes[i].index] = codeLength[i];
+  }
+
+  return length;
+};
+
+/**
+ * Reverse Package Merge Algorithm.
+ * @param {!(Array.<number>|Uint32Array)} freqs sorted probability.
+ * @param {number} symbols number of symbols.
+ * @param {number} limit code length limit.
+ * @return {!(Array.<number>|Uint8Array)} code lengths.
+ */
+Zlib.RawDeflate.prototype.reversePackageMerge_ = function(freqs, symbols, limit) {
+  /** @type {!(Array.<number>|Uint16Array)} */
+  var minimumCost = new (USE_TYPEDARRAY ? Uint16Array : Array)(limit);
+  /** @type {!(Array.<number>|Uint8Array)} */
+  var flag = new (USE_TYPEDARRAY ? Uint8Array : Array)(limit);
+  /** @type {!(Array.<number>|Uint8Array)} */
+  var codeLength = new (USE_TYPEDARRAY ? Uint8Array : Array)(symbols);
+  /** @type {Array} */
+  var value = new Array(limit);
+  /** @type {Array} */
+  var type  = new Array(limit);
+  /** @type {Array.<number>} */
+  var currentPosition = new Array(limit);
+  /** @type {number} */
+  var excess = (1 << limit) - symbols;
+  /** @type {number} */
+  var half = (1 << (limit - 1));
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var j;
+  /** @type {number} */
+  var t;
+  /** @type {number} */
+  var weight;
+  /** @type {number} */
+  var next;
+
+  /**
+   * @param {number} j
+   */
+  function takePackage(j) {
+    /** @type {number} */
+    var x = type[j][currentPosition[j]];
+
+    if (x === symbols) {
+      takePackage(j+1);
+      takePackage(j+1);
+    } else {
+      --codeLength[x];
+    }
+
+    ++currentPosition[j];
+  }
+
+  minimumCost[limit-1] = symbols;
+
+  for (j = 0; j < limit; ++j) {
+    if (excess < half) {
+      flag[j] = 0;
+    } else {
+      flag[j] = 1;
+      excess -= half;
+    }
+    excess <<= 1;
+    minimumCost[limit-2-j] = (minimumCost[limit-1-j] / 2 | 0) + symbols;
+  }
+  minimumCost[0] = flag[0];
+
+  value[0] = new Array(minimumCost[0]);
+  type[0]  = new Array(minimumCost[0]);
+  for (j = 1; j < limit; ++j) {
+    if (minimumCost[j] > 2 * minimumCost[j-1] + flag[j]) {
+      minimumCost[j] = 2 * minimumCost[j-1] + flag[j];
+    }
+    value[j] = new Array(minimumCost[j]);
+    type[j]  = new Array(minimumCost[j]);
+  }
+
+  for (i = 0; i < symbols; ++i) {
+    codeLength[i] = limit;
+  }
+
+  for (t = 0; t < minimumCost[limit-1]; ++t) {
+    value[limit-1][t] = freqs[t];
+    type[limit-1][t]  = t;
+  }
+
+  for (i = 0; i < limit; ++i) {
+    currentPosition[i] = 0;
+  }
+  if (flag[limit-1] === 1) {
+    --codeLength[0];
+    ++currentPosition[limit-1];
+  }
+
+  for (j = limit-2; j >= 0; --j) {
+    i = 0;
+    weight = 0;
+    next = currentPosition[j+1];
+
+    for (t = 0; t < minimumCost[j]; t++) {
+      weight = value[j+1][next] + value[j+1][next+1];
+
+      if (weight > freqs[i]) {
+        value[j][t] = weight;
+        type[j][t] = symbols;
+        next += 2;
+      } else {
+        value[j][t] = freqs[i];
+        type[j][t] = i;
+        ++i;
+      }
+    }
+
+    currentPosition[j] = 0;
+    if (flag[j] === 1) {
+      takePackage(j);
     }
   }
 
-  return (
-    USE_TYPEDARRAY ?
-    length.subarray(0, nSymbols) :
-    length.slice(0, nSymbols)
-  );
+  return codeLength;
 };
 
 /**
  * 符号長配列からハフマン符号を取得する
  * reference: PuTTY Deflate implementation
- * @param {Array} lengths 符号長配列.
- * @return {Array} ハフマン符号配列.
+ * @param {!(Array.<number>|Uint8Array)} lengths 符号長配列.
+ * @return {!(Array.<number>|Uint16Array)} ハフマン符号配列.
  * @private
  */
 Zlib.RawDeflate.prototype.getCodesFromLengths_ = function(lengths) {
@@ -1136,6 +1218,7 @@ Zlib.RawDeflate.prototype.getCodesFromLengths_ = function(lengths) {
     code = startCode[lengths[i]];
     startCode[lengths[i]] += 1;
     codes[i] = 0;
+
     for (j = 0, m = lengths[i]; j < m; j++) {
       codes[i] = (codes[i] << 1) | (code & 1);
       code >>>= 1;
