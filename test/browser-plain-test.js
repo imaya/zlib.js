@@ -264,7 +264,7 @@ buster.testCase(
 
       assert.equals(inflated.length, this.testData.length, "inflated data size");
       assert.equals(inflated, this.testData);
-      assert.equals(inflator.name, 'foobar.filename');
+      assert.equals(inflator.member[0].name, 'foobar.filename');
     },
     "gunzip": function() {
       var testData =
@@ -293,7 +293,7 @@ buster.testCase(
 
       assert.equals(inflated.length, plain.length, "inflated data size");
       assert.equals(inflated, plain);
-      assert.equals(inflator.name, 'hoge.txt');
+      assert.equals(inflator.member[0].name, 'hoge.txt');
     },
     "gzip with filename (seed: 1346432776267)": function() {
       makeRandomSequentialData(this.testData, 1346432776267);
@@ -318,7 +318,7 @@ buster.testCase(
 
       assert.equals(inflated.length, this.testData.length, "inflated data size");
       assert.equals(inflated, this.testData);
-      assert.equals(inflator.name, 'foobar.filename');
+      assert.equals(inflator.member[0].name, 'foobar.filename');
     }
   }
 );
