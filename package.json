@@ -2,7 +2,7 @@
   "author": "imaya <imaya.devel@gmail.com>",
   "name": "zlibjs",
   "description": "zlib and gzip implementation in JavaScript",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./bin/node-zlib.js",
   "homepage": "https://github.com/imaya/zlib.js",
   "repository": {
