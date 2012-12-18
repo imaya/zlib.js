@@ -186,10 +186,10 @@ Zlib.Deflate.prototype.compress = function() {
   }
 
   // adler32
-  output[pos++] = (adler      ) & 0xff;
-  output[pos++] = (adler >>  8) & 0xff;
-  output[pos++] = (adler >> 16) & 0xff;
   output[pos++] = (adler >> 24) & 0xff;
+  output[pos++] = (adler >> 16) & 0xff;
+  output[pos++] = (adler >>  8) & 0xff;
+  output[pos++] = (adler      ) & 0xff;
 
   return output;
 };
