@@ -318,9 +318,9 @@ Zlib.RawInflateStream.prototype.readBlockHeader = function() {
 
   this.status = Zlib.RawInflateStream.Status.BLOCK_HEADER_START;
 
-  save(this);
+  this.save_();
   if ((hdr = this.readBits(3)) < 0) {
-    restore(this);
+    this.restore_();
     return -1;
   }
 
@@ -546,25 +546,23 @@ Zlib.RawInflateStream.prototype.parseFixedHuffmanBlock = function() {
 
 /**
  * オブジェクトのコンテキストを別のプロパティに退避する.
- * @param {Zlib.RawInflateStream} target 対象オブジェクト.
  * @private
  */
-function save(target) {
-  target.ip_ = target.ip;
-  target.bitsbuflen_ = target.bitsbuflen;
-  target.bitsbuf_ = target.bitsbuf;
-}
+Zlib.RawInflateStream.prototype.save_ = function() {
+  this.ip_ = this.ip;
+  this.bitsbuflen_ = this.bitsbuflen;
+  this.bitsbuf_ = this.bitsbuf;
+};
 
 /**
  * 別のプロパティに退避したコンテキストを復元する.
- * @param {Zlib.RawInflateStream} target 対象オブジェクト.
  * @private
  */
-function restore(target) {
-  target.ip = target.ip_;
-  target.bitsbuflen = target.bitsbuflen_;
-  target.bitsbuf = target.bitsbuf_;
-}
+Zlib.RawInflateStream.prototype.restore_ = function() {
+  this.ip = this.ip_;
+  this.bitsbuflen = this.bitsbuflen_;
+  this.bitsbuf = this.bitsbuf_;
+};
 
 /**
  * parse dynamic huffman block.
@@ -592,19 +590,19 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
 
   this.status = Zlib.RawInflateStream.Status.BLOCK_BODY_START;
 
-  save(this);
+  this.save_();
   hlit = this.readBits(5) + 257;
   hdist = this.readBits(5) + 1;
   hclen = this.readBits(4) + 4;
   if (hlit < 0 || hdist < 0 || hclen < 0) {
-    restore(this);
+    this.restore_();
     return -1;
   }
 
   try {
     parseDynamicHuffmanBlockImpl.call(this);
   } catch(e) {
-    restore(this);
+    this.restore_();
     return -1;
   }
 
@@ -713,12 +711,12 @@ Zlib.RawInflateStream.prototype.decodeHuffman = function() {
   this.status = Zlib.RawInflateStream.Status.DECODE_BLOCK_START;
 
   while (true) {
-    save(this);
+    this.save_();
 
     code = this.readCodeByTable(litlen);
     if (code < 0) {
       this.op = op;
-      restore(this);
+      this.restore_();
       return -1;
     }
 
@@ -744,7 +742,7 @@ Zlib.RawInflateStream.prototype.decodeHuffman = function() {
       bits = this.readBits(Zlib.RawInflateStream.LengthExtraTable[ti]);
       if (bits < 0) {
         this.op = op;
-        restore(this);
+        this.restore_();
         return -1;
       }
       codeLength += bits;
@@ -754,7 +752,7 @@ Zlib.RawInflateStream.prototype.decodeHuffman = function() {
     code = this.readCodeByTable(dist);
     if (code < 0) {
       this.op = op;
-      restore(this);
+      this.restore_();
       return -1;
     }
     codeDist = Zlib.RawInflateStream.DistCodeTable[code];
@@ -762,7 +760,7 @@ Zlib.RawInflateStream.prototype.decodeHuffman = function() {
       bits = this.readBits(Zlib.RawInflateStream.DistExtraTable[code]);
       if (bits < 0) {
         this.op = op;
-        restore(this);
+        this.restore_();
         return -1;
       }
       codeDist += bits;

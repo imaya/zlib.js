@@ -338,7 +338,9 @@ function inflateTest(mode, testData, compressionType) {
   console.log("deflated data size:", deflate.length);
 
   // inflate
-  inflate = (new Zlib.Inflate(deflate)).decompress();
+  inflate = (new Zlib.Inflate(deflate, {
+    verify: true
+  })).decompress();
   console.log("inflated data size:", inflate.length)
 
   // assertion

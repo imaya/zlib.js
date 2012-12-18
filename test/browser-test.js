@@ -161,7 +161,8 @@ buster.testCase(
 
       var inflator = new Zlib.Inflate(decodedData, {
         bufferType: Zlib.Inflate.BufferType.BLOCK,
-        bufferSize: 41152
+        bufferSize: 41152,
+        verify: true
       });
       var inflated = inflator.decompress();
 
@@ -254,6 +255,11 @@ function inflateTest(mode, testData, compressionType, inflateOption) {
   console.log("deflated data size:", deflate.length);
 
   // inflate
+  if (inflateOption) {
+    inflateOption.verify = true;
+  } else {
+    inflateOption = {verify: true};
+  }
   inflate = (new Zlib.Inflate(deflate, inflateOption)).decompress();
   console.log("inflated data size:", inflate.length)
 

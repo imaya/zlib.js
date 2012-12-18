@@ -108,6 +108,19 @@ Zlib.BitStream.prototype.writeBits = function(number, n, reverse) {
   /** @type {number} loop counter. */
   var i;
 
+  /**
+   * 32-bit 整数のビット順を逆にする
+   * @param {number} n 32-bit integer.
+   * @return {number} reversed 32-bit integer.
+   * @private
+   */
+  function rev32_(n) {
+    return (Zlib.BitStream.ReverseTable[n & 0xFF] << 24) |
+      (Zlib.BitStream.ReverseTable[n >>> 8 & 0xFF] << 16) |
+      (Zlib.BitStream.ReverseTable[n >>> 16 & 0xFF] << 8) |
+      Zlib.BitStream.ReverseTable[n >>> 24 & 0xFF];
+  }
+
   if (reverse && n > 1) {
     number = n > 8 ?
       rev32_(number) >> (32 - n) :
@@ -143,18 +156,6 @@ Zlib.BitStream.prototype.writeBits = function(number, n, reverse) {
   this.index = index;
 };
 
-/**
- * 32-bit 整数のビット順を逆にする
- * @param {number} n 32-bit integer.
- * @return {number} reversed 32-bit integer.
- * @private
- */
-function rev32_(n) {
-  return (Zlib.BitStream.ReverseTable[n & 0xFF] << 24) |
-         (Zlib.BitStream.ReverseTable[n >>> 8 & 0xFF] << 16) |
-         (Zlib.BitStream.ReverseTable[n >>> 16 & 0xFF] << 8) |
-          Zlib.BitStream.ReverseTable[n >>> 24 & 0xFF];
-}
 
 /**
  * ストリームの終端処理を行う

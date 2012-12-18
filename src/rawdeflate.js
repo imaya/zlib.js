@@ -521,19 +521,20 @@ Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
  * @param {!number} backwardDistance マッチ位置との距離.
  * @constructor
  */
-function Lz77Match(length, backwardDistance) {
+Zlib.RawDeflate.Lz77Match = function(length, backwardDistance) {
   /** @type {number} match length. */
   this.length = length;
   /** @type {number} backward distance. */
   this.backwardDistance = backwardDistance;
-}
+};
+
 /**
  * 長さ符号テーブル.
  * [コード, 拡張ビット, 拡張ビット長] の配列となっている.
  * @const
  * @type {!(Array.<number>|Uint32Array)}
  */
-Lz77Match.LengthCodeTable = (function(table) {
+Zlib.RawDeflate.Lz77Match.LengthCodeTable = (function(table) {
   return USE_TYPEDARRAY ? new Uint32Array(table) : table;
 })((function() {
   /** @type {!Array} */
@@ -596,7 +597,7 @@ Lz77Match.LengthCodeTable = (function(table) {
  * @return {!Array.<number>} コード、拡張ビット、拡張ビット長の配列.
  * @private
  */
-Lz77Match.prototype.getDistanceCode_ = function(dist) {
+Zlib.RawDeflate.Lz77Match.prototype.getDistanceCode_ = function(dist) {
   /** @type {!Array.<number>} distance code table. */
   var r;
 
@@ -643,7 +644,7 @@ Lz77Match.prototype.getDistanceCode_ = function(dist) {
  * [ CODE, EXTRA-BIT-LEN, EXTRA, CODE, EXTRA-BIT-LEN, EXTRA ]
  * @return {!Array.<number>} LZ77 符号化 byte array.
  */
-Lz77Match.prototype.toLz77Array = function() {
+Zlib.RawDeflate.Lz77Match.prototype.toLz77Array = function() {
   /** @type {number} */
   var length = this.length;
   /** @type {number} */
@@ -656,7 +657,7 @@ Lz77Match.prototype.toLz77Array = function() {
   var code;
 
   // length
-  code = Lz77Match.LengthCodeTable[length];
+  code = Zlib.RawDeflate.Lz77Match.LengthCodeTable[length];
   codeArray[pos++] = code & 0xffff;
   codeArray[pos++] = (code >> 16) & 0xff;
   codeArray[pos++] = code >> 24;
@@ -692,9 +693,9 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var windowSize = Zlib.RawDeflate.WindowSize;
   /** @type {Array.<Array.<number>>} match list */
   var matchList;
-  /** @type {Lz77Match} longest match */
+  /** @type {Zlib.RawDeflate.Lz77Match} longest match */
   var longestMatch;
-  /** @type {Lz77Match} previous longest match */
+  /** @type {Zlib.RawDeflate.Lz77Match} previous longest match */
   var prevMatch;
   /** @type {!(Array.<number>|Uint16Array)} lz77 buffer */
   var lz77buf = USE_TYPEDARRAY ?
@@ -721,7 +722,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
 
   /**
    * マッチデータの書き込み
-   * @param {Lz77Match} match LZ77 Match data.
+   * @param {Zlib.RawDeflate.Lz77Match} match LZ77 Match data.
    * @param {!number} offset スキップ開始位置(相対指定).
    * @private
    */
@@ -832,7 +833,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
  * @param {!Object} data plain data byte array.
  * @param {!number} position plain data byte array position.
  * @param {!Array.<number>} matchList 候補となる位置の配列.
- * @return {!Lz77Match} 最長かつ最短距離のマッチオブジェクト.
+ * @return {!Zlib.RawDeflate.Lz77Match} 最長かつ最短距離のマッチオブジェクト.
  * @private
  */
 Zlib.RawDeflate.prototype.searchLongestMatch_ =
@@ -877,7 +878,7 @@ function(data, position, matchList) {
     }
   }
 
-  return new Lz77Match(matchMax, position - currentMatch);
+  return new Zlib.RawDeflate.Lz77Match(matchMax, position - currentMatch);
 };
 
 /**
