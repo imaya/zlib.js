@@ -111,6 +111,12 @@ buster.testCase(
         done();
       });
     },
+    "undercomitted": function() {
+      var data = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+      var compressed = zlib.deflateSync(data);
+      var decompressed = zlib.inflateSync(compressed);
+      assert(arrayEquals(data, Array.prototype.slice.call(decompressed)));
+    },
     // js deflate, native inflate
     "random data": function(done) {
       makeRandomData(this.testData);
