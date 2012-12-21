@@ -200,7 +200,12 @@ buster.testCase(
       assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
       assert(arrayEquals(inflated, plain));
     },
-
+    "undercomitted": function() {
+      var data = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+      var compressed = new Zlib.Deflate(data).compress();
+      var decompressed = new Zlib.Inflate(compressed).decompress();
+      assert(arrayEquals(data, Array.prototype.slice.call(decompressed)));
+    },
     "uncompressed random data": function() {
       makeRandomData(this.testData);
       inflateTest('random', this.testData, Zlib.Deflate.CompressionType.NONE);

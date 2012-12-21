@@ -204,6 +204,10 @@ if (ZLIB_DEFLATE_EXPORT) {
     Zlib.Deflate.compress
   );
   goog.exportSymbol(
+    'Zlib.Deflate.prototype.compress',
+    Zlib.Deflate.prototype.compress
+  );
+  goog.exportSymbol(
     'Zlib.Deflate.CompressionType',
     Zlib.Deflate.CompressionType
   );

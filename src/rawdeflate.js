@@ -1189,33 +1189,22 @@ Zlib.RawDeflate.prototype.getCodesFromLengths_ = function(lengths) {
   var codes = new (USE_TYPEDARRAY ? Uint16Array : Array)(lengths.length),
       count = [],
       startCode = [],
-      code = 0, i, l, j, m;
+      code = 0, i, il, j, m;
 
   // Count the codes of each length.
-  for (i = 0, l = lengths.length; i < l; i++) {
+  for (i = 0, il = lengths.length; i < il; i++) {
     count[lengths[i]] = (count[lengths[i]] | 0) + 1;
   }
 
   // Determine the starting code for each length block.
-  for (i = 1, l = Zlib.RawDeflate.MaxCodeLength; i <= l; i++) {
+  for (i = 1, il = Zlib.RawDeflate.MaxCodeLength; i <= il; i++) {
     startCode[i] = code;
     code += count[i] | 0;
-
-    // overcommited
-    if (code > (1 << i)) {
-      throw 'overcommitted';
-    }
-
     code <<= 1;
   }
 
-  // undercommitted
-  if (code < ((1 << Zlib.RawDeflate.MaxCodeLength) | 0)) {
-    throw 'undercommitted';
-  }
-
   // Determine the code for each symbol. Mirrored, of course.
-  for (i = 0, l = lengths.length; i < l; i++) {
+  for (i = 0, il = lengths.length; i < il; i++) {
     code = startCode[lengths[i]];
     startCode[lengths[i]] += 1;
     codes[i] = 0;
