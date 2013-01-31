@@ -1,3 +1,4 @@
+var buster = require('buster');
 var nodeZlib = require('zlib');
 var zlib = require('../bin/node-zlib.js');
 var mt_rand = require('../vendor/mt.js/node-mt.js');

@@ -39,7 +39,9 @@ config["inflate, deflate"] = mixin(
   {
     libs: [
       "bin/inflate.min.js",
-      "bin/deflate.min.js"
+      "bin/deflate.min.js",
+      "bin/gunzip.min.js",
+      "bin/gzip.min.js"
     ]
   }
 );
@@ -49,7 +51,7 @@ config["zlib"] = mixin(
   mixin({}, browserCommon),
   {
     libs: [
-      "bin/zlib.min.js"
+      "bin/zlib_and_gzip.min.js"
     ]
   }
 );
