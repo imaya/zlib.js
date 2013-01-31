@@ -230,7 +230,7 @@
   </target>
 
   <!-- Zlib のビルド -->
-  <target name="zlib_and_gzip" depends="deps,prebuild" description="リリース版のファイル zlib.min.js を作成する">
+  <target name="zlib_and_gzip" depends="deps,prebuild" description="リリース版のファイル zlib_and_gzip.min.js を作成する">
     <!-- 出力ファイル名 -->
     <local name="outfile"/>
     <property name="outfile" value="${bin}/zlib_and_gzip.min.js"/>
