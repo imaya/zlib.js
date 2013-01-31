@@ -31,28 +31,46 @@ goog.scope(function() {
  * @constructor
  */
 Zlib.GunzipMember = function() {
-  /** @expose @type {number} signature first byte. */
+  /** @type {number} signature first byte. */
   this.id1;
-  /** @expose @type {number} signature second byte. */
+  /** @type {number} signature second byte. */
   this.id2;
-  /** @expose @type {number} compression method. */
+  /** @type {number} compression method. */
   this.cm;
-  /** @expose @type {number} flags. */
+  /** @type {number} flags. */
   this.flg;
-  /** @expose @type {Date} modification time. */
+  /** @type {Date} modification time. */
   this.mtime;
-  /** @expose @type {number} extra flags. */
+  /** @type {number} extra flags. */
   this.xfl;
-  /** @expose @type {number} operating system number. */
+  /** @type {number} operating system number. */
   this.os;
-  /** @expose @type {number} CRC-16 value for FHCRC flag. */
+  /** @type {number} CRC-16 value for FHCRC flag. */
   this.crc16;
-  /** @expose @type {number} extra length. */
+  /** @type {number} extra length. */
   this.xlen;
-  /** @expose @type {number} CRC-32 value for verification. */
+  /** @type {number} CRC-32 value for verification. */
   this.crc32;
-  /** @expose @type {number} input size modulo 32 value. */
+  /** @type {number} input size modulo 32 value. */
   this.isize;
+  /** @type {string} filename. */
+  this.name;
+  /** @type {string} comment. */
+  this.comment;
+  /** @type {!(Uint8Array|Array.<number>)} */
+  this.data;
 };
+
+Zlib.GunzipMember.prototype.getName = function() {
+  return this.name;
+};
+
+Zlib.GunzipMember.prototype.getData = function() {
+  return this.data;
+};
+
+Zlib.GunzipMember.prototype.getMtime = function() {
+  return this.mtime;
+}
 
 });

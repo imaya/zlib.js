@@ -53,8 +53,21 @@ Zlib.Gunzip = function(input, opt_params) {
   this.input = input;
   /** @type {number} input buffer pointer. */
   this.ip = 0;
-  /** @expose @type {Array.<Zlib.GunzipMember>} */
+  /** @type {Array.<Zlib.GunzipMember>} */
   this.member = [];
+  /** @type {boolean} */
+  this.decompressed = false;
+};
+
+/**
+ * @return {Array.<Zlib.GunzipMember>}
+ */
+Zlib.Gunzip.prototype.getMembers = function() {
+  if (!this.decompressed) {
+    this.decompress();
+  }
+
+  return this.member.slice();
 };
 
 /**
@@ -68,6 +81,8 @@ Zlib.Gunzip.prototype.decompress = function() {
   while (this.ip < il) {
     this.decodeMember();
   }
+
+  this.decompressed = true;
 
   return this.concatMember();
 };
@@ -105,7 +120,7 @@ Zlib.Gunzip.prototype.decodeMember = function() {
 
   // check signature
   if (member.id1 !== 0x1f || member.id2 !== 0x8b) {
-    throw new Error('invalid file signature:', member.id1, member.id2);
+    throw new Error('invalid file signature:' + member.id1 + ',' + member.id2);
   }
 
   // check compression method
@@ -144,7 +159,6 @@ Zlib.Gunzip.prototype.decodeMember = function() {
     for(str = [], ci = 0; (c = input[ip++]) > 0;) {
       str[ci++] = String.fromCharCode(c);
     }
-    /** @expose @type {string} */
     member.name = str.join('');
   }
 
@@ -153,7 +167,6 @@ Zlib.Gunzip.prototype.decodeMember = function() {
     for(str = [], ci = 0; (c = input[ip++]) > 0;) {
       str[ci++] = String.fromCharCode(c);
     }
-    /** @expose @type {string} */
     member.comment = str.join('');
   }
 
@@ -262,6 +275,24 @@ if (ZLIB_GUNZIP_EXPORT) {
   goog.exportSymbol(
     'Zlib.Gunzip.prototype.decompress',
     Zlib.Gunzip.prototype.decompress
+  );
+  goog.exportSymbol(
+    'Zlib.Gunzip.prototype.getMembers',
+    Zlib.Gunzip.prototype.getMembers
+  );
+  // gunzip member
+  goog.exportSymbol('Zlib.GunzipMember', Zlib.GunzipMember);
+  goog.exportSymbol(
+    'Zlib.GunzipMember.prototype.getName',
+    Zlib.GunzipMember.prototype.getName
+  );
+  goog.exportSymbol(
+    'Zlib.GunzipMember.prototype.getData',
+    Zlib.GunzipMember.prototype.getData
+  );
+  goog.exportSymbol(
+    'Zlib.GunzipMember.prototype.getMtime',
+    Zlib.GunzipMember.prototype.getMtime
   );
 }
 
