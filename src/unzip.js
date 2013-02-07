@@ -2,6 +2,7 @@ goog.provide('Zlib.Unzip');
 
 goog.require('Zlib.RawInflate');
 goog.require('Zlib.CRC32');
+goog.require('Zlib.Zip');
 
 /** @define {boolean} */
 var ZLIB_UNZIP_EXPORT = false;
@@ -44,13 +45,7 @@ Zlib.Unzip = function(input, opt_params) {
   this.verify = opt_params['verify'] || false;
 };
 
-/**
- * @enum {number}
- */
-Zlib.Unzip.CompressionMethod = {
-  STORE: 0,
-  DEFLATE: 8
-};
+Zlib.Unzip.CompressionMethod = Zlib.Zip.CompressionMethod;
 
 /**
  * @param {!(Array.<number>|Uint8Array)} input input buffer.
