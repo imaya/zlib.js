@@ -467,7 +467,7 @@ Zlib.Unzip.prototype.getFileData = function(index) {
 /**
  * @return {Array.<string>}
  */
-Zlib.Unzip.prototype.getFilenameList = function() {
+Zlib.Unzip.prototype.getFilenames = function() {
   /** @type {Array.<string>} */
   var filenameList = [];
   /** @type {number} */
@@ -523,7 +523,7 @@ if (ZLIB_UNZIP_EXPORT) {
     Zlib.Unzip.prototype.decompress
   );
   goog.exportSymbol(
-    'Zlib.Unzip.prototype.getFilenameList',
-    Zlib.Unzip.prototype.getFilenameList
+    'Zlib.Unzip.prototype.getFilenames',
+    Zlib.Unzip.prototype.getFilenames
   );
 }
