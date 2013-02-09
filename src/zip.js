@@ -35,6 +35,10 @@ Zlib.Zip.prototype.addFile = function(input, opt_params) {
   /** @type {number} */
   var size = input.length;
 
+  if (USE_TYPEDARRAY && input instanceof Array) {
+    input = new Uint8Array(input);
+  }
+
   // default
   if (typeof opt_params['compressionMethod'] !== 'number') {
     opt_params['compressionMethod'] = Zlib.Zip.CompressionMethod.DEFLATE;

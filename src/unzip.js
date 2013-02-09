@@ -4,9 +4,6 @@ goog.require('Zlib.RawInflate');
 goog.require('Zlib.CRC32');
 goog.require('Zlib.Zip');
 
-/** @define {boolean} */
-var ZLIB_UNZIP_EXPORT = false;
-
 goog.scope(function() {
 
 /**
@@ -15,8 +12,11 @@ goog.scope(function() {
  * @constructor
  */
 Zlib.Unzip = function(input, opt_params) {
+  opt_params = opt_params || {};
   /** @type {!(Array.<number>|Uint8Array)} */
-  this.input = input;
+  this.input =
+    (USE_TYPEDARRAY && (input instanceof Array)) ?
+    new Uint8Array(input) : input;
   /** @type {number} */
   this.ip = 0;
   /** @type {number} */
@@ -507,18 +507,3 @@ Zlib.Unzip.prototype.decompress = function(filename) {
 
 // end of scope
 });
-
-//*****************************************************************************
-// export
-//*****************************************************************************
-if (ZLIB_UNZIP_EXPORT) {
-  goog.exportSymbol('Zlib.Unzip', Zlib.Unzip);
-  goog.exportSymbol(
-    'Zlib.Unzip.prototype.decompress',
-    Zlib.Unzip.prototype.decompress
-  );
-  goog.exportSymbol(
-    'Zlib.Unzip.prototype.getFilenames',
-    Zlib.Unzip.prototype.getFilenames
-  );
-}
