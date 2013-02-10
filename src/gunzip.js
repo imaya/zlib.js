@@ -1,30 +1,4 @@
 /**
- * gunzip.js
- *
- * The MIT License
- *
- * Copyright (c) 2012 imaya
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-/**
  * @fileoverview GZIP (RFC1952) 展開コンテナ実装.
  */
 goog.provide('Zlib.Gunzip');
@@ -34,13 +8,6 @@ goog.require('Zlib.Gzip');
 goog.require('Zlib.RawInflate');
 goog.require('Zlib.GunzipMember');
 
-//-----------------------------------------------------------------------------
-
-/** @define {boolean} export symbols. */
-var ZLIB_GUNZIP_EXPORT = false;
-
-//-----------------------------------------------------------------------------
-//
 goog.scope(function() {
 
 /**
@@ -53,8 +20,21 @@ Zlib.Gunzip = function(input, opt_params) {
   this.input = input;
   /** @type {number} input buffer pointer. */
   this.ip = 0;
-  /** @expose @type {Array.<Zlib.GunzipMember>} */
+  /** @type {Array.<Zlib.GunzipMember>} */
   this.member = [];
+  /** @type {boolean} */
+  this.decompressed = false;
+};
+
+/**
+ * @return {Array.<Zlib.GunzipMember>}
+ */
+Zlib.Gunzip.prototype.getMembers = function() {
+  if (!this.decompressed) {
+    this.decompress();
+  }
+
+  return this.member.slice();
 };
 
 /**
@@ -68,6 +48,8 @@ Zlib.Gunzip.prototype.decompress = function() {
   while (this.ip < il) {
     this.decodeMember();
   }
+
+  this.decompressed = true;
 
   return this.concatMember();
 };
@@ -105,7 +87,7 @@ Zlib.Gunzip.prototype.decodeMember = function() {
 
   // check signature
   if (member.id1 !== 0x1f || member.id2 !== 0x8b) {
-    throw new Error('invalid file signature:', member.id1, member.id2);
+    throw new Error('invalid file signature:' + member.id1 + ',' + member.id2);
   }
 
   // check compression method
@@ -144,7 +126,6 @@ Zlib.Gunzip.prototype.decodeMember = function() {
     for(str = [], ci = 0; (c = input[ip++]) > 0;) {
       str[ci++] = String.fromCharCode(c);
     }
-    /** @expose @type {string} */
     member.name = str.join('');
   }
 
@@ -153,7 +134,6 @@ Zlib.Gunzip.prototype.decodeMember = function() {
     for(str = [], ci = 0; (c = input[ip++]) > 0;) {
       str[ci++] = String.fromCharCode(c);
     }
-    /** @expose @type {string} */
     member.comment = str.join('');
   }
 
@@ -252,19 +232,6 @@ Zlib.Gunzip.prototype.concatMember = function() {
 
   return buffer;
 };
-
-
-//*****************************************************************************
-// export
-//*****************************************************************************
-if (ZLIB_GUNZIP_EXPORT) {
-  goog.exportSymbol('Zlib.Gunzip', Zlib.Gunzip);
-  goog.exportSymbol(
-    'Zlib.Gunzip.prototype.decompress',
-    Zlib.Gunzip.prototype.decompress
-  );
-}
-
 
 });
 /* vim:set expandtab ts=2 sw=2 tw=80: */

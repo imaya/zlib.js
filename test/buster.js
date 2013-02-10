@@ -23,8 +23,8 @@ config["plain"] = mixin(
       "closure-primitives/base.js",
       "deps.js",
       "define/typedarray/hybrid.js",
-      "src/util.js",
       "src/rawdeflate.js",
+      "src/zip.js",
       "src/*.js"
     ]
   }
@@ -34,12 +34,16 @@ config["plain"].tests = [
 ];
 
 // ブラウザで独立ビルド版のテスト
-config["inflate, deflate"] = mixin(
+config["respectively build"] = mixin(
   mixin({}, browserCommon),
   {
     libs: [
       "bin/inflate.min.js",
-      "bin/deflate.min.js"
+      "bin/deflate.min.js",
+      "bin/gunzip.min.js",
+      "bin/gzip.min.js",
+      "bin/unzip.min.js",
+      "bin/zip.min.js"
     ]
   }
 );
@@ -49,7 +53,9 @@ config["zlib"] = mixin(
   mixin({}, browserCommon),
   {
     libs: [
-      "bin/zlib.min.js"
+      "bin/zip.min.js",
+      "bin/unzip.min.js",
+      "bin/zlib_and_gzip.min.js"
     ]
   }
 );

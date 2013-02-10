@@ -1,7 +1,7 @@
 zlib.js
 =======
 
-zlib.js は ZLIB(RFC1950), DEFLATE(RFC1951), GZIP(RFC1952) の JavaScript 実装です。
+zlib.js は ZLIB(RFC1950), DEFLATE(RFC1951), GZIP(RFC1952), PKZIP の JavaScript 実装です。
 
 
 使い方
@@ -18,6 +18,9 @@ bin ディレクトリから必要なものを利用してください。
     + (GZIP)
         * gzip.min.js: GZIP
         * gunzip.min.js: GUNZIP
+    + (PKZIP)
+        * zip.min.js ZIP
+        * unzip.min.js UNZIP
 - node-zlib.js: (ZLIB + GZIP for node.js)
 
 
@@ -26,18 +29,22 @@ bin ディレクトリから必要なものを利用してください。
 
 #### ZLIB
 
-    var defalte = new Zlib.Deflate(plain);
-    var compressed = deflate.compress();
-
+```js
+// plain = Array.<number> or Uint8Array
+var defalte = new Zlib.Deflate(plain);
+var compressed = deflate.compress();
+```
 
 ##### ZLIB Option
 
 <code>Zlib.Deflate</code> の第二引数にオブジェクトを渡す事で圧縮オプションを指定する事が出来ます。
 
-    {
-        compressionType: Zlib.Deflate.CompressionType, // 圧縮タイプ
-        lazy: number // lazy matching の閾値
-    }
+```js
+{
+    compressionType: Zlib.Deflate.CompressionType, // 圧縮タイプ
+    lazy: number // lazy matching の閾値
+}
+```
 
 <code>Zlib.Deflate.CompressionType</code> は
 <code>NONE</code>(無圧縮), <code>FIXED</code>(固定ハフマン符号), <code>DYNAMIC</code>(動的ハフマン符号) から選択する事ができます。
@@ -52,23 +59,75 @@ Lazy Matching とは、LZSS のマッチ長が閾値より低かった場合、�
 GZIP の実装は現在不完全ですが、ただの圧縮コンテナとして使用する場合には特に問題はありません。
 zlib.js を用いて作成された GZIP の OS は、自動的に UNKNOWN に設定されます。
 
-    var gzip = new Zlib.Gzip(plain);
-    var compressed = gzip.compress();
+```js
+// plain = Array.<number> or Uint8Array
+var gzip = new Zlib.Gzip(plain);
+var compressed = gzip.compress();
+```
 
 
 ##### GZIP Option
 
-    {
-        deflateOptions: Object, // deflate option (ZLIB Option 参照)
-        flags: {
-            fname: boolean, // ファイル名を使用するか
-            comment: boolean, // コメントを使用するか
-            fhcrc: boolean // FHCRC を使用するか
-        },
-        filename: string, // flags.fname が true のときに書き込むファイル名
-        comment: string // flags.comment が true のときに書き込むコメント
+```js
+{
+    deflateOptions: Object, // deflate option (ZLIB Option 参照)
+    flags: {
+        fname: boolean, // ファイル名を使用するか
+        comment: boolean, // コメントを使用するか
+        fhcrc: boolean // FHCRC を使用するか
+    },
+    filename: string, // flags.fname が true のときに書き込むファイル名
+    comment: string // flags.comment が true のときに書き込むコメント
+}
+```
+
+
+#### PKZIP
+
+PKZIP では複数のファイルを扱うため、他のものとは少し使い方が異なります。
+
+```js
+var zip = new Zlib.Zip();
+// plainData1
+zip.addFile(plainData1, {
+    filename: stringToByteArray('foo.txt')
+});
+zip.addFile(plainData2, {
+    filename: stringToByteArray('bar.txt')
+});
+zip.addFile(plainData3, {
+    filename: stringToByteArray('baz.txt')
+});
+var compressed = zip.compress();
+
+function stringToByteArray(str) {
+    var array = new (window.Uint8Array !== void 0 ? Uint8Array : Array)(str.length);
+    var i;
+    var il;
+
+    for (i = 0, il = str.length; i < il; ++i) {
+        array[i] = str.charCodeAt(i) & 0xff;
     }
 
+    return array;
+}
+```
+
+##### PKZIP Option
+
+filename, comment, extraField は Typed Array が使用可能な場合は必ず Uint8Array を使用してください。
+
+```js
+{
+    filename: (Array.<number>|Uint8Array), // ファイル名
+    comment: (Array.<number>|Uint8Array), // コメント
+    extraField: (Array.<number>|Uint8Array), // その他の領域
+    compress: boolean, // addFile メソッドを呼んだときに圧縮するか (通常は compress メソッドの呼び出し時に圧縮)
+    compressionMethod: Zlib.Zip.CompressionMethod, // STORE or DEFLATE
+    os: Zlib.Zip.OperatingSystem, // MSDOS or UNIX or MACINTOSH
+    deflateOption: Object // see: ZLIB Option
+}
+```
 
 ### 伸張 (Decompress)
 
@@ -78,21 +137,25 @@ zlib.js を用いて作成された GZIP の OS は、自動的に UNKNOWN に�
 
 #### ZLIB
 
-    var inflate = new Zlib.Inflate(compressed);
-    var plain = inflate.decompress();
-
+```js
+// compressed = Array.<number> or Uint8Array
+var inflate = new Zlib.Inflate(compressed);
+var plain = inflate.decompress();
+```
 
 ##### ZLIB Option
 
 <code>Zlib.Inflate</code> の第二引数にオブジェクトを渡す事で伸張オプションを指定する事ができます。
 
-    {
-        'index': number, // 入力バッファの開始位置
-        'bufferSize': number, // 出力バッファの初期サイズ
-        'bufferType': Zlib.Inflate.BufferType, // バッファの管理方法
-        'resize': boolean, // 出力バッファのリサイズ
-        'verify': boolean  // 伸張結果の検証を行うか
-    }
+```js
+{
+    'index': number, // 入力バッファの開始位置
+    'bufferSize': number, // 出力バッファの初期サイズ
+    'bufferType': Zlib.Inflate.BufferType, // バッファの管理方法
+    'resize': boolean, // 出力バッファのリサイズ
+    'verify': boolean  // 伸張結果の検証を行うか
+}
+```
 
 <code>Zlib.Inflate.BufferType</code> は <code>ADAPTIVE</code>(default) か <code>BLOCK</code> を選択する事ができます。
 
@@ -109,10 +172,27 @@ default は <code>false</code> です。
 
 #### GZIP
 
-    var gunzip = new Zlib.Gunzip(compressed);
-    var plain = gunzip.decompress();
+```js
+// compressed = Array.<number> or Uint8Array
+var gunzip = new Zlib.Gunzip(compressed);
+var plain = gunzip.decompress();
+```
 
 Gunzip のオプションは現在ありません。
+
+
+#### PKZIP
+
+PKZIP の構築と同様に複数ファイルを扱うため、他のものとは少し使い方が異なります。
+
+```js
+// compressed = Array.<number> or Uint8Array
+var unzip = new Zlib.Unzip(compressed);
+var filenames = unzip.getFilenames();
+var plain = unzip.decompress(filenames[0]);
+```
+
+Unzip のオプションは現在ありません。
 
 
 ### Node.js
