@@ -122,7 +122,7 @@ filename, comment, extraField は Typed Array が使用可能な場合は必ず 
     filename: (Array.<number>|Uint8Array), // ファイル名
     comment: (Array.<number>|Uint8Array), // コメント
     extraField: (Array.<number>|Uint8Array), // その他の領域
-    compress: boolean, // addFile メソッドを読んだときに圧縮するか
+    compress: boolean, // addFile メソッドを呼んだときに圧縮するか (通常は compress メソッドの呼び出し時に圧縮)
     compressionMethod: Zlib.Zip.CompressionMethod, // STORE or DEFLATE
     os: Zlib.Zip.OperatingSystem, // MSDOS or UNIX or MACINTOSH
     deflateOption: Object // see: ZLIB Option
