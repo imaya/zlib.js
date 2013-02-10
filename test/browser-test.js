@@ -73,6 +73,21 @@ function arrayEquals(expected, actuals) {
   return true;
 }
 
+//-----------------------------------------------------------------------------
+// string to bytearray
+//-----------------------------------------------------------------------------
+function stringToByteArray(str) {
+  var array = new Array(str.length);
+  var i;
+  var il;
+
+  for (i = 0, il = str.length; i < il; ++i) {
+    array[i] = str.charCodeAt(i) & 0xff;
+  }
+
+  return array;
+}
+
 var fixedData =
   'eJztzydhGAAAALDd/v////////////////////////////////9no6BxkF+///z99x8A' +
   'EAgYBBQMHAISChoGFg4eAREJGQUVDR0DEwsbBxcPn4CQiJiElIycgpKKmoaWjp6BkYmZ' +
@@ -358,6 +373,109 @@ buster.testCase(
       assert.equals(inflated.length, this.testData.length, "inflated data size");
       assert.equals(inflated, this.testData);
       assert.equals((inflator.getMembers())[0].getName(), 'foobar.filename');
+      /*
+    },
+    //-------------------------------------------------------------------------
+    // PKZIP
+    //-------------------------------------------------------------------------
+    'unzip': function() {
+      var testData =
+        "UEsDBAoAAAAAALZDSEKdh+K5BQAAAAUAAAAIABwAaG9nZS50eHRVVAkAA+g4FFHoOBR"+
+          "RdXgLAAEE9gEAAAQUAAAAaG9nZQpQSwMECgAAAAAAukNIQgNLGl0FAAAABQAAAAgAHA"+
+          "BmdWdhLnR4dFVUCQAD7zgUUe84FFF1eAsAAQT2AQAABBQAAABmdWdhClBLAwQKAAAAA"+
+          "ADCQ0hC8mJOIAUAAAAFAAAACAAcAHBpeW8udHh0VVQJAAP7OBRR+zgUUXV4CwABBPYB"+
+          "AAAEFAAAAHBpeW8KUEsBAh4DCgAAAAAAtkNIQp2H4rkFAAAABQAAAAgAGAAAAAAAAQA"+
+          "AAKSBAAAAAGhvZ2UudHh0VVQFAAPoOBRRdXgLAAEE9gEAAAQUAAAAUEsBAh4DCgAAAA"+
+          "AAukNIQgNLGl0FAAAABQAAAAgAGAAAAAAAAQAAAKSBRwAAAGZ1Z2EudHh0VVQFAAPvO"+
+          "BRRdXgLAAEE9gEAAAQUAAAAUEsBAh4DCgAAAAAAwkNIQvJiTiAFAAAABQAAAAgAGAAA"+
+          "AAAAAQAAAKSBjgAAAHBpeW8udHh0VVQFAAP7OBRRdXgLAAEE9gEAAAQUAAAAUEsFBgA"+
+          "AAAADAAMA6gAAANUAAAAAAA==";
+      var decodedData = decodeB64(testData);
+      var unzip = new Zlib.Unzip(decodedData);
+      var files = {};
+      var filenames = unzip.getFilenames();
+      var i, il;
+
+      for (i = 0, il = filenames.length; i < il; ++i) {
+        files[filenames[i]] = unzip.decompress(filenames[i]);
+      }
+
+      assert(
+        arrayEquals(
+          files['hoge.txt'],
+          new Uint8Array(stringToByteArray("hoge\x0a"))
+        ),
+        "hoge.txt"
+      );
+      assert(
+        arrayEquals(
+          files['fuga.txt'],
+          new Uint8Array(stringToByteArray("fuga\x0a"))
+        ),
+        "fuga.txt"
+      );
+      assert(
+        arrayEquals(
+          files['piyo.txt'],
+          new Uint8Array(stringToByteArray("piyo\x0a"))
+        ),
+        "piyo.txt"
+      );
+    },
+    'zip': function() {
+      makeRandomSequentialData(this.testData);
+
+      var testData = {
+        'hogehoge': this.testData,
+        'fugafuga': this.testData,
+        'piyopiyo': this.testData
+      };
+      var keys = [];
+      var key;
+      var i = 0;
+      var il;
+
+      for (key in testData) {
+        keys[i++] = key;
+      }
+
+      var zip = new Zlib.Zip();
+      for (i = 0, il = keys.length; i < il; ++i) {
+        key = keys[i];
+        zip.addFile(testData[key], {filename: stringToByteArray(key)});
+      }
+      var zipped = zip.compress();
+
+      var unzip = new Zlib.Unzip(zipped);
+      var files = {};
+      var filenames = unzip.getFilenames();
+
+      for (i = 0, il = filenames.length; i < il; ++i) {
+        files[filenames[i]] = unzip.decompress(filenames[i]);
+      }
+
+      assert(
+        arrayEquals(
+          files['hogehoge'],
+          this.testData
+        ),
+        "hogehoge"
+      );
+      assert(
+        arrayEquals(
+          files['fugafuga'],
+          this.testData
+        ),
+        "fugafuga"
+      );
+      assert(
+        arrayEquals(
+          files['piyopiyo'],
+          this.testData
+        ),
+        "piyopiyo"
+      );
+      */
     }
   }
 );

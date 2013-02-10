@@ -35,6 +35,7 @@ buster.testCase(
       var size = 1234567;
       var testData = new Buffer(size);
 
+      this.timeout = 1000;
       this.testData = testData;
     },
     "inflate pre-deflated data": function() {
