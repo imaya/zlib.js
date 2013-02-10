@@ -15,7 +15,8 @@ Zlib.Zip = function(opt_params) {
    *   buffer: !(Array.<number>|Uint8Array),
    *   option: Object,
    *   compressed: boolean,
-   *   size: number
+   *   size: number,
+   *   crc32: number
    * }>} */
   this.files = [];
   /** @type {(Array.<number>|Uint8Array)} */
@@ -34,6 +35,8 @@ Zlib.Zip.prototype.addFile = function(input, opt_params) {
   var compressed;
   /** @type {number} */
   var size = input.length;
+  /** @type {number} */
+  var crc32 = 0;
 
   if (USE_TYPEDARRAY && input instanceof Array) {
     input = new Uint8Array(input);
@@ -50,6 +53,7 @@ Zlib.Zip.prototype.addFile = function(input, opt_params) {
       case Zlib.Zip.CompressionMethod.STORE:
         break;
       case Zlib.Zip.CompressionMethod.DEFLATE:
+        crc32 = Zlib.CRC32.calc(input);
         input = this.deflateWithOption(input, opt_params);
         compressed = true;
         break;
@@ -62,7 +66,8 @@ Zlib.Zip.prototype.addFile = function(input, opt_params) {
     buffer: input,
     option: opt_params,
     compressed: compressed,
-    size: size
+    size: size,
+    crc32: crc32
   });
 };
 
@@ -88,7 +93,8 @@ Zlib.Zip.prototype.compress = function() {
    *   buffer: !(Array.<number>|Uint8Array),
    *   option: Object,
    *   compressed: boolean,
-   *   size: number
+   *   size: number,
+   *   crc32: number
    * }>} */
   var files = this.files;
   /** @type {{buffer: !(Array.<number>|Uint8Array), option: Object}} */
@@ -156,6 +162,9 @@ Zlib.Zip.prototype.compress = function() {
 
     // 圧縮されていなかったら圧縮
     if (!file.compressed) {
+      // 圧縮前に CRC32 の計算をしておく
+      file.crc32 = Zlib.CRC32.calc(file.buffer);
+
       switch (file.option['compressionMethod']) {
         case Zlib.Zip.CompressionMethod.STORE:
           break;
@@ -253,7 +262,7 @@ Zlib.Zip.prototype.compress = function() {
       (date.getMonth() + 1 >> 3);
 
     // CRC-32
-    crc32 = Zlib.CRC32.calc(file.buffer);
+    crc32 = file.crc32;
     output[op1++] = output[op2++] =  crc32        & 0xff;
     output[op1++] = output[op2++] = (crc32 >>  8) & 0xff;
     output[op1++] = output[op2++] = (crc32 >> 16) & 0xff;
