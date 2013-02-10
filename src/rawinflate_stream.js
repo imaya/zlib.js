@@ -1,38 +1,8 @@
-/**
- * JavaScript Inflate Library
- *
- * The MIT License
- *
- * Copyright (c) 2012 imaya
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-
 goog.provide('Zlib.RawInflateStream');
 
 goog.require('Zlib.Huffman');
 
 //-----------------------------------------------------------------------------
-
-/** @define {boolean} export symbols. */
-var ZLIB_RAW_INFLATE_STREAM_EXPORT = false;
 
 /** @define {number} buffer block size. */
 var ZLIB_STREAM_RAW_INFLATE_BUFFER_SIZE = 0x8000;
@@ -884,22 +854,6 @@ Zlib.RawInflateStream.prototype.getBytes = function() {
   return USE_TYPEDARRAY ?
     this.output.subarray(0, this.op) : this.output.slice(0, this.op);
 };
-
-//*****************************************************************************
-// export
-//*****************************************************************************
-if (ZLIB_RAW_INFLATE_STREAM_EXPORT) {
-  goog.exportSymbol('Zlib.RawInflateStream', Zlib.RawInflateStream);
-  goog.exportSymbol(
-    'Zlib.RawInflateStream.prototype.decompress',
-    Zlib.RawInflateStream.prototype.decompress
-  );
-  goog.exportSymbol(
-    'Zlib.RawInflateStream.prototype.getBytes',
-    Zlib.RawInflateStream.prototype.getBytes
-  );
-}
-
 
 // end of scope
 });

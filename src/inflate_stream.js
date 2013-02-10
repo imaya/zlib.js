@@ -1,37 +1,4 @@
-/**
- * JavaScript Inflate Library
- *
- * The MIT License
- *
- * Copyright (c) 2012 imaya
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 goog.provide('Zlib.InflateStream');
-
-//-----------------------------------------------------------------------------
-
-/** @define {boolean} export symbols. */
-var ZLIB_INFLATE_STREAM_EXPORT = false;
-
-//-----------------------------------------------------------------------------
 
 //goog.require('Zlib.Adler32');
 goog.require('Zlib.RawInflateStream');
@@ -143,23 +110,6 @@ Zlib.InflateStream.prototype.readHeader = function() {
 
   this.ip = ip;
 };
-
-
-//*****************************************************************************
-// export
-//*****************************************************************************
-if (ZLIB_INFLATE_STREAM_EXPORT) {
-  goog.exportSymbol('Zlib.InflateStream', Zlib.InflateStream);
-  goog.exportSymbol(
-    'Zlib.InflateStream.prototype.decompress',
-    Zlib.InflateStream.prototype.decompress
-  );
-  goog.exportSymbol(
-    'Zlib.InflateStream.prototype.getBytes',
-    Zlib.InflateStream.prototype.getBytes
-  );
-}
-
 
 // end of scope
 });

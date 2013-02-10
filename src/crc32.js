@@ -1,41 +1,8 @@
 /**
- * crc32.js
- *
- * The MIT License
- *
- * Copyright (c) 2012 imaya
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-/**
  * @fileoverview CRC32 実装.
  */
 goog.provide('Zlib.CRC32');
 
-//-----------------------------------------------------------------------------
-
-/** @define {boolean} export symbols. */
-var ZLIB_CRC32_EXPORT = false;
-
-//-----------------------------------------------------------------------------
-//
 goog.scope(function() {
 
 /**
@@ -134,13 +101,3 @@ Zlib.CRC32.Table = (function(table){
 ]);
 
 });
-
-//*****************************************************************************
-// export
-//*****************************************************************************
-if (ZLIB_CRC32_EXPORT) {
-  goog.exportSymbol('Zlib.CRC32', Zlib.CRC32);
-  goog.exportSymbol( 'Zlib.CRC32.calc', Zlib.CRC32.calc);
-  goog.exportSymbol( 'Zlib.CRC32.update', Zlib.CRC32.update);
-}
-

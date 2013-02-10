@@ -13,6 +13,7 @@
   <property name="closure_primitives" value="closure-primitives/base.js"/>
   <property name="depswriter" value="closure-primitives/depswriter.py"/>
   <property name="depend" value="deps.js"/>
+  <property name="export" value="./export"/>
 
   <!-- ビルドの事前準備 -->
   <target name="prebuild" description="ビルドの事前準備を行う">
@@ -40,11 +41,11 @@
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_INFLATE_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${export}/inflate.js"/>
       <arg line="--js=${closure_primitives}"/>
       <arg line="--js=${depend}"/>
       <arg line="${def}/typedarray/hybrid.js"/>
@@ -73,11 +74,11 @@
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_INFLATE_STREAM_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${export}/inflate.js"/>
       <arg line="--js=${closure_primitives}"/>
       <arg line="--js=${depend}"/>
       <arg line="${def}/typedarray/hybrid.js"/>
@@ -106,11 +107,11 @@
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_GZIP_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${export}/gzip.js"/>
       <arg line="--js=${closure_primitives}"/>
       <arg line="--js=${depend}"/>
       <arg line="${def}/typedarray/hybrid.js"/>
@@ -139,11 +140,12 @@
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_GUNZIP_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${export}/gunzip.js"/>
+      <arg line="--js=${export}/gunzip_member.js"/>
       <arg line="--js=${closure_primitives}"/>
       <arg line="--js=${depend}"/>
       <arg line="${def}/typedarray/hybrid.js"/>
@@ -172,11 +174,11 @@
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${export}/deflate.js"/>
       <arg line="--js=${closure_primitives}"/>
       <arg line="--js=${depend}"/>
       <arg line="${def}/typedarray/hybrid.js"/>
@@ -205,12 +207,12 @@
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
-      <arg line="--define=ZLIB_INFLATE_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${export}/inflate.js"/>
+      <arg line="--js=${export}/deflate.js"/>
       <arg line="--js=${closure_primitives}"/>
       <arg line="--js=${depend}"/>
       <arg line="${def}/typedarray/hybrid.js"/>
@@ -239,14 +241,15 @@
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_DEFLATE_EXPORT=true"/>
-      <arg line="--define=ZLIB_INFLATE_EXPORT=true"/>
-      <arg line="--define=ZLIB_GZIP_EXPORT=true"/>
-      <arg line="--define=ZLIB_GUNZIP_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${export}/inflate.js"/>
+      <arg line="--js=${export}/deflate.js"/>
+      <arg line="--js=${export}/gunzip.js"/>
+      <arg line="--js=${export}/gunzip_member.js"/>
+      <arg line="--js=${export}/gzip.js"/>
       <arg line="--js=${closure_primitives}"/>
       <arg line="--js=${depend}"/>
       <arg line="${def}/typedarray/hybrid.js"/>
@@ -308,13 +311,46 @@
       <arg line="--warning_level=VERBOSE"/>
       <arg line="--compilation_level=${level}"/>
       <arg line="--define=goog.DEBUG=false"/>
-      <arg line="--define=ZLIB_UNZIP_EXPORT=true"/>
       <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--js_output_file=${outfile}.tmp"/>
       <arg line="--js=${closure_primitives}"/>
       <arg line="--js=${depend}"/>
+      <arg line="${export}/unzip.js"/>
+      <arg line="${def}/typedarray/hybrid.js"/>
+      <arg line="${srcfiles}"/>
+    </java>
+    <!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
+    <local name="license"/>
+    <loadfile property="license" srcfile="./LICENSE_min"/>
+    <local name="output"/>
+    <loadfile property="output" srcfile="${outfile}.tmp"/>
+    <!-- ライセンスとビルドされたファイルの結合 -->
+    <echo file="${outfile}" append="no" message="${license}"/>
+    <echo file="${outfile}" append="yes" message="${output}"/>
+    <fixcrlf file="${outfile}" eol="unix" eof="remove"/>
+    <!-- 一時ファイルの削除 -->
+    <delete file="${outfile}.tmp"/>
+  </target>
+
+  <!-- Zip の単体ビルド -->
+  <target name="zip" depends="deps,prebuild" description="Zip の独立ビルドを行う">
+    <!-- 出力ファイル名 -->
+    <local name="outfile"/>
+    <property name="outfile" value="${bin}/zip.min.js"/>
+    <!-- ビルド(出力先は一時ファイル) -->
+    <java jar="${compiler}" fork="true" failonerror="true">
+      <arg line="--warning_level=VERBOSE"/>
+      <arg line="--compilation_level=${level}"/>
+      <arg line="--define=goog.DEBUG=false"/>
+      <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
+      <arg line="--summary_detail_level=3"/>
+      <arg line="--language_in=ECMASCRIPT5_STRICT"/>
+      <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${closure_primitives}"/>
+      <arg line="--js=${depend}"/>
+      <arg line="${export}/zip.js"/>
       <arg line="${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -339,7 +375,7 @@
   </target>
 
   <!-- 全て作成 -->
-  <target name="all" depends="zlib,zlib_and_gzip,inflate,inflate_stream,deflate,gzip,gunzip,node" />
+  <target name="all" depends="zlib,zlib_and_gzip,inflate,inflate_stream,deflate,gzip,gunzip,zip,unzip,node" />
 
   <!--  削除 -->
   <target name="clean">
