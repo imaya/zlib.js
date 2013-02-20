@@ -15,10 +15,15 @@
     "type": "git",
     "url": "git://github.com/imaya/zlib.js.git"
   },
-  "dependencies": {},
+  "dependencies" : {
+    "buster" : ">=0.6.0"
+  },
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
     "node": "*"
+  },
+  "scripts" : {
+    "test" : "node_modules/.bin/buster-test"
   }
 }

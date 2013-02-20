@@ -1,0 +1,18 @@
+before_script:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 5
+  - node_modules/.bin/buster-server &
+  - sleep 5
+  - firefox http://localhost:1111/capture &
+  - sleep 5
+  - phantomjs node_modules/buster/script/phantom.js http://localhost:1111/capture &
+  - sleep 5
+
+script:
+  - "npm test"
+
+language: node_js
+
+node_js:
+  - 0.6
