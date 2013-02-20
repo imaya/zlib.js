@@ -6,8 +6,8 @@ before_script:
   - sleep 5
   - firefox http://localhost:1111/capture &
   - sleep 5
-  - phantomjs node_modules/buster/script/phantom.js http://localhost:1111/capture &
-  - sleep 5
+# - phantomjs node_modules/buster/script/phantom.js http://localhost:1111/capture &
+#  - sleep 5
 
 script:
   - "npm test"
