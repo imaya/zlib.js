@@ -201,11 +201,48 @@ Node.js で使用する場合はユニットテストを参照してください
 <https://github.com/imaya/zlib.js/blob/master/test/node-test.js>
 
 
+How to build
+------------
+
+ビルドは Ant と Closure Compiler を使用して行います。
+
+### 必要な環境
+
+- Ant 1.8+
+- JRE 1.6+
+
+### ビルド
+
+Ant を使ってビルドを行います。
+
+```
+$ ant [target]
+```
+
+#### ビルドターゲット
+
+target         | ファイル名            | 含まれる実装
+---------------|----------------------|-------------
+deps           | deps.js              | 依存関係の解決
+deflate        | deflate.min.js       | ZLIB Deflate
+inflate        | inflate.min.js       | ZLIB Inflate
+inflate_stream | inlate_stream.min.js | ZLIB Inlate (stream)
+zlib           | zlib.min.js          | ZLIB Deflate + Inflate
+gzip           | gzip.min.js          | GZIP Compression
+gunzip         | gunzip.min.js        | GZIP Decompression
+zlib_and_gzip  | zlib_and_gzip.min.js | ZLIB + GZIP
+node           | node-zlib.js         | ZLIB + GZIP for node.js
+zip            | zip.min.js           | PKZIP Compression
+unzip          | unzip.min.js         | PKZIP Decompression
+all            | *                    | default target
+
+
 Issue
 -----
 
 現在プリセット辞書を用いた圧縮形式には対応していません。
 プリセット辞書は通常の圧縮では利用されないため、影響は少ないと思います。
+
 
 ライセンス
 -----------
