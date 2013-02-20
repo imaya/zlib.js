@@ -16,7 +16,7 @@
     "url": "git://github.com/imaya/zlib.js.git"
   },
   "dependencies" : {
-    "buster" : ">=0.6.0"
+    "buster" : ">=0.6.3"
   },
   "devDependencies": {},
   "optionalDependencies": {},
