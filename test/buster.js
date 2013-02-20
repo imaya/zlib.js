@@ -19,13 +19,14 @@ var browserCommon = {
 config["plain"] = mixin(
   mixin({}, browserCommon),
   {
+    resources: [
+      "src/**/*.js"
+    ],
     libs: [
       "closure-primitives/base.js",
       "deps.js",
       "define/typedarray/hybrid.js",
-      "src/rawdeflate.js",
-      "src/zip.js",
-      "src/*.js"
+      "test/plain.js"
     ]
   }
 );
