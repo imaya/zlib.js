@@ -1,6 +1,8 @@
 zlib.js
 =======
 
+[English version](./README.en.md)
+
 zlib.js は ZLIB(RFC1950), DEFLATE(RFC1951), GZIP(RFC1952), PKZIP の JavaScript 実装です。
 
 
