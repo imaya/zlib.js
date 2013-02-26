@@ -2,7 +2,7 @@
 
 #Variables
 USER_DIR=/tmp/buster
-MAC_CMD="/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary"
+MAC_CMD="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 UBUNTU_CMD="google-chrome"
 
 # Test OS
