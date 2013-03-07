@@ -5,3 +5,7 @@ goog.exportSymbol(
   'Zlib.RawInflate.prototype.decompress',
   Zlib.RawInflate.prototype.decompress
 );
+Zlib.exportObject('Zlib.RawInflate.BufferType', {
+  'ADAPTIVE': Zlib.RawInflate.BufferType.ADAPTIVE,
+  'BLOCK': Zlib.RawInflate.BufferType.BLOCK
+});

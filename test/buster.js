@@ -35,7 +35,8 @@ config["codepath"] = mixin(
       "test/plain.js"
     ],
     tests: [
-      'test/browser-codepath-test.js'
+      'test/browser-codepath-test.js',
+      'test/browser-raw-test.js'
     ]
   }
 );
@@ -44,7 +45,12 @@ config["codepath"] = mixin(
 config["respectively build"] = mixin(
   mixin({}, browserCommon),
   {
+    tests: [
+      'test/browser-raw-test.js'
+    ],
     libs: [
+      "bin/rawinflate.min.js",
+      "bin/rawdeflate.min.js",
       "bin/inflate.min.js",
       "bin/deflate.min.js",
       "bin/gunzip.min.js",
@@ -60,6 +66,7 @@ config["zlib"] = mixin(
   mixin({}, browserCommon),
   {
     libs: [
+      "bin/inflate.min.js",
       "bin/zip.min.js",
       "bin/unzip.min.js",
       "bin/zlib_and_gzip.min.js"

@@ -12,6 +12,9 @@ Usage
 Use one in "bin" directory.
 
 - zlib_and_gzip.min.js: ZLIB + GZIP
+    + (Raw)
+        * rawdeflate.js: Raw Deflate
+        * rawinflate.js: Raw Inflate
     + zlib.min.js: ZLIB Inflate + Deflate
         * inflate.min.js: ZLIB Inflate
         * deflate.min.js: ZLIB Deflate
@@ -27,6 +30,17 @@ Use one in "bin" directory.
 
 ### Compression
 
+#### Raw Deflate
+
+```js
+// plain = Array.<number> or Uint8Array
+var defalte = new Zlib.RawDeflate(plain);
+var compressed = deflate.compress();
+```
+
+#### Raw Deflate Option
+
+See ZLIB Option.
 
 #### ZLIB
 
@@ -129,6 +143,18 @@ filename, comment, extraField are must use Uint8Array if enabled Typed Array.
 ```
 
 ### Decompression
+
+#### Raw Deflate
+
+```js
+// compressed = Array.<number> or Uint8Array
+var inflate = new Zlib.RawInflate(compressed);
+var plain = inflate.decompress();
+```
+
+#### Raw Deflate Option
+
+See ZLIB Option.
 
 #### ZLIB
 

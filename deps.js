@@ -3,8 +3,6 @@
 goog.addDependency('../closure-primitives/base.js', ['goog'], []);
 goog.addDependency('../define/typedarray/hybrid.js', ['USE_TYPEDARRAY'], []);
 goog.addDependency('../define/typedarray/use.js', ['USE_TYPEDARRAY'], []);
-goog.addDependency('../heap_back.js', ['Zlib.Heap'], []);
-goog.addDependency('../rawdeflate.js', ['Zlib.RawDeflate'], ['Zlib.BitStream', 'Zlib.Heap']);
 goog.addDependency('../src/adler32.js', ['Zlib.Adler32'], ['Zlib.Util']);
 goog.addDependency('../src/bitstream.js', ['Zlib.BitStream'], []);
 goog.addDependency('../src/crc32.js', ['Zlib.CRC32'], []);

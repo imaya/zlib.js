@@ -1,3 +1,5 @@
+(function() {
+
 var fixedData =
   'eJztzydhGAAAALDd/v////////////////////////////////9no6BxkF+///z99x8A' +
     'EAgYBBQMHAISChoGFg4eAREJGQUVDR0DEwsbBxcPn4CQiJiElIycgpKKmoaWjp6BkYmZ' +
@@ -147,3 +149,5 @@ buster.testCase(
       }
   }
 );
+
+})();

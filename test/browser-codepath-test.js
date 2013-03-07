@@ -1,5 +1,7 @@
+(function() {
+
 buster.testCase(
-  "inflate and deflate",
+  "code path",
   {
     setUp: function() {
       var size = 76543;
@@ -134,9 +136,9 @@ function inflateTest(mode, testData, compressionType) {
   console.log("type:", compressionType);
 
   // deflate
-  deflate = Zlib.Deflate.compress(testData, {
+  deflate = new Zlib.Deflate(testData, {
     compressionType: compressionType
-  });
+  }).compress();
   console.log("deflated data size:", deflate.length);
 
   // inflate
@@ -186,3 +188,4 @@ function inflateStreamTest(mode, testData, compressionType) {
   assert(arrayEquals(inflate, testData));
 }
 
+})();

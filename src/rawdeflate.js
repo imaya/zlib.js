@@ -31,7 +31,8 @@ Zlib.RawDeflate = function(input, opt_params) {
   /** @type {!(Array.<number>|Uint32Array)} */
   this.freqsDist;
   /** @type {!(Array.<number>|Uint8Array)} */
-  this.input = input;
+  this.input =
+    (USE_TYPEDARRAY && input instanceof Array) ? new Uint8Array(input) : input;
   /** @type {!(Array.<number>|Uint8Array)} output output buffer. */
   this.output;
   /** @type {number} pos output buffer position. */
@@ -306,11 +307,11 @@ function(blockArray, isFinalBlock) {
   /** @type {Array} */
   var transLengths = new Array(19);
   /** @type {!(Array.<number>|Uint16Array)} */
-  var treeCodes
+  var treeCodes;
   /** @type {number} */
-  var code
+  var code;
   /** @type {number} */
-  var bitlen
+  var bitlen;
   /** @type {number} */
   var i;
   /** @type {number} */
