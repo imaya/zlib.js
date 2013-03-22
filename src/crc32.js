@@ -50,7 +50,17 @@ Zlib.CRC32.update = function(data, crc, pos, length) {
 };
 
 /**
+ * @param {number} num
+ * @param {number} crc
+ * @returns {number}
+ */
+Zlib.CRC32.single = function(num, crc) {
+  return (Zlib.CRC32.Table[(num ^ crc) & 0xff] ^ (num >>> 8)) >>> 0;
+};
+
+/**
  * @type {!(Array.<number>|Uint32Array)} CRC-32 Table.
+ * @const
  */
 Zlib.CRC32.Table = (function(table){
   return USE_TYPEDARRAY ? new Uint32Array(table) : table;

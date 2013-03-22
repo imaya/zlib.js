@@ -15,12 +15,42 @@ Zlib.Zip = function(opt_params) {
    *   buffer: !(Array.<number>|Uint8Array),
    *   option: Object,
    *   compressed: boolean,
+   *   encrypted: boolean,
    *   size: number,
    *   crc32: number
    * }>} */
   this.files = [];
   /** @type {(Array.<number>|Uint8Array)} */
   this.comment = opt_params['comment'];
+  /** @type {(Array.<number>|Uint8Array)} */
+  this.password;
+};
+
+
+/**
+ * @enum {number}
+ */
+Zlib.Zip.CompressionMethod = {
+  STORE: 0,
+  DEFLATE: 8
+};
+
+/**
+ * @enum {number}
+ */
+Zlib.Zip.OperatingSystem = {
+  MSDOS: 0,
+  UNIX: 3,
+  MACINTOSH: 7
+};
+
+/**
+ * @enum {number}
+ */
+Zlib.Zip.Flags = {
+  ENCRYPT:    0x0001,
+  DESCRIPTER: 0x0008,
+  UTF8:       0x0800
 };
 
 /**
@@ -66,26 +96,17 @@ Zlib.Zip.prototype.addFile = function(input, opt_params) {
     buffer: input,
     option: opt_params,
     compressed: compressed,
+    encrypted: false,
     size: size,
     crc32: crc32
   });
 };
 
 /**
- * @enum {number}
+ * @param {(Array.<number>|Uint8Array)} password
  */
-Zlib.Zip.CompressionMethod = {
-  STORE: 0,
-  DEFLATE: 8
-};
-
-/**
- * @enum {number}
- */
-Zlib.Zip.OperatingSystem = {
-  MSDOS: 0,
-  UNIX: 3,
-  MACINTOSH: 7
+Zlib.Zip.prototype.setPassword = function(password) {
+  this.password = password;
 };
 
 Zlib.Zip.prototype.compress = function() {
@@ -93,11 +114,19 @@ Zlib.Zip.prototype.compress = function() {
    *   buffer: !(Array.<number>|Uint8Array),
    *   option: Object,
    *   compressed: boolean,
+   *   encrypted: boolean,
    *   size: number,
    *   crc32: number
    * }>} */
   var files = this.files;
-  /** @type {{buffer: !(Array.<number>|Uint8Array), option: Object}} */
+  /** @type {{
+   *   buffer: !(Array.<number>|Uint8Array),
+   *   option: Object,
+   *   compressed: boolean,
+   *   encrypted: boolean,
+   *   size: number,
+   *   crc32: number
+   * }} */
   var file;
   /** @type {!(Array.<number>|Uint8Array)} */
   var output;
@@ -141,6 +170,12 @@ Zlib.Zip.prototype.compress = function() {
   var extraField;
   /** @type {(Array.<number>|Uint8Array)} */
   var comment;
+  /** @type {(Array.<number>|Uint8Array)} */
+  var buffer;
+  /** @type {*} */
+  var tmp;
+  /** @type {Array.<number>|Uint32Array} */
+  var key;
   /** @type {number} */
   var i;
   /** @type {number} */
@@ -175,6 +210,35 @@ Zlib.Zip.prototype.compress = function() {
         default:
           throw new Error('unknown compression method:' + file.option['compressionMethod']);
       }
+    }
+
+    // encryption
+    if (this.password !== void 0) {
+      // init encryption
+      key = this.createEncryptionKey(this.password);
+
+      // add header
+      buffer = file.buffer;
+      if (USE_TYPEDARRAY) {
+        tmp = new Uint8Array(buffer.length + 12);
+        tmp.set(buffer, 12);
+        buffer = tmp;
+      } else {
+        buffer.unshift(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      }
+
+      for (j = 0; j < 12; ++j) {
+        buffer[j] = this.encode(
+          key,
+          i === 11 ? (file.crc32 & 0xff) : (Math.random() * 256 | 0)
+        );
+      }
+
+      // data encryption
+      for (jl = buffer.length; j < jl; ++j) {
+        buffer[j] = this.encode(key, buffer[j]);
+      }
+      file.buffer = buffer;
     }
 
     // 必要バッファサイズの計算
@@ -235,6 +299,9 @@ Zlib.Zip.prototype.compress = function() {
 
     // general purpose bit flag
     flags = 0;
+    if (this.password) {
+      flags |= Zlib.Zip.Flags.ENCRYPT;
+    }
     output[op1++] = output[op2++] =  flags       & 0xff;
     output[op1++] = output[op2++] = (flags >> 8) & 0xff;
 
@@ -439,6 +506,65 @@ Zlib.Zip.prototype.deflateWithOption = function(input, opt_params) {
   var deflator = new Zlib.RawDeflate(input, opt_params['deflateOption']);
 
   return deflator.compress();
+};
+
+/**
+ * @param {(Array.<number>|Uint32Array)} key
+ * @returns {number}
+ */
+Zlib.Zip.prototype.getByte = function(key) {
+  /** @type {number} */
+  var tmp = ((key[2] & 0xffff) | 2);
+
+  return ((tmp * (tmp ^ 1)) >> 8) & 0xff;
+};
+
+/**
+ * @param {(Array.<number>|Uint32Array)} key
+ * @param {number} n
+ * @returns {number}
+ */
+Zlib.Zip.prototype.encode = function(key, n) {
+  /** @type {number} */
+  var tmp = this.getByte(key);
+
+  this.updateKeys(key, n);
+
+  return tmp ^ n;
+};
+
+/**
+ * @param {(Array.<number>|Uint32Array)} key
+ * @param {number} n
+ */
+Zlib.Zip.prototype.updateKeys = function(key, n) {
+  key[0] = Zlib.CRC32.single(key[0], n);
+  key[1] =
+    (((((key[1] + (key[0] & 0xff)) * 20173 >>> 0) * 6681) >>> 0) + 1) >>> 0;
+  key[2] = Zlib.CRC32.single(key[2], key[1] >>> 24);
+};
+
+/**
+ * @param {(Array.<number>|Uint8Array)}password
+ * @returns {Array.<number>|Uint32Array}
+ */
+Zlib.Zip.prototype.createEncryptionKey = function(password) {
+  /** @type {(Array.<number>|Uint32Array)} */
+  var key = [305419896, 591751049, 878082192];
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var il;
+
+  if (USE_TYPEDARRAY) {
+    key = new Uint32Array(key);
+  }
+
+  for (i = 0, il = password.length; i < il; ++i) {
+    this.updateKeys(key, password[i] & 0xff);
+  }
+
+  return key;
 };
 
 });

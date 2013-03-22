@@ -9,3 +9,7 @@ goog.exportSymbol(
   'Zlib.Unzip.prototype.getFilenames',
   Zlib.Unzip.prototype.getFilenames
 );
+goog.exportSymbol(
+  'Zlib.Unzip.prototype.setPassword',
+  Zlib.Unzip.prototype.setPassword
+);

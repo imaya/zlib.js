@@ -43,6 +43,8 @@ Zlib.Unzip = function(input, opt_params) {
   this.filenameToIndex;
   /** @type {boolean} */
   this.verify = opt_params['verify'] || false;
+  /** @type {(Array.<number>|Uint8Array)} */
+  this.password = opt_params['password'];
 };
 
 Zlib.Unzip.CompressionMethod = Zlib.Zip.CompressionMethod;
@@ -230,6 +232,8 @@ Zlib.Unzip.LocalFileHeader = function(input, ip) {
   this.extraField;
 };
 
+Zlib.Unzip.LocalFileHeader.Flags = Zlib.Zip.Flags;
+
 Zlib.Unzip.LocalFileHeader.prototype.parse = function() {
   /** @type {!(Array.<number>|Uint8Array)} */
   var input = this.input;
@@ -403,6 +407,8 @@ Zlib.Unzip.prototype.parseFileHeader = function() {
  * @return {!(Array.<number>|Uint8Array)} file data.
  */
 Zlib.Unzip.prototype.getFileData = function(index) {
+  /** @type {!(Array.<number>|Uint8Array)} */
+  var input = this.input;
   /** @type {Array.<Zlib.Unzip.FileHeader>} */
   var fileHeaderList = this.fileHeaderList;
   /** @type {Zlib.Unzip.LocalFileHeader} */
@@ -415,6 +421,12 @@ Zlib.Unzip.prototype.getFileData = function(index) {
   var buffer;
   /** @type {number} */
   var crc32;
+  /** @type {Array.<number>|Uint32Array} */
+  var key;
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var il;
 
   if (!fileHeaderList) {
     this.parseFileHeader();
@@ -429,6 +441,26 @@ Zlib.Unzip.prototype.getFileData = function(index) {
   localFileHeader.parse();
   offset += localFileHeader.length;
   length = localFileHeader.compressedSize;
+
+  // decryption
+  if ((localFileHeader.flags & Zlib.Unzip.LocalFileHeader.Flags.ENCRYPT) !== 0) {
+    if (!this.password) {
+      throw new Error('please set password');
+    }
+    key =  this.createDecryptionKey(this.password);
+
+    // encryption header
+    for(i = offset, il = offset + 12; i < il; ++i) {
+      this.decode(key, input[i]);
+    }
+    offset += 12;
+    length -= 12;
+
+    // decryption
+    for (i = offset, il = offset + length; i < il; ++i) {
+      input[i] = this.decode(key, input[i]);
+    }
+  }
 
   switch (localFileHeader.compression) {
     case Zlib.Unzip.CompressionMethod.STORE:
@@ -504,6 +536,29 @@ Zlib.Unzip.prototype.decompress = function(filename) {
   return this.getFileData(index);
 };
 
+/**
+ * @param {(Array.<number>|Uint8Array)} password
+ */
+Zlib.Unzip.prototype.setPassword = function(password) {
+  this.password = password;
+};
+
+/**
+ * @param {(Array.<number>|Uint32Array)} key
+ * @param {number} n
+ * @returns {number}
+ */
+Zlib.Unzip.prototype.decode = function(key, n) {
+  n ^= this.getByte(key);
+  this.updateKeys(key, n);
+
+  return n;
+};
+
+// common method
+Zlib.Unzip.prototype.updateKeys = Zlib.Zip.prototype.updateKeys;
+Zlib.Unzip.prototype.createDecryptionKey = Zlib.Zip.prototype.createEncryptionKey;
+Zlib.Unzip.prototype.getByte = Zlib.Zip.prototype.getByte;
 
 // end of scope
 });
