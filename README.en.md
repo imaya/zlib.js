@@ -1,6 +1,8 @@
 zlib.js
 =======
 
+[![Build Status](https://travis-ci.org/imaya/zlib.js.png)](https://travis-ci.org/imaya/zlib.js)
+
 [Japanese version](./README.md)
 
 zlib.js is ZLIB(RFC1950), DEFLATE(RFC1951), GZIP(RFC1952) and PKZIP implementation in JavaScript.
