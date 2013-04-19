@@ -1,7 +1,7 @@
 zlib.js
 =======
 
-[![Build Status](https://travis-ci.org/imaya/zlib.js.png)](https://travis-ci.org/imaya/zlib.js)
+[![Build Status](https://travis-ci.org/imaya/zlib.js.png?branch=master)](https://travis-ci.org/imaya/zlib.js)
 
 [Japanese version](./README.md)
 
