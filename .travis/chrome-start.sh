@@ -13,9 +13,8 @@ else
 	CMD="$UBUNTU_CMD"
 fi
 
-# Prepare
-rm -rf $USER_DIR
-mkdir -p $USER_DIR"/Default/"
-
 # Execute the command
-exec "$CMD" --user-data-dir="$USER_DIR" --no-default-browser-check --no-first-run --disable-default-apps "$@"
+which $CMD > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+	$CMD --no-default-browser-check --no-first-run --disable-default-apps --no-sandbox "$@" &
+fi
