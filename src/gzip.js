@@ -3,6 +3,7 @@
  */
 goog.provide('Zlib.Gzip');
 
+goog.require('USE_TYPEDARRAY');
 goog.require('Zlib.CRC32');
 goog.require('Zlib.RawDeflate');
 

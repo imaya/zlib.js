@@ -25,6 +25,8 @@
  */
 goog.provide('Zlib.Huffman');
 
+goog.require('USE_TYPEDARRAY');
+
 goog.scope(function() {
 
 /**

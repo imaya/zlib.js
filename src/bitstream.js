@@ -3,6 +3,8 @@
  */
 goog.provide('Zlib.BitStream');
 
+goog.require('USE_TYPEDARRAY');
+
 goog.scope(function() {
 
 /**

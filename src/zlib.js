@@ -34,9 +34,6 @@ goog.provide('Zlib');
 
 //-----------------------------------------------------------------------------
 
-goog.require('Zlib.Deflate');
-goog.require('Zlib.Inflate');
-
 goog.scope(function() {
 
 /**

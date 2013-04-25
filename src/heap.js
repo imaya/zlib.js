@@ -30,6 +30,8 @@
 
 goog.provide('Zlib.Heap');
 
+goog.require('USE_TYPEDARRAY');
+
 goog.scope(function() {
 
 /**

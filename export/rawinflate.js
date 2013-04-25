@@ -1,4 +1,5 @@
 goog.require('Zlib.RawInflate');
+goog.require('Zlib.exportObject');
 
 goog.exportSymbol('Zlib.RawInflate', Zlib.RawInflate);
 goog.exportSymbol(

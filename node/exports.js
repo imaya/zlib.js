@@ -50,10 +50,10 @@ function deflate(buffer, callback, opt_params) {
  * @return {!(Buffer|Array.<number>|Uint8Array)} deflated buffer.
  */
 function deflateSync(buffer, opt_params) {
-  /** @type {!(Array.<number>|Uint8Array)} */
-  buffer;
   /** @type {Zlib.Deflate} deflate encoder. */
-  var deflate = new Zlib.Deflate(buffer);
+  var deflate = new Zlib.Deflate(
+    /** @type {!(Array.<number>|Uint8Array)} */(buffer)
+  );
   /** @type {!(Array.<number>|Uint8Array)} deflated buffer. */
   var deflated;
 

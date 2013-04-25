@@ -4,6 +4,7 @@
 
 goog.provide('Zlib.RawDeflate');
 
+goog.require('USE_TYPEDARRAY');
 goog.require('Zlib.BitStream');
 goog.require('Zlib.Heap');
 
@@ -657,11 +658,11 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var il;
   /** @type {number} chained-hash-table key */
   var matchKey;
-  /** @type {Object.<Array.<Array.<number>>>} chained-hash-table */
+  /** @type {Object.<number, Array.<number>>} chained-hash-table */
   var table = {};
   /** @const @type {number} */
   var windowSize = Zlib.RawDeflate.WindowSize;
-  /** @type {Array.<Array.<number>>} match list */
+  /** @type {Array.<number>} match list */
   var matchList;
   /** @type {Zlib.RawDeflate.Lz77Match} longest match */
   var longestMatch;

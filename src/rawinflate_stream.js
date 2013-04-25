@@ -1,5 +1,6 @@
 goog.provide('Zlib.RawInflateStream');
 
+goog.require('USE_TYPEDARRAY');
 goog.require('Zlib.Huffman');
 
 //-----------------------------------------------------------------------------

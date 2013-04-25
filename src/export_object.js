@@ -1,5 +1,7 @@
 goog.provide('Zlib.exportObject');
 
+goog.require('Zlib');
+
 goog.scope(function() {
 
 Zlib.exportObject = function(enumString, exportKeyValue) {

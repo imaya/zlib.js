@@ -1,5 +1,6 @@
 goog.provide('Zlib.Unzip');
 
+goog.require('USE_TYPEDARRAY');
 goog.require('Zlib.RawInflate');
 goog.require('Zlib.CRC32');
 goog.require('Zlib.Zip');

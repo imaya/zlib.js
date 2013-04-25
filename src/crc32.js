@@ -3,6 +3,11 @@
  */
 goog.provide('Zlib.CRC32');
 
+goog.require('USE_TYPEDARRAY');
+
+/** @define {boolean} */
+var ZLIB_CRC32_COMPACT = false;
+
 goog.scope(function() {
 
 /**
@@ -59,12 +64,11 @@ Zlib.CRC32.single = function(num, crc) {
 };
 
 /**
- * @type {!(Array.<number>|Uint32Array)} CRC-32 Table.
+ * @type {Array.<number>}
  * @const
+ * @private
  */
-Zlib.CRC32.Table = (function(table){
-  return USE_TYPEDARRAY ? new Uint32Array(table) : table;
-})([
+Zlib.CRC32.Table_ = [
   0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
   0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
   0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,
@@ -108,6 +112,31 @@ Zlib.CRC32.Table = (function(table){
   0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693,
   0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
   0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
-]);
+];
+
+/**
+ * @type {!(Array.<number>|Uint32Array)} CRC-32 Table.
+ * @const
+ */
+Zlib.CRC32.Table = ZLIB_CRC32_COMPACT ? (function() {
+  /** @type {!(Array.<number>|Uint32Array)} */
+  var table = new (USE_TYPEDARRAY ? Uint32Array : Array)(256);
+  /** @type {number} */
+  var c;
+  /** @type {number} */
+  var i;
+  /** @type {number} */
+  var j;
+
+  for (i = 0; i < 256; ++i) {
+    c = i;
+    for (j = 0; j < 8; ++j) {
+      c = (c & 1) ? (0xedB88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[i] = c >>> 0;
+  }
+
+  return table;
+})() : USE_TYPEDARRAY ? new Uint32Array(Zlib.CRC32.Table_) : Zlib.CRC32.Table_;
 
 });

@@ -3,6 +3,7 @@
  */
 goog.provide('Zlib.Gunzip');
 
+goog.require('USE_TYPEDARRAY');
 goog.require('Zlib.CRC32');
 goog.require('Zlib.Gzip');
 goog.require('Zlib.RawInflate');
@@ -196,7 +197,7 @@ Zlib.Gunzip.prototype.decodeSubField = function(ip, length) {
 };
 
 /**
- * @return {!(Array.<Number>|Uint8Array)}
+ * @return {!(Array.<number>|Uint8Array)}
  */
 Zlib.Gunzip.prototype.concatMember = function() {
   /** @type {Array.<Zlib.GunzipMember>} */
