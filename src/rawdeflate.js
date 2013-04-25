@@ -243,7 +243,8 @@ function(blockArray, isFinalBlock) {
 Zlib.RawDeflate.prototype.makeFixedHuffmanBlock =
 function(blockArray, isFinalBlock) {
   /** @type {Zlib.BitStream} */
-  var stream = new Zlib.BitStream(new Uint8Array(this.output.buffer), this.op);
+  var stream = new Zlib.BitStream(USE_TYPEDARRAY ?
+    new Uint8Array(this.output.buffer) : this.output, this.op);
   /** @type {number} */
   var bfinal;
   /** @type {Zlib.RawDeflate.CompressionType} */
@@ -273,7 +274,8 @@ function(blockArray, isFinalBlock) {
 Zlib.RawDeflate.prototype.makeDynamicHuffmanBlock =
 function(blockArray, isFinalBlock) {
   /** @type {Zlib.BitStream} */
-  var stream = new Zlib.BitStream(new Uint8Array(this.output), this.op);
+  var stream = new Zlib.BitStream(USE_TYPEDARRAY ?
+    new Uint8Array(this.output.buffer) : this.output, this.op);
   /** @type {number} */
   var bfinal;
   /** @type {Zlib.RawDeflate.CompressionType} */
