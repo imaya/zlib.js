@@ -35,6 +35,12 @@
       <fileset dir="${src}" includes="*.js"/>
     </pathconvert>
     <echo message="${srcfiles}"/>
+
+    <pathconvert property="exportfiles" pathsep=" ">
+      <map from="${basedir}" to="--js ."/>
+      <fileset dir="${export}" includes="*.js"/>
+    </pathconvert>
+    <echo message="${exportfiles}"/>
   </target>
 
   <!-- RawInflate の単体ビルド -->
@@ -392,6 +398,34 @@
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${export}/crc32.js"/>
       <arg line="${srcfiles}"/>
+    </java>
+  </target>
+
+  <!-- 全てのビルド(デバッグ) -->
+  <target name="pretty" depends="deps,prebuild" description="デバッグ用に pretty print したもののビルドを行う">
+    <!-- 出力ファイル名 -->
+    <local name="basename"/>
+    <property name="basename" value="zlib.pretty.js"/>
+    <local name="outfile"/>
+    <property name="outfile" value="${bin}/${basename}"/>
+    <!-- ビルド(出力先は一時ファイル) -->
+    <java jar="${compiler}" fork="true" failonerror="true">
+      <arg line="--compilation_level=WHITESPACE_ONLY"/>
+      <arg line="--formatting PRETTY_PRINT"/>
+      <arg line="--warning_level=VERBOSE"/>
+      <arg line="--define=goog.DEBUG=false"/>
+      <arg line="--summary_detail_level=3"/>
+      <arg line="--language_in=ECMASCRIPT5_STRICT"/>
+      <arg line="--source_map_format=V3"/>
+      <arg line="--output_wrapper='${license}(function() {%output%}).call(this); //@ sourceMappingURL=${basename}.map'"/>
+      <arg line="--js_output_file=${outfile}"/>
+      <arg line="--create_source_map=${outfile}.map"/>
+      <arg line="--manage_closure_dependencies"/>
+      <arg line="--js=${closure_primitives}"/>
+      <arg line="--js=${depend}"/>
+      <arg line="--js=${def}/typedarray/hybrid.js"/>
+      <arg line="${srcfiles}"/>
+      <arg line="${exportfiles}"/>
     </java>
   </target>
 
