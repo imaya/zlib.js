@@ -244,6 +244,7 @@ Build using Ant and Closure Compiler.
 
 - Ant 1.8+
 - JRE 1.6+
+- Python
 
 ### Build
 
