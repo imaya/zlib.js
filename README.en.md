@@ -213,6 +213,28 @@ see unit tests.
 <https://github.com/imaya/zlib.js/blob/master/test/node-test.js>
 
 
+## Debug
+
+If you want to know the code before compile, SourceMaps and PrettyPrint can be used.
+
+
+### SourceMaps
+
+If you want to enable the SourceMaps if, you can use the `src` directory and *.min.js.map.
+
+    - inflate.min.js
+    - inflate.min.js.map
+    - [src]
+      - (source files)
+
+`[src]` is zlib.js source code directory.
+
+
+### Pretty Print
+
+`zlib.pretty.js` is not renamed symbol.
+
+
 How to build
 ------------
 

@@ -231,6 +231,31 @@ Node.js で使用する場合はユニットテストを参照してください
 <https://github.com/imaya/zlib.js/blob/master/test/node-test.js>
 
 
+## Debug
+
+zlib.js では JavaScript ファイルを minify された形で提供していますが、開発中やデバッグ時に minify する前の状態が知りたい事があります。
+そういった時のために SourceMaps ファイルや Pretty Print されたファイルも提供しています。
+
+
+### SourceMaps
+
+SourceMaps を有効にするには以下のように対象となるファイルに `.map` を付けたファイルと、変換前のソースコードである `src` ディレクトリを配置します。
+
+    - inflate.min.js
+    - inflate.min.js.map
+    - [src]
+      - (source files)
+
+なお、ここに書いてある `[src]` は zlib.js のリポジトリの `src` ディレクトリをコピーしてください。
+
+
+### Pretty Print
+
+SourceMaps とは異なりますが、minify の変数名の短縮のみ避けられれば良いという場合には、 Closure Compiler で読みやすくしたファイルを利用することも可能です。
+`zlib.pretty.js` というファイル名で全ての実装がはいっていますので、minify されたものをこのファイルに置き換えるだけで使用できます。
+
+
+
 How to build
 ------------
 
