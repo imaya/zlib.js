@@ -8,17 +8,22 @@
   },
   "name": "zlibjs",
   "description": "zlib, gzip and zip implementation in JavaScript",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "main": "./bin/node-zlib.js",
   "homepage": "https://github.com/imaya/zlib.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/imaya/zlib.js.git"
   },
-  "dependencies": {},
+  "dependencies" : {
+    "buster" : ">=0.6.3"
+  },
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
     "node": "*"
+  },
+  "scripts" : {
+    "test" : "node_modules/.bin/buster-test"
   }
 }

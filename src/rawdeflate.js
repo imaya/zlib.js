@@ -4,6 +4,7 @@
 
 goog.provide('Zlib.RawDeflate');
 
+goog.require('USE_TYPEDARRAY');
 goog.require('Zlib.BitStream');
 goog.require('Zlib.Heap');
 
@@ -31,7 +32,8 @@ Zlib.RawDeflate = function(input, opt_params) {
   /** @type {!(Array.<number>|Uint32Array)} */
   this.freqsDist;
   /** @type {!(Array.<number>|Uint8Array)} */
-  this.input = input;
+  this.input =
+    (USE_TYPEDARRAY && input instanceof Array) ? new Uint8Array(input) : input;
   /** @type {!(Array.<number>|Uint8Array)} output output buffer. */
   this.output;
   /** @type {number} pos output buffer position. */
@@ -242,7 +244,8 @@ function(blockArray, isFinalBlock) {
 Zlib.RawDeflate.prototype.makeFixedHuffmanBlock =
 function(blockArray, isFinalBlock) {
   /** @type {Zlib.BitStream} */
-  var stream = new Zlib.BitStream(new Uint8Array(this.output.buffer), this.op);
+  var stream = new Zlib.BitStream(USE_TYPEDARRAY ?
+    new Uint8Array(this.output.buffer) : this.output, this.op);
   /** @type {number} */
   var bfinal;
   /** @type {Zlib.RawDeflate.CompressionType} */
@@ -272,7 +275,8 @@ function(blockArray, isFinalBlock) {
 Zlib.RawDeflate.prototype.makeDynamicHuffmanBlock =
 function(blockArray, isFinalBlock) {
   /** @type {Zlib.BitStream} */
-  var stream = new Zlib.BitStream(new Uint8Array(this.output), this.op);
+  var stream = new Zlib.BitStream(USE_TYPEDARRAY ?
+    new Uint8Array(this.output.buffer) : this.output, this.op);
   /** @type {number} */
   var bfinal;
   /** @type {Zlib.RawDeflate.CompressionType} */
@@ -306,11 +310,11 @@ function(blockArray, isFinalBlock) {
   /** @type {Array} */
   var transLengths = new Array(19);
   /** @type {!(Array.<number>|Uint16Array)} */
-  var treeCodes
+  var treeCodes;
   /** @type {number} */
-  var code
+  var code;
   /** @type {number} */
-  var bitlen
+  var bitlen;
   /** @type {number} */
   var i;
   /** @type {number} */
@@ -654,11 +658,11 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var il;
   /** @type {number} chained-hash-table key */
   var matchKey;
-  /** @type {Object.<Array.<Array.<number>>>} chained-hash-table */
+  /** @type {Object.<number, Array.<number>>} chained-hash-table */
   var table = {};
   /** @const @type {number} */
   var windowSize = Zlib.RawDeflate.WindowSize;
-  /** @type {Array.<Array.<number>>} match list */
+  /** @type {Array.<number>} match list */
   var matchList;
   /** @type {Zlib.RawDeflate.Lz77Match} longest match */
   var longestMatch;

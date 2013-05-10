@@ -1,6 +1,10 @@
 zlib.js
 =======
 
+[![Build Status](https://travis-ci.org/imaya/zlib.js.png?branch=master)](https://travis-ci.org/imaya/zlib.js)
+
+[English version](./README.en.md)
+
 zlib.js は ZLIB(RFC1950), DEFLATE(RFC1951), GZIP(RFC1952), PKZIP の JavaScript 実装です。
 
 
@@ -11,6 +15,9 @@ zlib.js は必要な機能ごとに分割されています。
 bin ディレクトリから必要なものを利用してください。
 
 - zlib_and_gzip.min.js: ZLIB + GZIP
+    + (Raw)
+        * rawdeflate.js: Raw Deflate
+        * rawinflate.js: Raw Inflate
     + zlib.min.js: ZLIB Inflate + Deflate
         * inflate.min.js: ZLIB Inflate
         * deflate.min.js: ZLIB Deflate
@@ -25,6 +32,18 @@ bin ディレクトリから必要なものを利用してください。
 
 
 ### 圧縮 (Compress)
+
+#### Raw Deflate
+
+```js
+// plain = Array.<number> or Uint8Array
+var defalte = new Zlib.RawDeflate(plain);
+var compressed = deflate.compress();
+```
+
+#### Raw Deflate Option
+
+ZLIB Option を参照してください。
 
 
 #### ZLIB
@@ -134,6 +153,17 @@ filename, comment, extraField は Typed Array が使用可能な場合は必ず 
 圧縮されたデータの伸張は、基本的に各コンストラクタに圧縮されたデータを渡し、
 それの <code>decompress</code> メソッドを呼ぶ事で伸張処理を開始する事が出来ます。
 
+#### Raw Deflate
+
+```js
+// compressed = Array.<number> or Uint8Array
+var inflate = new Zlib.RawInflate(compressed);
+var plain = inflate.decompress();
+```
+
+#### Raw Deflate Option
+
+ZLIB Option を参照してください。
 
 #### ZLIB
 
@@ -201,11 +231,74 @@ Node.js で使用する場合はユニットテストを参照してください
 <https://github.com/imaya/zlib.js/blob/master/test/node-test.js>
 
 
+## Debug
+
+zlib.js では JavaScript ファイルを minify された形で提供していますが、開発中やデバッグ時に minify する前の状態が知りたい事があります。
+そういった時のために SourceMaps ファイルや Pretty Print されたファイルも提供しています。
+
+
+### SourceMaps
+
+SourceMaps を有効にするには以下のように対象となるファイルに `.map` を付けたファイルと、変換前のソースコードである `src` ディレクトリを配置します。
+
+    - inflate.min.js
+    - inflate.min.js.map
+    - [src]
+      - (source files)
+
+なお、ここに書いてある `[src]` は zlib.js のリポジトリの `src` ディレクトリをコピーしてください。
+
+
+### Pretty Print
+
+SourceMaps とは異なりますが、minify の変数名の短縮のみ避けられれば良いという場合には、 Closure Compiler で読みやすくしたファイルを利用することも可能です。
+`zlib.pretty.js` というファイル名で全ての実装がはいっていますので、minify されたものをこのファイルに置き換えるだけで使用できます。
+
+
+
+How to build
+------------
+
+ビルドは Ant と Closure Compiler を使用して行います。
+
+### 必要な環境
+
+- Ant 1.8+
+- JRE 1.6+
+- Python
+
+### ビルド
+
+Ant を使ってビルドを行います。
+
+```
+$ ant [target]
+```
+
+#### ビルドターゲット
+
+target         | ファイル名            | 含まれる実装
+---------------|----------------------|-------------
+deps           | deps.js              | 依存関係の解決
+deflate        | deflate.min.js       | ZLIB Deflate
+inflate        | inflate.min.js       | ZLIB Inflate
+inflate_stream | inlate_stream.min.js | ZLIB Inlate (stream)
+zlib           | zlib.min.js          | ZLIB Deflate + Inflate
+gzip           | gzip.min.js          | GZIP Compression
+gunzip         | gunzip.min.js        | GZIP Decompression
+zlib_and_gzip  | zlib_and_gzip.min.js | ZLIB + GZIP
+node           | node-zlib.js         | ZLIB + GZIP for node.js
+zip            | zip.min.js           | PKZIP Compression
+unzip          | unzip.min.js         | PKZIP Decompression
+all            | *                    | default target
+
+
 Issue
 -----
 
 現在プリセット辞書を用いた圧縮形式には対応していません。
 プリセット辞書は通常の圧縮では利用されないため、影響は少ないと思います。
+
 
 ライセンス
 -----------

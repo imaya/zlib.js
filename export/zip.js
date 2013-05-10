@@ -13,6 +13,10 @@ goog.exportSymbol(
   'Zlib.Zip.prototype.compress',
   Zlib.Zip.prototype.compress
 );
+goog.exportSymbol(
+  'Zlib.Zip.prototype.setPassword',
+  Zlib.Zip.prototype.setPassword
+);
 Zlib.exportObject(
  'Zlib.Zip.CompressionMethod', {
     'STORE': Zlib.Zip.CompressionMethod.STORE,

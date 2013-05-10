@@ -1,5 +1,6 @@
 goog.provide('Zlib.RawInflate');
 
+goog.require('USE_TYPEDARRAY');
 goog.require('Zlib.Huffman');
 
 //-----------------------------------------------------------------------------
@@ -322,7 +323,7 @@ Zlib.RawInflate.prototype.readCodeByTable = function(table) {
   while (bitsbuflen < maxCodeLength) {
     octet = input[ip++];
     if (octet === void 0) {
-      throw new Error('input buffer is broken');
+      break;
     }
     bitsbuf |= octet << bitsbuflen;
     bitsbuflen += 8;

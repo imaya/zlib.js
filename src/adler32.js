@@ -3,6 +3,7 @@
  */
 goog.provide('Zlib.Adler32');
 
+goog.require('USE_TYPEDARRAY');
 goog.require('Zlib.Util');
 
 goog.scope(function() {

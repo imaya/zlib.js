@@ -1,5 +1,7 @@
 goog.provide('Zlib.InflateStream');
 
+goog.require('USE_TYPEDARRAY');
+goog.require('Zlib');
 //goog.require('Zlib.Adler32');
 goog.require('Zlib.RawInflateStream');
 

@@ -8,36 +8,49 @@ var browserCommon = {
     rootPath: "../",
     environment: "browser",
     libs: [
-      "vendor/mt.js/mt.js"
+      "vendor/mt.js/mt.js",
+      "test/use_typedarray.js",
+      "test/util.js"
     ],
     tests: [
-      "test/browser-test.js"
+      'test/browser-inflate-test.js',
+      'test/browser-zlib-test.js',
+      'test/browser-gunzip-test.js',
+      'test/browser-gzip-test.js',
+      'test/browser-unzip-test.js',
+      'test/browser-zip-test.js'
     ]
 };
 
 // ブラウザでコンパイル前のテスト
-config["plain"] = mixin(
+config["codepath"] = mixin(
   mixin({}, browserCommon),
   {
+    resources: [
+      "src/**/*.js"
+    ],
     libs: [
       "closure-primitives/base.js",
       "deps.js",
-      "define/typedarray/hybrid.js",
-      "src/rawdeflate.js",
-      "src/zip.js",
-      "src/*.js"
+      "test/plain.js"
+    ],
+    tests: [
+      'test/browser-codepath-test.js',
+      'test/browser-raw-test.js'
     ]
   }
 );
-config["plain"].tests = [
-  "test/browser-plain-test.js"
-];
 
 // ブラウザで独立ビルド版のテスト
 config["respectively build"] = mixin(
   mixin({}, browserCommon),
   {
+    tests: [
+      'test/browser-raw-test.js'
+    ],
     libs: [
+      "bin/rawinflate.min.js",
+      "bin/rawdeflate.min.js",
       "bin/inflate.min.js",
       "bin/deflate.min.js",
       "bin/gunzip.min.js",
@@ -53,6 +66,7 @@ config["zlib"] = mixin(
   mixin({}, browserCommon),
   {
     libs: [
+      "bin/inflate.min.js",
       "bin/zip.min.js",
       "bin/unzip.min.js",
       "bin/zlib_and_gzip.min.js"

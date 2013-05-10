@@ -1,5 +1,6 @@
 goog.provide('Zlib.Inflate');
 
+goog.require('USE_TYPEDARRAY');
 goog.require('Zlib.Adler32');
 goog.require('Zlib.RawInflate');
 

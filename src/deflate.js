@@ -4,6 +4,8 @@
  */
 goog.provide('Zlib.Deflate');
 
+goog.require('USE_TYPEDARRAY');
+goog.require('Zlib');
 goog.require('Zlib.Adler32');
 goog.require('Zlib.RawDeflate');
 
