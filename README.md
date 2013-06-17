@@ -37,7 +37,7 @@ bin ディレクトリから必要なものを利用してください。
 
 ```js
 // plain = Array.<number> or Uint8Array
-var defalte = new Zlib.RawDeflate(plain);
+var deflate = new Zlib.RawDeflate(plain);
 var compressed = deflate.compress();
 ```
 
@@ -50,7 +50,7 @@ ZLIB Option を参照してください。
 
 ```js
 // plain = Array.<number> or Uint8Array
-var defalte = new Zlib.Deflate(plain);
+var deflate = new Zlib.Deflate(plain);
 var compressed = deflate.compress();
 ```
 
