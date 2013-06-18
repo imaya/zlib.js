@@ -36,7 +36,7 @@ Use one in "bin" directory.
 
 ```js
 // plain = Array.<number> or Uint8Array
-var defalte = new Zlib.RawDeflate(plain);
+var deflate = new Zlib.RawDeflate(plain);
 var compressed = deflate.compress();
 ```
 
@@ -48,7 +48,7 @@ See ZLIB Option.
 
 ```js
 // plain = Array.<number> or Uint8Array
-var defalte = new Zlib.Deflate(plain);
+var deflate = new Zlib.Deflate(plain);
 var compressed = deflate.compress();
 ```
 
@@ -73,8 +73,8 @@ This parameter is deprecated.
 
 #### GZIP
 
-GZIP implementation is imcompleted.
-However no problem in usual use. 
+GZIP implementation is incomplete.
+However, there is no problem in usual use. 
 
 ```js
 // plain = Array.<number> or Uint8Array
