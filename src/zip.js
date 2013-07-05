@@ -55,6 +55,24 @@ Zlib.Zip.Flags = {
 };
 
 /**
+ * @type {Array.<number>}
+ * @const
+ */
+Zlib.Zip.FileHeaderSignature = [0x50, 0x4b, 0x01, 0x02];
+
+/**
+ * @type {Array.<number>}
+ * @const
+ */
+Zlib.Zip.LocalFileHeaderSignature = [0x50, 0x4b, 0x03, 0x04];
+
+/**
+ * @type {Array.<number>}
+ * @const
+ */
+Zlib.Zip.CentralDirectorySignature = [0x50, 0x4b, 0x05, 0x06];
+
+/**
  * @param {Array.<number>|Uint8Array} input
  * @param {Object=} opt_params options.
  */
@@ -279,12 +297,16 @@ Zlib.Zip.prototype.compress = function() {
     offset = op1;
 
     // signature
-    output[op1++] = output[op2++] = 0x50;
-    output[op1++] = output[op2++] = 0x4b;
-    output[op1++] = 0x03; // local file header
-    output[op1++] = 0x04;
-    output[op2++] = 0x01; // file header
-    output[op2++] = 0x02;
+    // local file header
+    output[op1++] = Zlib.Zip.LocalFileHeaderSignature[0];
+    output[op1++] = Zlib.Zip.LocalFileHeaderSignature[1];
+    output[op1++] = Zlib.Zip.LocalFileHeaderSignature[2];
+    output[op1++] = Zlib.Zip.LocalFileHeaderSignature[3];
+    // file header
+    output[op2++] = Zlib.Zip.FileHeaderSignature[0];
+    output[op2++] = Zlib.Zip.FileHeaderSignature[1];
+    output[op2++] = Zlib.Zip.FileHeaderSignature[2];
+    output[op2++] = Zlib.Zip.FileHeaderSignature[3];
 
     // compressor info
     needVersion = 20;
@@ -444,10 +466,10 @@ Zlib.Zip.prototype.compress = function() {
   //-------------------------------------------------------------------------
 
   // signature
-  output[op3++] = 0x50;
-  output[op3++] = 0x4b;
-  output[op3++] = 0x05;
-  output[op3++] = 0x06;
+  output[op3++] = Zlib.Zip.CentralDirectorySignature[0];
+  output[op3++] = Zlib.Zip.CentralDirectorySignature[1];
+  output[op3++] = Zlib.Zip.CentralDirectorySignature[2];
+  output[op3++] = Zlib.Zip.CentralDirectorySignature[3];
 
   // number of this disk
   output[op3++] = 0;

@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="project" default="all">
+<project name="project" default="all" basedir="./bin">
+  <property name="rootpath" value=".."/>
+  <property name="rootdir" location="${rootpath}"/>
+  <property name="bin" value="."/>
   <!--
   <property name="level" value="ADVANCED_OPTIMIZATIONS"/>
   -->
   <property name="level" value="PERFORMANCE_OPTIMIZATIONS"/>
-  <property name="src" value="./src"/>
-  <property name="def" value="./define"/>
-  <property name="vendor" value="./vendor"/>
-  <property name="bin" value="./bin"/>
+  <property name="src" value="${rootpath}/src"/>
+  <property name="def" value="${rootpath}/define"/>
+  <property name="vendor" value="${rootpath}/vendor"/>
   <property name="compiler" value="${vendor}/google-closure-compiler/compiler.jar"/>
-  <property name="closure_primitives" value="closure-primitives/base.js"/>
-  <property name="depswriter" value="closure-primitives/depswriter.py"/>
-  <property name="depend" value="deps.js"/>
-  <property name="export" value="./export"/>
-  <property name="basedir" location="."/>
+  <property name="closure_primitives" value="${rootpath}/closure-primitives/base.js"/>
+  <property name="depswriter" value="${rootpath}/closure-primitives/depswriter.py"/>
+  <property name="depend" value="${rootpath}/closure-primitives/deps.js"/>
+  <property name="export" value="${rootpath}/export"/>
 
   <!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
-  <loadfile property="license" srcfile="./LICENSE_min"/>
+  <loadfile property="license" srcfile="../LICENSE_min"/>
 
   <!-- ビルドの事前準備 -->
   <target name="prebuild" description="ビルドの事前準備を行う">
@@ -27,20 +28,19 @@
   <target name="deps" description="依存関係を解決する">
     <exec executable="python" failonerror="true">
       <arg line="${depswriter}"/>
-      <arg line="--root_with_prefix=&quot;. ..&quot;"/>
+      <arg line="--root_with_prefix=&quot;.. ..&quot;"/>
       <arg line="--output_file=${depend}"/>
     </exec>
+
     <pathconvert property="srcfiles" pathsep=" ">
-      <map from="${basedir}" to="--js ."/>
+      <map from="${rootdir}" to="--js .."/>
       <fileset dir="${src}" includes="*.js"/>
     </pathconvert>
-    <echo message="${srcfiles}"/>
 
     <pathconvert property="exportfiles" pathsep=" ">
-      <map from="${basedir}" to="--js ."/>
+      <map from="${rootdir}" to="--js .."/>
       <fileset dir="${export}" includes="*.js"/>
     </pathconvert>
-    <echo message="${exportfiles}"/>
   </target>
 
   <!-- RawInflate の単体ビルド -->
@@ -63,7 +63,6 @@
       <arg line="--create_source_map=${outfile}.map"/>
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
       <arg line="--js=${export}/rawinflate.js"/>
@@ -91,7 +90,6 @@
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${export}/rawdeflate.js"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -118,7 +116,6 @@
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${export}/inflate.js"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -145,7 +142,6 @@
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${export}/inflate_stream.js"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -172,7 +168,6 @@
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${export}/gzip.js"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -200,7 +195,6 @@
       <arg line="--js=${export}/gunzip.js"/>
       <arg line="--js=${export}/gunzip_member.js"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -227,7 +221,6 @@
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${export}/deflate.js"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -255,7 +248,6 @@
       <arg line="--js=${export}/inflate.js"/>
       <arg line="--js=${export}/deflate.js"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -286,7 +278,6 @@
       <arg line="--js=${export}/gunzip_member.js"/>
       <arg line="--js=${export}/gzip.js"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -308,13 +299,12 @@
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--source_map_format=V3"/>
       <arg line="--output_wrapper='${license}(function() {%output%}).call(this); //@ sourceMappingURL=${basename}.map'"/>
-      <arg line="--externs=node/externs.js"/>
+      <arg line="--externs=../node/externs.js"/>
       <arg line="--js_output_file=${outfile}"/>
       <arg line="--create_source_map=${outfile}.map"/>
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
-      <arg line="--js=node/exports.js"/>
+      <arg line="--js=../node/exports.js"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
     </java>
@@ -340,7 +330,6 @@
       <arg line="--create_source_map=${outfile}.map"/>
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${export}/unzip.js"/>
       <arg line="${srcfiles}"/>
@@ -367,7 +356,6 @@
       <arg line="--create_source_map=${outfile}.map"/>
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${export}/zip.js"/>
       <arg line="${srcfiles}"/>
@@ -394,7 +382,6 @@
       <arg line="--create_source_map=${outfile}.map"/>
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${export}/crc32.js"/>
       <arg line="${srcfiles}"/>
@@ -422,7 +409,6 @@
       <arg line="--create_source_map=${outfile}.map"/>
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${depend}"/>
       <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
       <arg line="${exportfiles}"/>

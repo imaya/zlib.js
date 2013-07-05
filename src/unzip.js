@@ -51,6 +51,24 @@ Zlib.Unzip = function(input, opt_params) {
 Zlib.Unzip.CompressionMethod = Zlib.Zip.CompressionMethod;
 
 /**
+ * @type {Array.<number>}
+ * @const
+ */
+Zlib.Unzip.FileHeaderSignature = Zlib.Zip.FileHeaderSignature;
+
+/**
+ * @type {Array.<number>}
+ * @const
+ */
+Zlib.Unzip.LocalFileHeaderSignature = Zlib.Zip.LocalFileHeaderSignature;
+
+/**
+ * @type {Array.<number>}
+ * @const
+ */
+Zlib.Unzip.CentralDirectorySignature = Zlib.Zip.CentralDirectorySignature;
+
+/**
  * @param {!(Array.<number>|Uint8Array)} input input buffer.
  * @param {number} ip input position.
  * @constructor
@@ -111,8 +129,10 @@ Zlib.Unzip.FileHeader.prototype.parse = function() {
   var ip = this.offset;
 
   // central file header signature
-  if (input[ip++] !== 0x50 || input[ip++] !== 0x4b ||
-      input[ip++] !== 0x01 || input[ip++] !== 0x02) {
+  if (input[ip++] !== Zlib.Unzip.FileHeaderSignature[0] ||
+      input[ip++] !== Zlib.Unzip.FileHeaderSignature[1] ||
+      input[ip++] !== Zlib.Unzip.FileHeaderSignature[2] ||
+      input[ip++] !== Zlib.Unzip.FileHeaderSignature[3]) {
     throw new Error('invalid file header signature');
   }
 
@@ -142,14 +162,16 @@ Zlib.Unzip.FileHeader.prototype.parse = function() {
   ) >>> 0;
 
   // compressed size
-  this.compressedSize =
+  this.compressedSize = (
     (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24);
+    (input[ip++] << 16) | (input[ip++] << 24)
+  ) >>> 0;
 
   // uncompressed size
-  this.plainSize =
+  this.plainSize = (
     (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24);
+    (input[ip++] << 16) | (input[ip++] << 24)
+  ) >>> 0;
 
   // file name length
   this.fileNameLength = input[ip++] | (input[ip++] << 8);
@@ -172,9 +194,10 @@ Zlib.Unzip.FileHeader.prototype.parse = function() {
     (input[ip++] << 16) | (input[ip++] << 24);
 
   // relative offset of local header
-  this.relativeOffset =
+  this.relativeOffset = (
     (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24);
+    (input[ip++] << 16) | (input[ip++] << 24)
+  ) >>> 0;
 
   // file name
   this.filename = String.fromCharCode.apply(null, USE_TYPEDARRAY ?
@@ -242,8 +265,10 @@ Zlib.Unzip.LocalFileHeader.prototype.parse = function() {
   var ip = this.offset;
 
   // local file header signature
-  if (input[ip++] !== 0x50 || input[ip++] !== 0x4b ||
-      input[ip++] !== 0x03 || input[ip++] !== 0x04) {
+  if (input[ip++] !== Zlib.Unzip.LocalFileHeaderSignature[0] ||
+      input[ip++] !== Zlib.Unzip.LocalFileHeaderSignature[1] ||
+      input[ip++] !== Zlib.Unzip.LocalFileHeaderSignature[2] ||
+      input[ip++] !== Zlib.Unzip.LocalFileHeaderSignature[3]) {
     throw new Error('invalid local file header signature');
   }
 
@@ -269,14 +294,16 @@ Zlib.Unzip.LocalFileHeader.prototype.parse = function() {
   ) >>> 0;
 
   // compressed size
-  this.compressedSize =
+  this.compressedSize = (
     (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24);
+    (input[ip++] << 16) | (input[ip++] << 24)
+  ) >>> 0;
 
   // uncompressed size
-  this.plainSize =
+  this.plainSize = (
     (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24);
+    (input[ip++] << 16) | (input[ip++] << 24)
+  ) >>> 0;
 
   // file name length
   this.fileNameLength = input[ip++] | (input[ip++] << 8);
@@ -306,8 +333,10 @@ Zlib.Unzip.prototype.searchEndOfCentralDirectoryRecord = function() {
   var ip;
 
   for (ip = input.length - 12; ip > 0; --ip) {
-    if (input[ip  ] === 0x50 && input[ip+1] === 0x4b &&
-        input[ip+2] === 0x05 && input[ip+3] === 0x06) {
+    if (input[ip  ] === Zlib.Unzip.CentralDirectorySignature[0] &&
+        input[ip+1] === Zlib.Unzip.CentralDirectorySignature[1] &&
+        input[ip+2] === Zlib.Unzip.CentralDirectorySignature[2] &&
+        input[ip+3] === Zlib.Unzip.CentralDirectorySignature[3]) {
       this.eocdrOffset = ip;
       return;
     }
@@ -328,8 +357,10 @@ Zlib.Unzip.prototype.parseEndOfCentralDirectoryRecord = function() {
   ip = this.eocdrOffset;
 
   // signature
-  if (input[ip++] !== 0x50 || input[ip++] !== 0x4b ||
-      input[ip++] !== 0x05 || input[ip++] !== 0x06) {
+  if (input[ip++] !== Zlib.Unzip.CentralDirectorySignature[0] ||
+      input[ip++] !== Zlib.Unzip.CentralDirectorySignature[1] ||
+      input[ip++] !== Zlib.Unzip.CentralDirectorySignature[2] ||
+      input[ip++] !== Zlib.Unzip.CentralDirectorySignature[3]) {
     throw new Error('invalid signature');
   }
 
@@ -346,14 +377,16 @@ Zlib.Unzip.prototype.parseEndOfCentralDirectoryRecord = function() {
   this.totalEntries = input[ip++] | (input[ip++] << 8);
 
   // size of the central directory
-  this.centralDirectorySize =
+  this.centralDirectorySize = (
     (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24);
+    (input[ip++] << 16) | (input[ip++] << 24)
+  ) >>> 0;
 
   // offset of start of central directory with respect to the starting disk number
-  this.centralDirectoryOffset =
+  this.centralDirectoryOffset = (
     (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24);
+    (input[ip++] << 16) | (input[ip++] << 24)
+  ) >>> 0;
 
   // .ZIP file comment length
   this.commentLength = input[ip++] | (input[ip++] << 8);
