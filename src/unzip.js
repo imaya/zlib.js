@@ -580,7 +580,7 @@ Zlib.Unzip.prototype.setPassword = function(password) {
 /**
  * @param {(Array.<number>|Uint32Array|Object)} key
  * @param {number} n
- * @returns {number}
+ * @return {number}
  */
 Zlib.Unzip.prototype.decode = function(key, n) {
   n ^= this.getByte(/** @type {(Array.<number>|Uint32Array)} */(key));

@@ -569,7 +569,7 @@ Zlib.Zip.prototype.updateKeys = function(key, n) {
 
 /**
  * @param {(Array.<number>|Uint8Array)} password
- * @return {!(Array.<number>|Uint32Array)}
+ * @return {!(Array.<number>|Uint32Array|Object)}
  */
 Zlib.Zip.prototype.createEncryptionKey = function(password) {
   /** @type {!(Array.<number>|Uint32Array)} */
