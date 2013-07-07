@@ -193,7 +193,7 @@ Zlib.Zip.prototype.compress = function() {
   var buffer;
   /** @type {*} */
   var tmp;
-  /** @type {Array.<number>|Uint32Array} */
+  /** @type {Array.<number>|Uint32Array|Object} */
   var key;
   /** @type {number} */
   var i;
@@ -533,7 +533,7 @@ Zlib.Zip.prototype.deflateWithOption = function(input, opt_params) {
 
 /**
  * @param {(Array.<number>|Uint32Array)} key
- * @returns {number}
+ * @return {number}
  */
 Zlib.Zip.prototype.getByte = function(key) {
   /** @type {number} */
@@ -543,15 +543,15 @@ Zlib.Zip.prototype.getByte = function(key) {
 };
 
 /**
- * @param {(Array.<number>|Uint32Array)} key
+ * @param {(Array.<number>|Uint32Array|Object)} key
  * @param {number} n
- * @returns {number}
+ * @return {number}
  */
 Zlib.Zip.prototype.encode = function(key, n) {
   /** @type {number} */
-  var tmp = this.getByte(key);
+  var tmp = this.getByte(/** @type {(Array.<number>|Uint32Array)} */(key));
 
-  this.updateKeys(key, n);
+  this.updateKeys(/** @type {(Array.<number>|Uint32Array)} */(key), n);
 
   return tmp ^ n;
 };
@@ -568,11 +568,11 @@ Zlib.Zip.prototype.updateKeys = function(key, n) {
 };
 
 /**
- * @param {(Array.<number>|Uint8Array)}password
- * @returns {Array.<number>|Uint32Array}
+ * @param {(Array.<number>|Uint8Array)} password
+ * @return {!(Array.<number>|Uint32Array)}
  */
 Zlib.Zip.prototype.createEncryptionKey = function(password) {
-  /** @type {(Array.<number>|Uint32Array)} */
+  /** @type {!(Array.<number>|Uint32Array)} */
   var key = [305419896, 591751049, 878082192];
   /** @type {number} */
   var i;

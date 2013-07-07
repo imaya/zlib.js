@@ -455,7 +455,7 @@ Zlib.Unzip.prototype.getFileData = function(index) {
   var buffer;
   /** @type {number} */
   var crc32;
-  /** @type {Array.<number>|Uint32Array} */
+  /** @type {Array.<number>|Uint32Array|Object} */
   var key;
   /** @type {number} */
   var i;
@@ -578,13 +578,13 @@ Zlib.Unzip.prototype.setPassword = function(password) {
 };
 
 /**
- * @param {(Array.<number>|Uint32Array)} key
+ * @param {(Array.<number>|Uint32Array|Object)} key
  * @param {number} n
  * @returns {number}
  */
 Zlib.Unzip.prototype.decode = function(key, n) {
-  n ^= this.getByte(key);
-  this.updateKeys(key, n);
+  n ^= this.getByte(/** @type {(Array.<number>|Uint32Array)} */(key));
+  this.updateKeys(/** @type {(Array.<number>|Uint32Array)} */(key), n);
 
   return n;
 };
