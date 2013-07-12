@@ -232,9 +232,9 @@ Zlib.Zip.prototype.compress = function() {
     }
 
     // encryption
-    if (this.password !== void 0) {
+    if (file.option['password'] !== void 0|| this.password !== void 0) {
       // init encryption
-      key = this.createEncryptionKey(this.password);
+      key = this.createEncryptionKey(file.option['password'] || this.password);
 
       // add header
       buffer = file.buffer;
@@ -322,7 +322,7 @@ Zlib.Zip.prototype.compress = function() {
 
     // general purpose bit flag
     flags = 0;
-    if (this.password) {
+    if (file.option['password'] || this.password) {
       flags |= Zlib.Zip.Flags.ENCRYPT;
     }
     output[op1++] = output[op2++] =  flags       & 0xff;

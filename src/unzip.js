@@ -440,7 +440,8 @@ Zlib.Unzip.prototype.parseFileHeader = function() {
  * @param {number} index file header index.
  * @return {!(Array.<number>|Uint8Array)} file data.
  */
-Zlib.Unzip.prototype.getFileData = function(index) {
+Zlib.Unzip.prototype.getFileData = function(index, opt_params) {
+  opt_params = opt_params || {};
   /** @type {!(Array.<number>|Uint8Array)} */
   var input = this.input;
   /** @type {Array.<Zlib.Unzip.FileHeader>} */
@@ -478,10 +479,10 @@ Zlib.Unzip.prototype.getFileData = function(index) {
 
   // decryption
   if ((localFileHeader.flags & Zlib.Unzip.LocalFileHeader.Flags.ENCRYPT) !== 0) {
-    if (!this.password) {
+    if (!(opt_params['password'] || this.password)) {
       throw new Error('please set password');
     }
-    key =  this.createDecryptionKey(this.password);
+    key =  this.createDecryptionKey(opt_params['password'] || this.password);
 
     // encryption header
     for(i = offset, il = offset + 12; i < il; ++i) {
@@ -552,9 +553,10 @@ Zlib.Unzip.prototype.getFilenames = function() {
 
 /**
  * @param {string} filename extract filename.
+ * @param {Object=} opt_params
  * @return {!(Array.<number>|Uint8Array)} decompressed data.
  */
-Zlib.Unzip.prototype.decompress = function(filename) {
+Zlib.Unzip.prototype.decompress = function(filename, opt_params) {
   /** @type {number} */
   var index;
 
@@ -567,7 +569,7 @@ Zlib.Unzip.prototype.decompress = function(filename) {
     throw new Error(filename + ' not found');
   }
 
-  return this.getFileData(index);
+  return this.getFileData(index, opt_params);
 };
 
 /**
