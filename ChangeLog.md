@@ -2,6 +2,22 @@
 # Change Log
 
 
+## 0.1.7: 2013/07/12
+
+https://github.com/imaya/zlib.js/compare/0.1.6...0.1.7
+
+
+### compression
+
+- support different password each file in PKZIP
+
+### decompression
+
+- fix PKZIP signedness
+- support different password each file in PKZIP
+- workaround iOS 6.x safari bug in stream version (thanks to Kazuho Oku)
+
+
 ## 0.1.6: 2013/05/10
 
 https://github.com/imaya/zlib.js/compare/0.1.5...0.1.6
