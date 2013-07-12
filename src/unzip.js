@@ -438,6 +438,7 @@ Zlib.Unzip.prototype.parseFileHeader = function() {
 
 /**
  * @param {number} index file header index.
+ * @param {Object=} opt_params
  * @return {!(Array.<number>|Uint8Array)} file data.
  */
 Zlib.Unzip.prototype.getFileData = function(index, opt_params) {

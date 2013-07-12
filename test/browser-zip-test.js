@@ -238,7 +238,12 @@ buster.testCase(
         var filenames = unzip.getFilenames();
 
         for (i = 0, il = filenames.length; i < il; ++i) {
-          files[filenames[i]] = unzip.decompress(filenames[i], testData[filenames[i]][1]);
+          files[filenames[i]] = unzip.decompress(
+            filenames[i],
+            {
+              'password': testData[filenames[i]][1]
+            }
+          );
         }
 
         assert(
