@@ -50,7 +50,7 @@ Zlib.Zip.OperatingSystem = {
  */
 Zlib.Zip.Flags = {
   ENCRYPT:    0x0001,
-  DESCRIPTER: 0x0008,
+  DESCRIPTOR: 0x0008,
   UTF8:       0x0800
 };
 
