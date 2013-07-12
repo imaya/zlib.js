@@ -336,10 +336,10 @@ Zlib.RawInflateStream.prototype.readBits = function(length) {
   // not enough buffer
   while (bitsbuflen < length) {
     // input byte
-    octet = input[ip++];
-    if (octet === void 0) {
+    if (input.length <= ip) {
       return -1;
     }
+    octet = input[ip++];
 
     // concat octet
     bitsbuf |= octet << bitsbuflen;
@@ -384,10 +384,10 @@ Zlib.RawInflateStream.prototype.readCodeByTable = function(table) {
 
   // not enough buffer
   while (bitsbuflen < maxCodeLength) {
-    octet = input[ip++];
-    if (octet === void 0) {
+    if (input.length <= ip) {
       return -1;
     }
+    octet = input[ip++];
     bitsbuf |= octet << bitsbuflen;
     bitsbuflen += 8;
   }
@@ -419,33 +419,12 @@ Zlib.RawInflateStream.prototype.readUncompressedBlockHeader = function() {
 
   this.status = Zlib.RawInflateStream.Status.BLOCK_BODY_START;
 
-  // len (1st)
-  octet = input[ip++];
-  if (octet === void 0) {
+  if (ip + 4 >= input.length) {
     return -1;
   }
-  len = octet;
 
-  // len (2nd)
-  octet = input[ip++];
-  if (octet === void 0) {
-    return -1;
-  }
-  len |= octet << 8;
-
-  // nlen (1st)
-  octet = input[ip++];
-  if (octet === void 0) {
-    return -1;
-  }
-  nlen = octet;
-
-  // nlen (2nd)
-  octet = input[ip++];
-  if (octet === void 0) {
-    return -1;
-  }
-  nlen |= octet << 8;
+  len = input[ip++] | (input[ip++] << 8);
+  nlen = input[ip++] | (input[ip++] << 8);
 
   // check len & nlen
   if (len === ~nlen) {
@@ -481,7 +460,7 @@ Zlib.RawInflateStream.prototype.parseUncompressedBlock = function() {
     }
 
     // not enough input buffer
-    if (input[ip] === void 0) {
+    if (ip >= input.length) {
       this.ip = ip;
       this.op = op;
       this.blockLength = len + 1; // コピーしてないので戻す

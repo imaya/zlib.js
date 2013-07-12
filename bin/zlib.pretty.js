@@ -2529,10 +2529,10 @@ goog.scope(function() {
     var ip = this.ip;
     var octet;
     while(bitsbuflen < length) {
-      octet = input[ip++];
-      if(octet === void 0) {
+      if(input.length <= ip) {
         return-1
       }
+      octet = input[ip++];
       bitsbuf |= octet << bitsbuflen;
       bitsbuflen += 8
     }
@@ -2556,10 +2556,10 @@ goog.scope(function() {
     var codeWithLength;
     var codeLength;
     while(bitsbuflen < maxCodeLength) {
-      octet = input[ip++];
-      if(octet === void 0) {
+      if(input.length <= ip) {
         return-1
       }
+      octet = input[ip++];
       bitsbuf |= octet << bitsbuflen;
       bitsbuflen += 8
     }
@@ -2577,26 +2577,11 @@ goog.scope(function() {
     var input = this.input;
     var ip = this.ip;
     this.status = Zlib.RawInflateStream.Status.BLOCK_BODY_START;
-    octet = input[ip++];
-    if(octet === void 0) {
+    if(ip + 4 >= input.length) {
       return-1
     }
-    len = octet;
-    octet = input[ip++];
-    if(octet === void 0) {
-      return-1
-    }
-    len |= octet << 8;
-    octet = input[ip++];
-    if(octet === void 0) {
-      return-1
-    }
-    nlen = octet;
-    octet = input[ip++];
-    if(octet === void 0) {
-      return-1
-    }
-    nlen |= octet << 8;
+    len = input[ip++] | input[ip++] << 8;
+    nlen = input[ip++] | input[ip++] << 8;
     if(len === ~nlen) {
       throw new Error("invalid uncompressed block header: length verify");
     }
@@ -2617,7 +2602,7 @@ goog.scope(function() {
       if(op === output.length) {
         output = this.expandBuffer()
       }
-      if(input[ip] === void 0) {
+      if(ip >= input.length) {
         this.ip = ip;
         this.op = op;
         this.blockLength = len + 1;
