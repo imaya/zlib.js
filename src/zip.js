@@ -50,9 +50,27 @@ Zlib.Zip.OperatingSystem = {
  */
 Zlib.Zip.Flags = {
   ENCRYPT:    0x0001,
-  DESCRIPTER: 0x0008,
+  DESCRIPTOR: 0x0008,
   UTF8:       0x0800
 };
+
+/**
+ * @type {Array.<number>}
+ * @const
+ */
+Zlib.Zip.FileHeaderSignature = [0x50, 0x4b, 0x01, 0x02];
+
+/**
+ * @type {Array.<number>}
+ * @const
+ */
+Zlib.Zip.LocalFileHeaderSignature = [0x50, 0x4b, 0x03, 0x04];
+
+/**
+ * @type {Array.<number>}
+ * @const
+ */
+Zlib.Zip.CentralDirectorySignature = [0x50, 0x4b, 0x05, 0x06];
 
 /**
  * @param {Array.<number>|Uint8Array} input
@@ -175,7 +193,7 @@ Zlib.Zip.prototype.compress = function() {
   var buffer;
   /** @type {*} */
   var tmp;
-  /** @type {Array.<number>|Uint32Array} */
+  /** @type {Array.<number>|Uint32Array|Object} */
   var key;
   /** @type {number} */
   var i;
@@ -214,9 +232,9 @@ Zlib.Zip.prototype.compress = function() {
     }
 
     // encryption
-    if (this.password !== void 0) {
+    if (file.option['password'] !== void 0|| this.password !== void 0) {
       // init encryption
-      key = this.createEncryptionKey(this.password);
+      key = this.createEncryptionKey(file.option['password'] || this.password);
 
       // add header
       buffer = file.buffer;
@@ -279,12 +297,16 @@ Zlib.Zip.prototype.compress = function() {
     offset = op1;
 
     // signature
-    output[op1++] = output[op2++] = 0x50;
-    output[op1++] = output[op2++] = 0x4b;
-    output[op1++] = 0x03; // local file header
-    output[op1++] = 0x04;
-    output[op2++] = 0x01; // file header
-    output[op2++] = 0x02;
+    // local file header
+    output[op1++] = Zlib.Zip.LocalFileHeaderSignature[0];
+    output[op1++] = Zlib.Zip.LocalFileHeaderSignature[1];
+    output[op1++] = Zlib.Zip.LocalFileHeaderSignature[2];
+    output[op1++] = Zlib.Zip.LocalFileHeaderSignature[3];
+    // file header
+    output[op2++] = Zlib.Zip.FileHeaderSignature[0];
+    output[op2++] = Zlib.Zip.FileHeaderSignature[1];
+    output[op2++] = Zlib.Zip.FileHeaderSignature[2];
+    output[op2++] = Zlib.Zip.FileHeaderSignature[3];
 
     // compressor info
     needVersion = 20;
@@ -300,7 +322,7 @@ Zlib.Zip.prototype.compress = function() {
 
     // general purpose bit flag
     flags = 0;
-    if (this.password) {
+    if (file.option['password'] || this.password) {
       flags |= Zlib.Zip.Flags.ENCRYPT;
     }
     output[op1++] = output[op2++] =  flags       & 0xff;
@@ -444,10 +466,10 @@ Zlib.Zip.prototype.compress = function() {
   //-------------------------------------------------------------------------
 
   // signature
-  output[op3++] = 0x50;
-  output[op3++] = 0x4b;
-  output[op3++] = 0x05;
-  output[op3++] = 0x06;
+  output[op3++] = Zlib.Zip.CentralDirectorySignature[0];
+  output[op3++] = Zlib.Zip.CentralDirectorySignature[1];
+  output[op3++] = Zlib.Zip.CentralDirectorySignature[2];
+  output[op3++] = Zlib.Zip.CentralDirectorySignature[3];
 
   // number of this disk
   output[op3++] = 0;
@@ -511,7 +533,7 @@ Zlib.Zip.prototype.deflateWithOption = function(input, opt_params) {
 
 /**
  * @param {(Array.<number>|Uint32Array)} key
- * @returns {number}
+ * @return {number}
  */
 Zlib.Zip.prototype.getByte = function(key) {
   /** @type {number} */
@@ -521,15 +543,15 @@ Zlib.Zip.prototype.getByte = function(key) {
 };
 
 /**
- * @param {(Array.<number>|Uint32Array)} key
+ * @param {(Array.<number>|Uint32Array|Object)} key
  * @param {number} n
- * @returns {number}
+ * @return {number}
  */
 Zlib.Zip.prototype.encode = function(key, n) {
   /** @type {number} */
-  var tmp = this.getByte(key);
+  var tmp = this.getByte(/** @type {(Array.<number>|Uint32Array)} */(key));
 
-  this.updateKeys(key, n);
+  this.updateKeys(/** @type {(Array.<number>|Uint32Array)} */(key), n);
 
   return tmp ^ n;
 };
@@ -546,11 +568,11 @@ Zlib.Zip.prototype.updateKeys = function(key, n) {
 };
 
 /**
- * @param {(Array.<number>|Uint8Array)}password
- * @returns {Array.<number>|Uint32Array}
+ * @param {(Array.<number>|Uint8Array)} password
+ * @return {!(Array.<number>|Uint32Array|Object)}
  */
 Zlib.Zip.prototype.createEncryptionKey = function(password) {
-  /** @type {(Array.<number>|Uint32Array)} */
+  /** @type {!(Array.<number>|Uint32Array)} */
   var key = [305419896, 591751049, 878082192];
   /** @type {number} */
   var i;
