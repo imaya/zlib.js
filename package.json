@@ -15,10 +15,9 @@
     "type": "git",
     "url": "git://github.com/imaya/zlib.js.git"
   },
-  "dependencies" : {
+  "devDependencies" : {
     "buster" : ">=0.6.3"
   },
-  "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
     "node": "*"
