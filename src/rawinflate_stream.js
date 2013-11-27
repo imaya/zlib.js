@@ -456,7 +456,7 @@ Zlib.RawInflateStream.prototype.parseUncompressedBlock = function() {
   // XXX: とりあえず素直にコピー
   while (len--) {
     if (op === output.length) {
-      output = this.expandBuffer();
+      output = this.expandBuffer({fixRatio: 2});
     }
 
     // not enough input buffer
