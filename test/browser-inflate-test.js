@@ -46,14 +46,14 @@ buster.testCase(
         var decodedData = decodeB64(testData);
 
         // testdata size
-        assert.equals(testData.length, 1604, "source data size");
-        assert.equals(decodedData.length, 1202, "base64 decoded data size");
+        buster.assert.equals(testData.length, 1604, "source data size");
+        buster.assert.equals(decodedData.length, 1202, "base64 decoded data size");
 
         var inflator = new Zlib.Inflate(decodedData);
         var inflated = inflator.decompress();
 
-        assert.equals(inflated.length, size, "inflated data size");
-        assert(arrayEquals(inflated, plain));
+        buster.assert.equals(inflated.length, size, "inflated data size");
+        buster.assert(arrayEquals(inflated, plain));
       },
     //-------------------------------------------------------------------------
     "pre-deflated data with inflate bufferSize option":
@@ -72,16 +72,16 @@ buster.testCase(
         var decodedData = decodeB64(testData);
 
         // testdata size
-        assert.equals(testData.length, 1604, "source data size");
-        assert.equals(decodedData.length, 1202, "base64 decoded data size");
+        buster.assert.equals(testData.length, 1604, "source data size");
+        buster.assert.equals(decodedData.length, 1202, "base64 decoded data size");
 
         var inflator = new Zlib.Inflate(decodedData, {bufferSize: 123456});
         var inflated = inflator.decompress();
 
         console.log("buffer size:", inflated.buffer.byteLength);
-        assert.equals(inflated.length, size, "inflated data size");
-        assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
-        assert(arrayEquals(inflated, plain));
+        buster.assert.equals(inflated.length, size, "inflated data size");
+        buster.assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
+        buster.assert(arrayEquals(inflated, plain));
       },
     //-------------------------------------------------------------------------
     "pre-deflated data with inflate bufferType option":
@@ -100,8 +100,8 @@ buster.testCase(
         var decodedData = decodeB64(testData);
 
         // testdata size
-        assert.equals(testData.length, 1604, "source data size");
-        assert.equals(decodedData.length, 1202, "base64 decoded data size");
+        buster.assert.equals(testData.length, 1604, "source data size");
+        buster.assert.equals(decodedData.length, 1202, "base64 decoded data size");
 
         var inflator = new Zlib.Inflate(decodedData, {
           bufferType: Zlib.Inflate.BufferType.BLOCK,
@@ -111,9 +111,9 @@ buster.testCase(
         var inflated = inflator.decompress();
 
         console.log("buffer size:", inflated.buffer.byteLength);
-        assert.equals(inflated.length, size, "inflated data size");
-        assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
-        assert(arrayEquals(inflated, plain));
+        buster.assert.equals(inflated.length, size, "inflated data size");
+        buster.assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
+        buster.assert(arrayEquals(inflated, plain));
       },
     //-------------------------------------------------------------------------
     "pre-deflated data with inflate resize option":
@@ -132,8 +132,8 @@ buster.testCase(
         var decodedData = decodeB64(testData);
 
         // testdata size
-        assert.equals(testData.length, 1604, "source data size");
-        assert.equals(decodedData.length, 1202, "base64 decoded data size");
+        buster.assert.equals(testData.length, 1604, "source data size");
+        buster.assert.equals(decodedData.length, 1202, "base64 decoded data size");
 
         var inflator = new Zlib.Inflate(decodedData, {
           bufferType: Zlib.Inflate.BufferType.BLOCK,
@@ -143,9 +143,9 @@ buster.testCase(
         var inflated = inflator.decompress();
 
         console.log("buffer size:", inflated.buffer.byteLength);
-        assert.equals(inflated.length, size, "inflated data size");
-        assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
-        assert(arrayEquals(inflated, plain));
+        buster.assert.equals(inflated.length, size, "inflated data size");
+        buster.assert.equals(inflated.buffer.byteLength, 123456, "inflated data buffer size");
+        buster.assert(arrayEquals(inflated, plain));
       }
   }
 );

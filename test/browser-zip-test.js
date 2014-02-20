@@ -52,21 +52,21 @@ buster.testCase(
           files[filenames[i]] = unzip.decompress(filenames[i]);
         }
 
-        assert(
+        buster.assert(
           arrayEquals(
             files['hogehoge'],
             this.testData
           ),
           "hogehoge"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['fugafuga'],
             this.testData
           ),
           "fugafuga"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['piyopiyo'],
             this.testData
@@ -114,21 +114,21 @@ buster.testCase(
           files[filenames[i]] = unzip.decompress(filenames[i]);
         }
 
-        assert(
+        buster.assert(
           arrayEquals(
             files['hogehoge'],
             this.testData
           ),
           "hogehoge"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['fugafuga'],
             this.testData
           ),
           "fugafuga"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['piyopiyo'],
             this.testData
@@ -178,21 +178,21 @@ buster.testCase(
           files[filenames[i]] = unzip.decompress(filenames[i]);
         }
 
-        assert(
+        buster.assert(
           arrayEquals(
             files['hogehoge'],
             this.testData
           ),
           "hogehoge"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['fugafuga'],
             this.testData
           ),
           "fugafuga"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['piyopiyo'],
             this.testData
@@ -246,21 +246,21 @@ buster.testCase(
           );
         }
 
-        assert(
+        buster.assert(
           arrayEquals(
             files['hogehoge'],
             this.testData
           ),
           "hogehoge"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['fugafuga'],
             this.testData
           ),
           "fugafuga"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['piyopiyo'],
             this.testData

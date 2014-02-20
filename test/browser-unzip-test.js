@@ -28,21 +28,21 @@ buster.testCase(
           files[filenames[i]] = unzip.decompress(filenames[i]);
         }
 
-        assert(
+        buster.assert(
           arrayEquals(
             files['hoge.txt'],
             new Uint8Array(stringToByteArray("hoge\x0a"))
           ),
           "hoge.txt"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['fuga.txt'],
             new Uint8Array(stringToByteArray("fuga\x0a"))
           ),
           "fuga.txt"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['piyo.txt'],
             new Uint8Array(stringToByteArray("piyo\x0a"))
@@ -80,21 +80,21 @@ buster.testCase(
           files[filenames[i]] = unzip.decompress(filenames[i]);
         }
 
-        assert(
+        buster.assert(
           arrayEquals(
             files['hoge.txt'],
             new Uint8Array(stringToByteArray("hoge\x0a"))
           ),
           "hoge.txt"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['fuga.txt'],
             new Uint8Array(stringToByteArray("fuga\x0a"))
           ),
           "fuga.txt"
         );
-        assert(
+        buster.assert(
           arrayEquals(
             files['piyo.txt'],
             new Uint8Array(stringToByteArray("piyo\x0a"))

@@ -18,7 +18,7 @@
   "dependencies" : {
   },
   "devDependencies": {
-    "buster" : ">=0.6.3"
+    "buster" : ">=0.7.4"
   },
   "optionalDependencies": {},
   "engines": {

@@ -23,79 +23,79 @@ buster.testCase(
       var data = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
       var compressed = new Zlib.Deflate(data).compress();
       var decompressed = new Zlib.Inflate(compressed).decompress();
-      assert(arrayEquals(data, Array.prototype.slice.call(decompressed)));
+      buster.assert(arrayEquals(data, Array.prototype.slice.call(decompressed)));
     },
     "uncompressed random data": function() {
       makeRandomData(this.testData);
       inflateTest('random', this.testData, Zlib.Deflate.CompressionType.NONE);
 
-      assert(this.none.called);
-      refute(this.fixed.called);
-      refute(this.dynamic.called);
+      buster.assert(this.none.called);
+      buster.refute(this.fixed.called);
+      buster.refute(this.dynamic.called);
     },
     "fixed random data": function() {
       makeRandomData(this.testData);
       inflateTest('random', this.testData, Zlib.Deflate.CompressionType.FIXED);
 
-      refute(this.none.called);
-      assert(this.fixed.called);
-      refute(this.dynamic.called);
+      buster.refute(this.none.called);
+      buster.assert(this.fixed.called);
+      buster.refute(this.dynamic.called);
     },
     "dynamic random data": function() {
       makeRandomData(this.testData);
       inflateTest('random', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
 
-      refute(this.none.called);
-      refute(this.fixed.called);
-      assert(this.dynamic.called);
+      buster.refute(this.none.called);
+      buster.refute(this.fixed.called);
+      buster.assert(this.dynamic.called);
     },
     "uncompressed sequential data": function() {
       makeSequentialData(this.testData);
       inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.NONE);
 
-      assert(this.none.called);
-      refute(this.fixed.called);
-      refute(this.dynamic.called);
+      buster.assert(this.none.called);
+      buster.refute(this.fixed.called);
+      buster.refute(this.dynamic.called);
     },
     "fixed sequential data": function() {
       makeSequentialData(this.testData);
       inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.FIXED);
 
-      refute(this.none.called);
-      assert(this.fixed.called);
-      refute(this.dynamic.called);
+      buster.refute(this.none.called);
+      buster.assert(this.fixed.called);
+      buster.refute(this.dynamic.called);
     },
     "dynamic sequential data": function() {
       makeSequentialData(this.testData);
       inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
 
-      refute(this.none.called);
-      refute(this.fixed.called);
-      assert(this.dynamic.called);
+      buster.refute(this.none.called);
+      buster.refute(this.fixed.called);
+      buster.assert(this.dynamic.called);
     },
     "uncompressed random sequential data": function() {
       makeRandomSequentialData(this.testData);
       inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.NONE);
 
-      assert(this.none.called);
-      refute(this.fixed.called);
-      refute(this.dynamic.called);
+      buster.assert(this.none.called);
+      buster.refute(this.fixed.called);
+      buster.refute(this.dynamic.called);
     },
     "fixed random sequential data": function() {
       makeRandomSequentialData(this.testData);
       inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.FIXED);
 
-      refute(this.none.called);
-      assert(this.fixed.called);
-      refute(this.dynamic.called);
+      buster.refute(this.none.called);
+      buster.assert(this.fixed.called);
+      buster.refute(this.dynamic.called);
     },
     "dynamic random sequential data": function() {
       makeRandomSequentialData(this.testData);
       inflateTest('sequential', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
 
-      refute(this.none.called);
-      refute(this.fixed.called);
-      assert(this.dynamic.called);
+      buster.refute(this.none.called);
+      buster.refute(this.fixed.called);
+      buster.assert(this.dynamic.called);
     },
     //-------------------------------------------------------------------------
     // stream
@@ -104,25 +104,25 @@ buster.testCase(
       makeRandomSequentialData(this.testData);
       inflateStreamTest('sequential', this.testData, Zlib.Deflate.CompressionType.NONE);
 
-      assert(this.none.called);
-      refute(this.fixed.called);
-      refute(this.dynamic.called);
+      buster.assert(this.none.called);
+      buster.refute(this.fixed.called);
+      buster.refute(this.dynamic.called);
     },
     "fixed random sequential data (stream)": function() {
       makeRandomSequentialData(this.testData);
       inflateStreamTest('sequential', this.testData, Zlib.Deflate.CompressionType.FIXED);
 
-      refute(this.none.called);
-      assert(this.fixed.called);
-      refute(this.dynamic.called);
+      buster.refute(this.none.called);
+      buster.assert(this.fixed.called);
+      buster.refute(this.dynamic.called);
     },
     "dynamic random sequential data (stream)": function() {
       makeRandomSequentialData(this.testData);
       inflateStreamTest('sequential', this.testData, Zlib.Deflate.CompressionType.DYNAMIC);
 
-      refute(this.none.called);
-      refute(this.fixed.called);
-      assert(this.dynamic.called);
+      buster.refute(this.none.called);
+      buster.refute(this.fixed.called);
+      buster.assert(this.dynamic.called);
     }
   }
 );
@@ -148,8 +148,8 @@ function inflateTest(mode, testData, compressionType) {
   console.log("inflated data size:", inflate.length)
 
   // assertion
-  assert(inflate.length, testData.length);
-  assert(arrayEquals(inflate, testData));
+  buster.assert(inflate.length, testData.length);
+  buster.assert(arrayEquals(inflate, testData));
 }
 
 // inflate test
@@ -184,8 +184,8 @@ function inflateStreamTest(mode, testData, compressionType) {
   console.log("inflated data size:", inflate.length)
 
   // assertion
-  assert(inflate.length, testData.length);
-  assert(arrayEquals(inflate, testData));
+  buster.assert(inflate.length, testData.length);
+  buster.assert(arrayEquals(inflate, testData));
 }
 
 })();
