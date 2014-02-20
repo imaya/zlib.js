@@ -24,8 +24,8 @@ buster.testCase(
         var inflator = new Zlib.Gunzip(deflated);
         var inflated = inflator.decompress();
 
-        assert.equals(inflated.length, this.testData.length, "inflated data size");
-        assert.equals(inflated, this.testData);
+        buster.assert.equals(inflated.length, this.testData.length, "inflated data size");
+        buster.assert.equals(inflated, this.testData);
       },
     //-------------------------------------------------------------------------
     "compress with filename":
@@ -50,9 +50,9 @@ buster.testCase(
         var inflator = new Zlib.Gunzip(deflated);
         var inflated = inflator.decompress();
 
-        assert.equals(inflated.length, this.testData.length, "inflated data size");
-        assert.equals(inflated, this.testData);
-        assert.equals((inflator.getMembers())[0].getName(), 'foobar.filename');
+        buster.assert.equals(inflated.length, this.testData.length, "inflated data size");
+        buster.assert.equals(inflated, this.testData);
+        buster.assert.equals((inflator.getMembers())[0].getName(), 'foobar.filename');
       },
     //-------------------------------------------------------------------------
     "compress with filename (seed: 1346432776267)":
@@ -77,9 +77,9 @@ buster.testCase(
         var inflator = new Zlib.Gunzip(deflated);
         var inflated = inflator.decompress();
 
-        assert.equals(inflated.length, this.testData.length, "inflated data size");
-        assert.equals(inflated, this.testData);
-        assert.equals((inflator.getMembers())[0].getName(), 'foobar.filename');
+        buster.assert.equals(inflated.length, this.testData.length, "inflated data size");
+        buster.assert.equals(inflated, this.testData);
+        buster.assert.equals((inflator.getMembers())[0].getName(), 'foobar.filename');
       }
   }
 );

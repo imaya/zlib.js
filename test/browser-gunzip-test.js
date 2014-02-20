@@ -14,8 +14,8 @@ buster.testCase(
         var inflator = new Zlib.Gunzip(decodedData);
         var inflated = inflator.decompress();
 
-        assert.equals(inflated.length, plain.length, "inflated data size");
-        assert.equals(inflated, plain);
+        buster.assert.equals(inflated.length, plain.length, "inflated data size");
+        buster.assert.equals(inflated, plain);
       },
     //-------------------------------------------------------------------------
     "decompress pre-compressed data with filename":
@@ -33,9 +33,9 @@ buster.testCase(
         var inflator = new Zlib.Gunzip(decodedData);
         var inflated = inflator.decompress();
 
-        assert.equals(inflated.length, plain.length, "inflated data size");
-        assert.equals(inflated, plain);
-        assert.equals((inflator.getMembers())[0].getName(), 'hoge.txt');
+        buster.assert.equals(inflated.length, plain.length, "inflated data size");
+        buster.assert.equals(inflated, plain);
+        buster.assert.equals((inflator.getMembers())[0].getName(), 'hoge.txt');
       }
   }
 );

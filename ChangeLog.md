@@ -2,6 +2,36 @@
 # Change Log
 
 
+## 0.1.9: 2014/02/21
+
+https://github.com/imaya/zlib.js/compare/0.1.8...0.1.9
+
+
+## decompression
+
+- fix RLE bug HDIST between HLIT
+
+
+## etc
+
+- support buster.js 0.7.4
+- code cleanup
+
+
+-------------------------------------------------------------------------------
+
+
+## 0.1.8: 2014/02/16
+
+https://github.com/imaya/zlib.js/compare/0.1.7...0.1.8
+
+
+not changed. (for npm republish)
+
+
+-------------------------------------------------------------------------------
+
+
 ## 0.1.7: 2013/07/12
 
 https://github.com/imaya/zlib.js/compare/0.1.6...0.1.7
@@ -16,6 +46,9 @@ https://github.com/imaya/zlib.js/compare/0.1.6...0.1.7
 - fix PKZIP signedness
 - support different password each file in PKZIP
 - workaround iOS 6.x safari bug in stream version (thanks to Kazuho Oku)
+
+
+-------------------------------------------------------------------------------
 
 
 ## 0.1.6: 2013/05/10

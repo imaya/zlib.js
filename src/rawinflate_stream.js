@@ -56,6 +56,8 @@ Zlib.RawInflateStream = function(input, ip, opt_buffersize) {
   this.sp = 0; // stream pointer
   /** @type {Zlib.RawInflateStream.Status} */
   this.status = Zlib.RawInflateStream.Status.INITIALIZED;
+  /** @type {number} previous RLE value */
+  this.prev;
 
   //
   // backup
@@ -375,8 +377,6 @@ Zlib.RawInflateStream.prototype.readCodeByTable = function(table) {
   var maxCodeLength = table[1];
   /** @type {number} input byte */
   var octet;
-  /** @type {number} code */
-  var code;
   /** @type {number} code length & code (16bit, 16bit) */
   var codeWithLength;
   /** @type {number} code bits length */
@@ -407,8 +407,6 @@ Zlib.RawInflateStream.prototype.readCodeByTable = function(table) {
  * read uncompressed block header
  */
 Zlib.RawInflateStream.prototype.readUncompressedBlockHeader = function() {
-  /** @type {number} input byte. */
-  var octet;
   /** @type {number} block length */
   var len;
   /** @type {number} number for check block length */
@@ -456,7 +454,7 @@ Zlib.RawInflateStream.prototype.parseUncompressedBlock = function() {
   // XXX: とりあえず素直にコピー
   while (len--) {
     if (op === output.length) {
-      output = this.expandBuffer();
+      output = this.expandBuffer({fixRatio: 2});
     }
 
     // not enough input buffer
@@ -535,8 +533,6 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
   var distLengths;
   /** @type {number} loop counter. */
   var i = 0;
-  /** @type {number} loop counter. */
-  var j = 0;
 
   this.status = Zlib.RawInflateStream.Status.BLOCK_BODY_START;
 
@@ -572,9 +568,9 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
     // decode function
     function decode(num, table, lengths) {
       var code;
-      var prev;
+      var prev = this.prev;
       var repeat;
-      var i = 0;
+      var i;
       var bits;
 
       for (i = 0; i < num;) {
@@ -586,14 +582,14 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
           case 16:
             if ((bits = this.readBits(2)) < 0) {
               throw new Error('not enough input');
-            };
+            }
             repeat = 3 + bits;
             while (repeat--) { lengths[i++] = prev; }
             break;
           case 17:
             if ((bits = this.readBits(3)) < 0) {
               throw new Error('not enough input');
-            };
+            }
             repeat = 3 + bits;
             while (repeat--) { lengths[i++] = 0; }
             prev = 0;
@@ -601,7 +597,7 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
           case 18:
             if ((bits = this.readBits(7)) < 0) {
               throw new Error('not enough input');
-            };
+            }
             repeat = 11 + bits;
             while (repeat--) { lengths[i++] = 0; }
             prev = 0;
@@ -613,6 +609,8 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
         }
       }
 
+      this.prev = prev;
+
       return lengths;
     }
 
@@ -622,6 +620,7 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
     // distance code
     distLengths = new (USE_TYPEDARRAY ? Uint8Array : Array)(hdist);
 
+    this.prev = 0;
     this.litlenTable = buildHuffmanTable(decode.call(this, hlit, codeLengthsTable, litlenLengths));
     this.distTable = buildHuffmanTable(decode.call(this, hdist, codeLengthsTable, distLengths));
   }
@@ -647,10 +646,6 @@ Zlib.RawInflateStream.prototype.decodeHuffman = function() {
   var codeDist;
   /** @type {number} huffman code length. */
   var codeLength;
-  /** @type {number} buffer position. */
-  var bpos;
-  /** @type {number} pre-copy counter. */
-  var preCopy;
 
   var litlen = this.litlenTable;
   var dist = this.distTable;

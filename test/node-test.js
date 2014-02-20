@@ -76,13 +76,13 @@ buster.testCase(
       var decodedData = new Buffer(testData, 'base64');
 
       // testdata size
-      assert.equals(testData.length, 1604, "source data size");
-      assert.equals(decodedData.length, 1202, "base64 decoded data size");
+      buster.assert.equals(testData.length, 1604, "source data size");
+      buster.assert.equals(decodedData.length, 1202, "base64 decoded data size");
 
       var inflated = zlib.inflateSync(decodedData);
 
-      assert.equals(inflated.length, size, "inflated data size");
-      assert(arrayEquals(inflated, plain));
+      buster.assert.equals(inflated.length, size, "inflated data size");
+      buster.assert(arrayEquals(inflated, plain));
     },
     // native deflate, js inflate
     "uncompressed random data": function(done) {
@@ -93,8 +93,8 @@ buster.testCase(
       zlibBuffer(new nodeZlib.Deflate({level: 0}), data, function(err, buf) {
         var inflated = zlib.inflateSync(buf);
 
-        assert.equals(inflated.length, data.length);
-        assert.equals(inflated, data);
+        buster.assert.equals(inflated.length, data.length);
+        buster.assert.equals(inflated, data);
 
         done();
       });
@@ -107,8 +107,8 @@ buster.testCase(
       zlibBuffer(new nodeZlib.Deflate({level: 9}), data, function(err, buf) {
         var inflated = zlib.inflateSync(buf);
 
-        assert.equals(inflated.length, data.length);
-        assert(arrayEquals(inflated, data));
+        buster.assert.equals(inflated.length, data.length);
+        buster.assert(arrayEquals(inflated, data));
 
         done();
       });
@@ -117,7 +117,7 @@ buster.testCase(
       var data = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
       var compressed = zlib.deflateSync(data);
       var decompressed = zlib.inflateSync(compressed);
-      assert(arrayEquals(data, Array.prototype.slice.call(decompressed)));
+      buster.assert(arrayEquals(data, Array.prototype.slice.call(decompressed)));
     },
     // js deflate, native inflate
     "random data": function(done) {
@@ -179,8 +179,8 @@ function inflateTest(done, testData) {
     console.log("inflated data size:", buffer.length);
 
     // assertion
-    assert(buffer.length, testData.length);
-    assert(arrayEquals(buffer, testData));
+    buster.assert(buffer.length, testData.length);
+    buster.assert(arrayEquals(buffer, testData));
 
     done();
   });
@@ -194,8 +194,8 @@ function gzipTest(done, testData) {
   console.log("Deflate:", deflated.length);
   nodeZlib.gunzip(deflated, function(err, buf) {
     console.log("Inflate:", buf.length);
-    assert.equals(buf.length, testData.length);
-    assert(arrayEquals(buf, testData));
+    buster.assert.equals(buf.length, testData.length);
+    buster.assert(arrayEquals(buf, testData));
 
     done();
   });
@@ -206,8 +206,8 @@ function gunzipTest(done, testData) {
   nodeZlib.gzip(testData, function(err, buf) {
     var inflated = zlib.gunzipSync(buf);
 
-    assert.equals(inflated.length, testData.length);
-    assert(arrayEquals(inflated, testData));
+    buster.assert.equals(inflated.length, testData.length);
+    buster.assert(arrayEquals(inflated, testData));
 
     done();
   });

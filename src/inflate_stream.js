@@ -54,7 +54,12 @@ Zlib.InflateStream.prototype.decompress = function(input) {
   }
 
   buffer = this.rawinflate.decompress(this.input, this.ip);
-  this.ip = this.rawinflate.ip;
+  if (this.rawinflate.ip !== 0) {
+    this.input = USE_TYPEDARRAY ?
+      this.input.subarray(this.rawinflate.ip) :
+      this.input.slice(this.rawinflate.ip);
+    this.ip = 0;
+  }
 
   // verify adler-32
   /*

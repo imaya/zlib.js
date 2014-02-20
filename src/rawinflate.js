@@ -52,6 +52,8 @@ Zlib.RawInflate = function(input, opt_params) {
   this.bufferType = Zlib.RawInflate.BufferType.ADAPTIVE;
   /** @type {boolean} resize flag for memory size optimization. */
   this.resize = false;
+  /** @type {number} previous RLE value */
+  this.prev;
 
   // option parameters
   if (opt_params || !(opt_params = {})) {
@@ -269,19 +271,20 @@ Zlib.RawInflate.prototype.readBits = function(length) {
   var input = this.input;
   var ip = this.ip;
 
+  /** @type {number} */
+  var inputLength = input.length;
   /** @type {number} input and output byte. */
   var octet;
 
   // not enough buffer
   while (bitsbuflen < length) {
     // input byte
-    octet = input[ip++];
-    if (octet === void 0) {
+    if (ip >= inputLength) {
       throw new Error('input buffer is broken');
     }
 
     // concat octet
-    bitsbuf |= octet << bitsbuflen;
+    bitsbuf |= input[ip++] << bitsbuflen;
     bitsbuflen += 8;
   }
 
@@ -308,12 +311,12 @@ Zlib.RawInflate.prototype.readCodeByTable = function(table) {
   var input = this.input;
   var ip = this.ip;
 
+  /** @type {number} */
+  var inputLength = input.length;
   /** @type {!(Array.<number>|Uint8Array)} huffman code table */
   var codeTable = table[0];
   /** @type {number} */
   var maxCodeLength = table[1];
-  /** @type {number} input byte */
-  var octet;
   /** @type {number} code length & code (16bit, 16bit) */
   var codeWithLength;
   /** @type {number} code bits length */
@@ -321,11 +324,10 @@ Zlib.RawInflate.prototype.readCodeByTable = function(table) {
 
   // not enough buffer
   while (bitsbuflen < maxCodeLength) {
-    octet = input[ip++];
-    if (octet === void 0) {
+    if (ip >= inputLength) {
       break;
     }
-    bitsbuf |= octet << bitsbuflen;
+    bitsbuf |= input[ip++] << bitsbuflen;
     bitsbuflen += 8;
   }
 
@@ -349,8 +351,8 @@ Zlib.RawInflate.prototype.parseUncompressedBlock = function() {
   var output = this.output;
   var op = this.op;
 
-  /** @type {number} input byte. */
-  var octet;
+  /** @type {number} */
+  var inputLength = input.length;
   /** @type {number} block length */
   var len;
   /** @type {number} number for check block length */
@@ -364,33 +366,17 @@ Zlib.RawInflate.prototype.parseUncompressedBlock = function() {
   this.bitsbuf = 0;
   this.bitsbuflen = 0;
 
-  // len (1st)
-  octet = input[ip++];
-  if (octet === void 0) {
-    throw new Error('invalid uncompressed block header: LEN (first byte)');
+  // len
+  if (ip + 1 >= inputLength) {
+    throw new Error('invalid uncompressed block header: LEN');
   }
-  len = octet;
+  len = input[ip++] | (input[ip++] << 8);
 
-  // len (2nd)
-  octet = input[ip++];
-  if (octet === void 0) {
-    throw new Error('invalid uncompressed block header: LEN (second byte)');
+  // nlen
+  if (ip + 1 >= inputLength) {
+    throw new Error('invalid uncompressed block header: NLEN');
   }
-  len |= octet << 8;
-
-  // nlen (1st)
-  octet = input[ip++];
-  if (octet === void 0) {
-    throw new Error('invalid uncompressed block header: NLEN (first byte)');
-  }
-  nlen = octet;
-
-  // nlen (2nd)
-  octet = input[ip++];
-  if (octet === void 0) {
-    throw new Error('invalid uncompressed block header: NLEN (second byte)');
-  }
-  nlen |= octet << 8;
+  nlen = input[ip++] | (input[ip++] << 8);
 
   // check len & nlen
   if (len === ~nlen) {
@@ -482,6 +468,11 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
   for (i = 0; i < hclen; ++i) {
     codeLengths[Zlib.RawInflate.Order[i]] = this.readBits(3);
   }
+  if (!USE_TYPEDARRAY) {
+    for (i = hclen, hclen = codeLengths.length; i < hclen; ++i) {
+      codeLengths[Zlib.RawInflate.Order[i]] = 0;
+    }
+  }
   codeLengthsTable = buildHuffmanTable(codeLengths);
 
   /**
@@ -495,7 +486,7 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
     /** @type {number} */
     var code;
     /** @type {number} */
-    var prev;
+    var prev = this.prev;
     /** @type {number} */
     var repeat;
     /** @type {number} */
@@ -525,6 +516,8 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
       }
     }
 
+    this.prev = prev;
+
     return lengths;
   }
 
@@ -534,7 +527,7 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
   // distance code
   distLengths = new (USE_TYPEDARRAY ? Uint8Array : Array)(hdist);
 
-  //return;
+  this.prev = 0;
   this.decodeHuffman(
     buildHuffmanTable(decode.call(this, hlit, codeLengthsTable, litlenLengths)),
     buildHuffmanTable(decode.call(this, hdist, codeLengthsTable, distLengths))

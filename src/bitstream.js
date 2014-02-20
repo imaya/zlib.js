@@ -173,8 +173,6 @@ Zlib.BitStream.ReverseTable = (function(table) {
   var table = new (USE_TYPEDARRAY ? Uint8Array : Array)(256);
   /** @type {number} loop counter. */
   var i;
-  /** @type {number} loop limiter. */
-  var il;
 
   // generate
   for (i = 0; i < 256; ++i) {
