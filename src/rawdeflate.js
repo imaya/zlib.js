@@ -670,7 +670,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var prevMatch;
   /** @type {!(Array.<number>|Uint16Array)} lz77 buffer */
   var lz77buf = USE_TYPEDARRAY ?
-    new Uint16Array(dataArray.length * 2) : new Array();
+    new Uint16Array(dataArray.length * 2) : [];
   /** @type {number} lz77 output buffer pointer */
   var pos = 0;
   /** @type {number} lz77 skip length */
