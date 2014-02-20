@@ -39,8 +39,8 @@ Zlib.Huffman.buildHuffmanTable = function(lengths) {
   var il;
   /** @type {number} loop counter. */
   var j;
-  /** @type {number} loop limit. */
-  var jl;
+  /** @type {number} table value. */
+  var value;
 
   // Math.max は遅いので最長の値は for-loop で取得する
   for (i = 0, il = listSize; i < il; ++i) {
@@ -69,8 +69,9 @@ Zlib.Huffman.buildHuffmanTable = function(lengths) {
         // 最大ビット長以外では 0 / 1 どちらでも良い箇所ができる
         // そのどちらでも良い場所は同じ値で埋めることで
         // 本来のビット長以上のビット数取得しても問題が起こらないようにする
+        value = (bitLength << 16) | i;
         for (j = reversed; j < size; j += skip) {
-          table[j] = (bitLength << 16) | i;
+          table[j] = value;
         }
 
         ++code;

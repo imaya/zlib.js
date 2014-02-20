@@ -557,7 +557,7 @@ Zlib.RawDeflate.Lz77Match.LengthCodeTable = (function(table) {
       case (length === 258): return [285, length - 258, 0]; break;
       default: throw 'invalid length: ' + length;
     }
-  };
+  }
 
   return table;
 })());
@@ -867,7 +867,7 @@ function(data, position, matchList) {
 Zlib.RawDeflate.prototype.getTreeSymbols_ =
 function(hlit, litlenLengths, hdist, distLengths) {
   var src = new (USE_TYPEDARRAY ? Uint32Array : Array)(hlit + hdist),
-      i, j, runLength, l, length,
+      i, j, runLength, l,
       result = new (USE_TYPEDARRAY ? Uint32Array : Array)(286 + 30),
       nResult,
       rpt,
@@ -989,8 +989,6 @@ Zlib.RawDeflate.prototype.getLengths_ = function(freqs, limit) {
   var i;
   /** @type {number} */
   var il;
-  /** @type {Array.<number>} */
-  var freqsZero = [];
 
   // 配列の初期化
   if (!USE_TYPEDARRAY) {
