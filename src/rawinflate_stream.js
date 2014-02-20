@@ -56,6 +56,8 @@ Zlib.RawInflateStream = function(input, ip, opt_buffersize) {
   this.sp = 0; // stream pointer
   /** @type {Zlib.RawInflateStream.Status} */
   this.status = Zlib.RawInflateStream.Status.INITIALIZED;
+  /** @type {number} previous RLE value */
+  this.prev;
 
   //
   // backup
@@ -572,7 +574,7 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
     // decode function
     function decode(num, table, lengths) {
       var code;
-      var prev;
+      var prev = this.prev;
       var repeat;
       var i = 0;
       var bits;
@@ -613,6 +615,8 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
         }
       }
 
+      this.prev = prev;
+
       return lengths;
     }
 
@@ -622,6 +626,7 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
     // distance code
     distLengths = new (USE_TYPEDARRAY ? Uint8Array : Array)(hdist);
 
+    this.prev = 0;
     this.litlenTable = buildHuffmanTable(decode.call(this, hlit, codeLengthsTable, litlenLengths));
     this.distTable = buildHuffmanTable(decode.call(this, hdist, codeLengthsTable, distLengths));
   }

@@ -52,6 +52,8 @@ Zlib.RawInflate = function(input, opt_params) {
   this.bufferType = Zlib.RawInflate.BufferType.ADAPTIVE;
   /** @type {boolean} resize flag for memory size optimization. */
   this.resize = false;
+  /** @type {number} previous RLE value */
+  this.prev;
 
   // option parameters
   if (opt_params || !(opt_params = {})) {
@@ -484,7 +486,7 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
     /** @type {number} */
     var code;
     /** @type {number} */
-    var prev;
+    var prev = this.prev;
     /** @type {number} */
     var repeat;
     /** @type {number} */
@@ -514,6 +516,8 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
       }
     }
 
+    this.prev = prev;
+
     return lengths;
   }
 
@@ -523,7 +527,7 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
   // distance code
   distLengths = new (USE_TYPEDARRAY ? Uint8Array : Array)(hdist);
 
-  //return;
+  this.prev = 0;
   this.decodeHuffman(
     buildHuffmanTable(decode.call(this, hlit, codeLengthsTable, litlenLengths)),
     buildHuffmanTable(decode.call(this, hdist, codeLengthsTable, distLengths))
