@@ -8,7 +8,7 @@
   },
   "name": "zlibjs",
   "description": "zlib, gzip and zip implementation in JavaScript",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "main": "./bin/node-zlib.js",
   "homepage": "https://github.com/imaya/zlib.js",
   "repository": {

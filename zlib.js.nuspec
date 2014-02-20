@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>zlib.js</id>
-        <version>0.1.7</version>
+        <version>0.1.9</version>
         <title>zlib.js</title>
         <authors>imaya</authors>
         <owners>imaya</owners>
