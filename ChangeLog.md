@@ -2,9 +2,9 @@
 # Change Log
 
 
-## 0.1.9: 2014/02/21
+## 0.1.9, 0.2.0: 2014/02/21
 
-https://github.com/imaya/zlib.js/compare/0.1.8...0.1.9
+https://github.com/imaya/zlib.js/compare/0.1.8...0.2.0
 
 
 ## decompression
