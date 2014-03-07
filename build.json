@@ -1,0 +1,129 @@
+{
+  "zlib": {
+    "src": [
+      "export/inflate.js",
+      "export/deflate.js"
+    ],
+    "dest": "bin/zlib.min.js",
+    "map": "bin/zlib.min.js.map",
+    "dev": "bin/zlib.dev.min.js"
+  },
+  "zlib_and_gzip": {
+    "src": [
+      "export/inflate.js",
+      "export/deflate.js",
+      "export/gzip.js",
+      "export/gunzip.js",
+      "export/gunzip_member.js"
+    ],
+    "dest": "bin/zlib_and_gzip.min.js",
+    "map": "bin/zlib_and_gzip.min.js.map",
+    "dev": "bin/zlib_and_gzip.dev.min.js"
+  },
+  "rawinflate": {
+    "src": [
+      "export/rawinflate.js"
+    ],
+    "dest": "bin/rawinflate.min.js",
+    "map": "bin/rawinflate.min.js.map",
+    "dev": "bin/rawinflate.dev.min.js"
+  },
+  "rawdeflate": {
+    "src": [
+      "export/rawdeflate.js"
+    ],
+    "dest": "bin/rawdeflate.min.js",
+    "map": "bin/rawdeflate.min.js.map",
+    "dev": "bin/rawdeflate.dev.min.js"
+  },
+  "inflate": {
+    "src": [
+      "export/inflate.js"
+    ],
+    "dest": "bin/inflate.min.js",
+    "map": "bin/inflate.min.js.map",
+    "dev": "bin/inflate.dev.min.js"
+  },
+  "inflate_stream": {
+    "src": [
+      "export/inflate_stream.js"
+    ],
+    "dest": "bin/inflate_stream.min.js",
+    "map": "bin/inflate_stream.min.js.map",
+    "dev": "bin/inflate_stream.dev.min.js"
+  },
+  "deflate": {
+    "src": [
+      "export/deflate.js"
+    ],
+    "dest": "bin/deflate.min.js",
+    "map": "bin/deflate.min.js.map",
+    "dev": "bin/deflate.dev.min.js"
+  },
+  "gzip": {
+    "src": [
+      "export/gzip.js"
+    ],
+    "dest": "bin/gzip.min.js",
+    "map": "bin/gzip.min.js.map",
+    "dev": "bin/gzip.dev.min.js"
+  },
+  "gunzip": {
+    "src": [
+      "export/gunzip.js",
+      "export/gunzip_member.js"
+    ],
+    "dest": "bin/gunzip.min.js",
+    "map": "bin/gunzip.min.js.map",
+    "dev": "bin/gunzip.dev.min.js"
+  },
+  "zip": {
+    "src": [
+      "export/zip.js"
+    ],
+    "dest": "bin/zip.min.js",
+    "map": "bin/zip.min.js.map",
+    "dev": "bin/zip.dev.min.js"
+
+  },
+  "unzip": {
+    "src": [
+      "export/unzip.js"
+    ],
+    "dest": "bin/unzip.min.js",
+    "map": "bin/unzip.min.js.map",
+    "dev": "bin/unzip.dev.min.js"
+  },
+  "crc32": {
+    "src": [
+      "export/crc32.js",
+      "export/crc32.js"
+    ],
+    "dest": "bin/crc32.min.js",
+    "map": "bin/crc32.min.js.map",
+    "dev": "bin/crc32.dev.min.js"
+  },
+  "node": {
+    "src": [
+      "node/exports.js"
+    ],
+    "dest": "bin/node-zlib.js",
+    "map": "bin/node-zlib.js.map",
+    "dev": "bin/node-zlib.dev.js",
+    "compilerOpts": {
+      "externs": "node/externs.js"
+    }
+  },
+  "pretty": {
+    "src": [
+      "export/*.js"
+    ],
+    "dest": "bin/zlib.pretty.js",
+    "map": "bin/zlib.pretty.js.map",
+    "dev": "bin/zlib.pretty.dev.js",
+    "compilerOpts": {
+      "compilation_level": "WHITESPACE_ONLY",
+      "formatting": "PRETTY_PRINT"
+    }
+  }
+}

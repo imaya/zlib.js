@@ -237,16 +237,13 @@ zlib.js では JavaScript ファイルを minify された形で提供してい�
 そういった時のために SourceMaps ファイルや Pretty Print されたファイルも提供しています。
 
 
-### SourceMaps
+### Source Map
 
-SourceMaps を有効にするには以下のように対象となるファイルに `.map` を付けたファイルと、変換前のソースコードである `src` ディレクトリを配置します。
+Source Map を使いたい場合はファイル名に `dev` のついたバージョンを使います。
+例えば Source Map を有効にした Inflate を使いたい場合は以下になります。
 
-    - inflate.min.js
-    - inflate.min.js.map
-    - [src]
-      - (source files)
-
-なお、ここに書いてある `[src]` は zlib.js のリポジトリの `src` ディレクトリをコピーしてください。
+    - inflate.min.js // リリースバージョン
+    - inflate.dev.min.js // 開発バージョン（これを使う）
 
 
 ### Pretty Print
@@ -259,20 +256,19 @@ SourceMaps とは異なりますが、minify の変数名の短縮のみ避け�
 How to build
 ------------
 
-ビルドは Ant と Closure Compiler を使用して行います。
+ビルドは Grunt と Closure Compiler を使用して行います。
 
 ### 必要な環境
 
-- Ant 1.8+
-- JRE 1.6+
+- Grunt
 - Python
 
 ### ビルド
 
-Ant を使ってビルドを行います。
+Grunt を使ってビルドを行います。
 
 ```
-$ ant [target]
+$ grunt [target]
 ```
 
 #### ビルドターゲット
