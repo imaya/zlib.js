@@ -100,7 +100,7 @@ module.exports = function(grunt) {
     var mapfile = filepath + ".map";
 
     var result =
-      src + '//# sourceMappingURL=data:application/json;base64,' +
+      src + '//# sourceMappingURL=data:application/json;charset=utf-8;base64,' +
         new Buffer(updateSourceMaps(mapfile)).toString('base64');
     grunt.file.delete(mapfile);
 
