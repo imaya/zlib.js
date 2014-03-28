@@ -640,7 +640,19 @@ goog.scope(function() {
     return table
   }() : USE_TYPEDARRAY ? new Uint32Array(Zlib.CRC32.Table_) : Zlib.CRC32.Table_
 });
-goog.provide("Zlib.GunzipMember");
+goog.provide("FixPhantomJSFunctionApplyBug_StringFromCharCode");
+if(goog.global["Uint8Array"] !== void 0) {
+  try {
+    eval("String.fromCharCode.apply(null, new Uint8Array([0]));")
+  }catch(e) {
+    String.fromCharCode.apply = function(fromCharCodeApply) {
+      return function(thisobj, args) {
+        return fromCharCodeApply.call(String.fromCharCode, thisobj, Array.prototype.slice.call(args))
+      }
+    }(String.fromCharCode.apply)
+  }
+}
+;goog.provide("Zlib.GunzipMember");
 goog.scope(function() {
   Zlib.GunzipMember = function() {
     this.id1;
@@ -3225,6 +3237,7 @@ goog.scope(function() {
 });
 goog.provide("Zlib.Unzip");
 goog.require("USE_TYPEDARRAY");
+goog.require("FixPhantomJSFunctionApplyBug_StringFromCharCode");
 goog.require("Zlib.RawInflate");
 goog.require("Zlib.CRC32");
 goog.require("Zlib.Zip");
