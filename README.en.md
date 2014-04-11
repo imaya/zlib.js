@@ -218,16 +218,14 @@ see unit tests.
 If you want to know the code before compile, SourceMaps and PrettyPrint can be used.
 
 
-### SourceMaps
+### Source Map
 
-If you want to enable the SourceMaps if, you can use the `src` directory and *.min.js.map.
+If you want to use the Source Map, use `dev` version.
 
-    - inflate.min.js
-    - inflate.min.js.map
-    - [src]
-      - (source files)
+For example, you want to use Inflate with Source Map.
 
-`[src]` is zlib.js source code directory.
+    - inflate.min.js // release version
+    - inflate.dev.min.js // development version <- use this
 
 
 ### Pretty Print
@@ -238,20 +236,19 @@ If you want to enable the SourceMaps if, you can use the `src` directory and *.m
 How to build
 ------------
 
-Build using Ant and Closure Compiler.
+Build using Grunt and Closure Compiler.
 
 ### Requirement
 
-- Ant 1.8+
-- JRE 1.6+
+- Grunt
 - Python
 
 ### Build
 
-Use "ant" command.
+Use "grunt" command.
 
 ```
-$ ant [target]
+$ grunt [target]
 ```
 
 #### Build target

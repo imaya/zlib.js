@@ -31,7 +31,7 @@ config["codepath"] = mixin(
     ],
     libs: [
       "closure-primitives/base.js",
-      "deps.js",
+      "closure-primitives/deps.js",
       "test/plain.js"
     ],
     tests: [
@@ -49,14 +49,14 @@ config["respectively build"] = mixin(
       'test/browser-raw-test.js'
     ],
     libs: [
-      "bin/rawinflate.min.js",
-      "bin/rawdeflate.min.js",
-      "bin/inflate.min.js",
-      "bin/deflate.min.js",
-      "bin/gunzip.min.js",
-      "bin/gzip.min.js",
-      "bin/unzip.min.js",
-      "bin/zip.min.js"
+      "bin/rawinflate.dev.min.js",
+      "bin/rawdeflate.dev.min.js",
+      "bin/inflate.dev.min.js",
+      "bin/deflate.dev.min.js",
+      "bin/gunzip.dev.min.js",
+      "bin/gzip.dev.min.js",
+      "bin/unzip.dev.min.js",
+      "bin/zip.dev.min.js"
     ]
   }
 );
@@ -66,10 +66,10 @@ config["zlib"] = mixin(
   mixin({}, browserCommon),
   {
     libs: [
-      "bin/inflate.min.js",
-      "bin/zip.min.js",
-      "bin/unzip.min.js",
-      "bin/zlib_and_gzip.min.js"
+      "bin/inflate.dev.min.js",
+      "bin/zip.dev.min.js",
+      "bin/unzip.dev.min.js",
+      "bin/zlib_and_gzip.dev.min.js"
     ]
   }
 );
