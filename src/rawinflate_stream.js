@@ -21,8 +21,6 @@ var buildHuffmanTable = Zlib.Huffman.buildHuffmanTable;
  * @constructor
  */
 Zlib.RawInflateStream = function(input, ip, opt_buffersize) {
-  /** @type {!(Array|Uint8Array)} inflated buffer */
-  this.buffer;
   /** @type {!Array.<(Array|Uint8Array)>} */
   this.blocks = [];
   /** @type {number} block size. */
@@ -436,7 +434,7 @@ Zlib.RawInflateStream.prototype.readUncompressedBlockHeader = function() {
   this.ip = ip;
   this.blockLength = len;
   this.status = Zlib.RawInflateStream.Status.BLOCK_BODY_END;
-}
+};
 
 /**
  * parse uncompressed block.
@@ -798,15 +796,14 @@ Zlib.RawInflateStream.prototype.expandBuffer = function(opt_param) {
 Zlib.RawInflateStream.prototype.concatBuffer = function() {
   /** @type {!(Array|Uint8Array)} output buffer. */
   var buffer;
-
-  var resize = this.resize;
-
+  /** @type {number} */
   var op = this.op;
+  /** @type {Uint8Array} */
+  var tmp;
 
-  if (resize) {
+  if (this.resize) {
     if (USE_TYPEDARRAY) {
-      buffer = new Uint8Array(op);
-      buffer.set(this.output.subarray(this.sp, op));
+      buffer = new Uint8Array(this.output.subarray(this.sp, op));
     } else {
       buffer = this.output.slice(this.sp, op);
     }
@@ -815,22 +812,23 @@ Zlib.RawInflateStream.prototype.concatBuffer = function() {
       USE_TYPEDARRAY ? this.output.subarray(this.sp, op) : this.output.slice(this.sp, op);
   }
 
-
-  this.buffer = buffer;
   this.sp = op;
 
-  return this.buffer;
+  // compaction
+  if (op > Zlib.RawInflateStream.MaxBackwardLength + this.bufferSize) {
+    this.op = this.sp = Zlib.RawInflateStream.MaxBackwardLength;
+    if (USE_TYPEDARRAY) {
+      tmp = /** @type {Uint8Array} */(this.output);
+      this.output = new Uint8Array(this.bufferSize + Zlib.RawInflateStream.MaxBackwardLength);
+      this.output.set(tmp.subarray(op - Zlib.RawInflateStream.MaxBackwardLength, op));
+    } else {
+      this.output = this.output.slice(op - Zlib.RawInflateStream.MaxBackwardLength);
+    }
+  }
+
+  return buffer;
 };
 
-/**
- * @return {!(Array|Uint8Array)} current output buffer.
- */
-Zlib.RawInflateStream.prototype.getBytes = function() {
-  return USE_TYPEDARRAY ?
-    this.output.subarray(0, this.op) : this.output.slice(0, this.op);
-};
 
 // end of scope
 });
-
-/* vim:set expandtab ts=2 sw=2 tw=80: */
