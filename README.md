@@ -278,19 +278,19 @@ $ ant [target]
 #### ビルドターゲット
 
 target         | ファイル名            | 含まれる実装
----------------|----------------------|-------------
-deps           | deps.js              | 依存関係の解決
-deflate        | deflate.min.js       | ZLIB Deflate
-inflate        | inflate.min.js       | ZLIB Inflate
-inflate_stream | inlate_stream.min.js | ZLIB Inlate (stream)
-zlib           | zlib.min.js          | ZLIB Deflate + Inflate
-gzip           | gzip.min.js          | GZIP Compression
-gunzip         | gunzip.min.js        | GZIP Decompression
-zlib_and_gzip  | zlib_and_gzip.min.js | ZLIB + GZIP
-node           | node-zlib.js         | ZLIB + GZIP for node.js
-zip            | zip.min.js           | PKZIP Compression
-unzip          | unzip.min.js         | PKZIP Decompression
-all            | *                    | default target
+---------------|-----------------------|-------------
+deps           | deps.js               | 依存関係の解決
+deflate        | deflate.min.js        | ZLIB Deflate
+inflate        | inflate.min.js        | ZLIB Inflate
+inflate_stream | inflate_stream.min.js | ZLIB Inflate (stream)
+zlib           | zlib.min.js           | ZLIB Deflate + Inflate
+gzip           | gzip.min.js           | GZIP Compression
+gunzip         | gunzip.min.js         | GZIP Decompression
+zlib_and_gzip  | zlib_and_gzip.min.js  | ZLIB + GZIP
+node           | node-zlib.js          | ZLIB + GZIP for node.js
+zip            | zip.min.js            | PKZIP Compression
+unzip          | unzip.min.js          | PKZIP Decompression
+all            | *                     | default target
 
 
 Issue
