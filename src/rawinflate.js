@@ -52,8 +52,6 @@ Zlib.RawInflate = function(input, opt_params) {
   this.bufferType = Zlib.RawInflate.BufferType.ADAPTIVE;
   /** @type {boolean} resize flag for memory size optimization. */
   this.resize = false;
-  /** @type {number} previous RLE value */
-  this.prev;
 
   // option parameters
   if (opt_params || !(opt_params = {})) {
@@ -457,12 +455,22 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
     new (USE_TYPEDARRAY ? Uint8Array : Array)(Zlib.RawInflate.Order.length);
   /** @type {!Array} code lengths table. */
   var codeLengthsTable;
-  /** @type {!(Uint8Array|Array.<number>)} literal and length code lengths. */
-  var litlenLengths;
-  /** @type {!(Uint8Array|Array.<number>)} distance code lengths. */
-  var distLengths;
+  /** @type {!(Uint8Array|Array.<number>)} literal and length code table. */
+  var litlenTable;
+  /** @type {!(Uint8Array|Array.<number>)} distance code table. */
+  var distTable;
+  /** @type {!(Uint8Array|Array.<number>)} code length table. */
+  var lengthTable;
+  /** @type {number} */
+  var code;
+  /** @type {number} */
+  var prev;
+  /** @type {number} */
+  var repeat;
   /** @type {number} loop counter. */
   var i;
+  /** @type {number} loop limit. */
+  var il;
 
   // decode code lengths
   for (i = 0; i < hclen; ++i) {
@@ -473,65 +481,42 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
       codeLengths[Zlib.RawInflate.Order[i]] = 0;
     }
   }
+
+  // decode length table
   codeLengthsTable = buildHuffmanTable(codeLengths);
-
-  /**
-   * decode function
-   * @param {number} num number of lengths.
-   * @param {!Array} table code lengths table.
-   * @param {!(Uint8Array|Array.<number>)} lengths code lengths buffer.
-   * @return {!(Uint8Array|Array.<number>)} code lengths buffer.
-   */
-  function decode(num, table, lengths) {
-    /** @type {number} */
-    var code;
-    /** @type {number} */
-    var prev = this.prev;
-    /** @type {number} */
-    var repeat;
-    /** @type {number} */
-    var i;
-
-    for (i = 0; i < num;) {
-      code = this.readCodeByTable(table);
-      switch (code) {
-        case 16:
-          repeat = 3 + this.readBits(2);
-          while (repeat--) { lengths[i++] = prev; }
-          break;
-        case 17:
-          repeat = 3 + this.readBits(3);
-          while (repeat--) { lengths[i++] = 0; }
-          prev = 0;
-          break;
-        case 18:
-          repeat = 11 + this.readBits(7);
-          while (repeat--) { lengths[i++] = 0; }
-          prev = 0;
-          break;
-        default:
-          lengths[i++] = code;
-          prev = code;
-          break;
-      }
+  lengthTable = new (USE_TYPEDARRAY ? Uint8Array : Array)(hlit + hdist);
+  for (i = 0, il = hlit + hdist; i < il;) {
+    code = this.readCodeByTable(codeLengthsTable);
+    switch (code) {
+      case 16:
+        repeat = 3 + this.readBits(2);
+        while (repeat--) { lengthTable[i++] = prev; }
+        break;
+      case 17:
+        repeat = 3 + this.readBits(3);
+        while (repeat--) { lengthTable[i++] = 0; }
+        prev = 0;
+        break;
+      case 18:
+        repeat = 11 + this.readBits(7);
+        while (repeat--) { lengthTable[i++] = 0; }
+        prev = 0;
+        break;
+      default:
+        lengthTable[i++] = code;
+        prev = code;
+        break;
     }
-
-    this.prev = prev;
-
-    return lengths;
   }
 
-  // literal and length code
-  litlenLengths = new (USE_TYPEDARRAY ? Uint8Array : Array)(hlit);
+  litlenTable = USE_TYPEDARRAY
+    ? buildHuffmanTable(lengthTable.subarray(0, hlit))
+    : buildHuffmanTable(lengthTable.slice(0, hlit));
+  distTable = USE_TYPEDARRAY
+    ? buildHuffmanTable(lengthTable.subarray(hlit))
+    : buildHuffmanTable(lengthTable.slice(hlit));
 
-  // distance code
-  distLengths = new (USE_TYPEDARRAY ? Uint8Array : Array)(hdist);
-
-  this.prev = 0;
-  this.decodeHuffman(
-    buildHuffmanTable(decode.call(this, hlit, codeLengthsTable, litlenLengths)),
-    buildHuffmanTable(decode.call(this, hdist, codeLengthsTable, distLengths))
-  );
+  this.decodeHuffman(litlenTable, distTable);
 };
 
 /**
