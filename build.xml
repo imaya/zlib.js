@@ -147,6 +147,40 @@
     </java>
   </target>
 
+  <!-- Inflate の単体ビルド -->
+  <target name="inflate-concat" depends="deps,prebuild" description="Inflate の独立ビルドを行う">
+    <!-- 出力ファイル名 -->
+    <local name="outfile"/>
+    <property name="outfile" value="${bin}/inflate.js"/>
+    <!-- ビルド(出力先は一時ファイル) -->
+    <java jar="${compiler}" fork="true" failonerror="true">
+      <arg line="--warning_level=VERBOSE"/>
+      <arg line="--compilation_level=WHITESPACE_ONLY"/>
+      <arg line="--formatting PRETTY_PRINT"/>
+      <arg line="--define=goog.DEBUG=false"/>
+      <arg line="--output_wrapper='(function() {%output%}).call(this);'"/>
+      <arg line="--summary_detail_level=3"/>
+      <arg line="--language_in=ECMASCRIPT5_STRICT"/>
+      <arg line="--js_output_file=${outfile}.tmp"/>
+      <arg line="--js=${export}/inflate.js"/>
+      <arg line="--js=${closure_primitives}"/>
+      <arg line="--js=${depend}"/>
+      <arg line="${def}/typedarray/hybrid.js"/>
+      <arg line="${srcfiles}"/>
+    </java>
+    <!-- ライセンスとビルドされたファイルをプロパティとして読み込む -->
+    <local name="license"/>
+    <loadfile property="license" srcfile="./LICENSE_min"/>
+    <local name="output"/>
+    <loadfile property="output" srcfile="${outfile}.tmp"/>
+    <!-- ライセンスとビルドされたファイルの結合 -->
+    <echo file="${outfile}" append="no" message="${license}"/>
+    <echo file="${outfile}" append="yes" message="${output}"/>
+    <fixcrlf file="${outfile}" eol="unix" eof="remove"/>
+    <!-- 一時ファイルの削除 -->
+    <delete file="${outfile}.tmp"/>
+  </target>
+
   <!-- Gzip の単体ビルド -->
   <target name="gzip" depends="deps,prebuild" description="Gzip の独立ビルドを行う">
     <!-- 出力ファイル名 -->
