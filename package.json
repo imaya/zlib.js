@@ -12,7 +12,11 @@
     "type": "git",
     "url": "git://github.com/imaya/zlib.js.git"
   },
-  "dependencies": {},
+  "dependencies": {
+    "grunt": "^1.0.1",
+    "grunt-closure-tools": "^0.9.9",
+    "grunt-contrib-concat": "^1.0.1"
+  },
   "devDependencies": {
     "babel-preset-env": "^1.5.1",
     "babel-preset-power-assert": "^1.0.0",
