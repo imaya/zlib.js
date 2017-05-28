@@ -273,7 +273,7 @@ Zlib.Zip.prototype.compress = function() {
   }
 
   // end of central directory
-  endOfCentralDirectorySize = 46 + (this.comment ? this.comment.length : 0);
+  endOfCentralDirectorySize = 22 + (this.comment ? this.comment.length : 0);
   output = new (USE_TYPEDARRAY ? Uint8Array : Array)(
     localFileSize + centralDirectorySize + endOfCentralDirectorySize
   );
