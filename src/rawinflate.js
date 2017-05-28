@@ -334,7 +334,7 @@ Zlib.RawInflate.prototype.readCodeByTable = function(table) {
   codeLength = codeWithLength >>> 16;
 
   if (codeLength > bitsbuflen) {
-    throw new ('invalid code length: ' + codeLength);
+    throw new Error('invalid code length: ' + codeLength);
   }
 
   this.bitsbuf = bitsbuf >> codeLength;
