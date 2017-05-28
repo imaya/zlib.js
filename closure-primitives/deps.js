@@ -11,7 +11,7 @@ goog.addDependency('../src/gunzip_member.js', ['Zlib.GunzipMember'], []);
 goog.addDependency('../src/gzip.js', ['Zlib.Gzip'], ['USE_TYPEDARRAY', 'Zlib.CRC32', 'Zlib.RawDeflate']);
 goog.addDependency('../src/heap.js', ['Zlib.Heap'], ['USE_TYPEDARRAY']);
 goog.addDependency('../src/huffman.js', ['Zlib.Huffman'], ['USE_TYPEDARRAY']);
-goog.addDependency('../src/inflate.js', ['Zlib.Inflate'], ['USE_TYPEDARRAY', 'Zlib.Adler32', 'Zlib.RawInflate']);
+goog.addDependency('../src/Zlib.js', ['Zlib.Inflate'], ['USE_TYPEDARRAY', 'Zlib.Adler32', 'Zlib.RawInflate']);
 goog.addDependency('../src/inflate_stream.js', ['Zlib.InflateStream'], ['USE_TYPEDARRAY', 'Zlib', 'Zlib.RawInflateStream']);
 goog.addDependency('../src/rawdeflate.js', ['Zlib.RawDeflate'], ['USE_TYPEDARRAY', 'Zlib.BitStream', 'Zlib.Heap']);
 goog.addDependency('../src/rawinflate.js', ['Zlib.RawInflate'], ['USE_TYPEDARRAY', 'Zlib.Huffman']);
@@ -19,4 +19,4 @@ goog.addDependency('../src/rawinflate_stream.js', ['Zlib.RawInflateStream'], ['U
 goog.addDependency('../src/unzip.js', ['Zlib.Unzip'], ['FixPhantomJSFunctionApplyBug_StringFromCharCode', 'USE_TYPEDARRAY', 'Zlib.CRC32', 'Zlib.RawInflate', 'Zlib.Zip']);
 goog.addDependency('../src/util.js', ['Zlib.Util'], []);
 goog.addDependency('../src/zip.js', ['Zlib.Zip'], ['USE_TYPEDARRAY', 'Zlib.CRC32', 'Zlib.RawDeflate']);
-goog.addDependency('../src/zlib.js', ['Zlib'], []);
+goog.addDependency('../src/Zlib.js', ['Zlib'], []);

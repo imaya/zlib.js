@@ -7,7 +7,7 @@ for (i = 0, il = size; i < il; ++i) {
   testData[i] = i & 0xff;
 }
 
-var Zlib = require('zlib');
+var Zlib = require('Zlib');
 var deflated = zlib.deflateSync(testData);
 
 var USE_TYPEDARRAY = typeof Uint8Array === 'function';

@@ -17,7 +17,7 @@ bin ディレクトリから必要なものを利用してください。
 - zlib_and_gzip.min.js: ZLIB + GZIP
     + (Raw)
         * rawdeflate.js: Raw Deflate
-        * rawinflate.js: Raw Inflate
+        * raw.js: Raw Inflate
     + zlib.min.js: ZLIB Inflate + Deflate
         * inflate.min.js: ZLIB Inflate
         * deflate.min.js: ZLIB Deflate

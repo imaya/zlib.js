@@ -2,7 +2,7 @@
 // base64 decoder
 // see http://sourceforge.net/projects/libb64/
 //-----------------------------------------------------------------------------
-function decodeB64(str) {
+function base64toArray(str) {
   var c, decoded, fragment, i, op, n, table_length, v, il;
   var table = [
     62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1,
@@ -89,7 +89,8 @@ function stringToByteArray(str) {
 //-----------------------------------------------------------------------------
 // make random data
 //-----------------------------------------------------------------------------
-function makeRandomData(data) {
+function makeRandomData(size, typedarray) {
+  var data = new (typedarray ? Uint8Array : Array)(size);
   var seed = +new Date();
   var mt = new MersenneTwister(seed);
   var i, il;
@@ -100,24 +101,30 @@ function makeRandomData(data) {
   for (i = 0, il = data.length; i < il; ++i) {
     data[i] = mt.nextInt(256);
   }
+
+  return data;
 }
 
 //-----------------------------------------------------------------------------
 // make sequential data
 //-----------------------------------------------------------------------------
-function makeSequentialData(data) {
+function makeSequentialData(size, typedarray) {
+  var data = new (typedarray ? Uint8Array : Array)(size);
   var i, il;
 
   // make sequential data
   for (i = 0, il = data.length; i < il; ++i) {
     data[i] = i & 0xff;
   }
+
+  return data;
 }
 
 //-----------------------------------------------------------------------------
 // make random sequential data
 //-----------------------------------------------------------------------------
-function makeRandomSequentialData(data) {
+function makeRandomSequentialData(size, typedarray) {
+  var data = new (typedarray ? Uint8Array : Array)(size);
   var seed = +new Date();
   var mt = new MersenneTwister(seed);
   var i, il;
@@ -136,4 +143,6 @@ function makeRandomSequentialData(data) {
       data[i++] = random1++ & 0xff;
     }
   }
+
+  return data;
 }
