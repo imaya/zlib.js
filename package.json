@@ -6,6 +6,7 @@
   "name": "zlibjs",
   "description": "zlib, gzip and zip implementation in JavaScript",
   "version": "0.2.0",
+  "license": "MIT",
   "main": "./bin/node-zlib.js",
   "homepage": "https://github.com/imaya/zlib.js",
   "repository": {
