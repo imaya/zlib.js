@@ -300,7 +300,7 @@ Zlib.RawInflate.prototype.readBits = function(length) {
 
 /**
  * read huffman code using table
- * @param {Array} table huffman code table.
+ * @param {!(Array.<number>|Uint8Array|Uint16Array)} table huffman code table.
  * @return {number} huffman code.
  */
 Zlib.RawInflate.prototype.readCodeByTable = function(table) {
@@ -525,8 +525,8 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
 
 /**
  * decode huffman code
- * @param {!Array} litlen literal and length code table.
- * @param {!Array} dist distination code table.
+ * @param {!(Array.<number>|Uint16Array)} litlen literal and length code table.
+ * @param {!(Array.<number>|Uint8Array)} dist distination code table.
  */
 Zlib.RawInflate.prototype.decodeHuffman = function(litlen, dist) {
   var output = this.output;
@@ -592,8 +592,8 @@ Zlib.RawInflate.prototype.decodeHuffman = function(litlen, dist) {
 
 /**
  * decode huffman code (adaptive)
- * @param {!Array} litlen literal and length code table.
- * @param {!Array} dist distination code table.
+ * @param {!(Array.<number>|Uint16Array)} litlen literal and length code table.
+ * @param {!(Array.<number>|Uint8Array)} dist distination code table.
  */
 Zlib.RawInflate.prototype.decodeHuffmanAdaptive = function(litlen, dist) {
   var output = this.output;
