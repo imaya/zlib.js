@@ -392,6 +392,10 @@ Zlib.RawInflateStream.prototype.readCodeByTable = function(table) {
   codeWithLength = codeTable[bitsbuf & ((1 << maxCodeLength) - 1)];
   codeLength = codeWithLength >>> 16;
 
+  if (codeLength > bitsbuflen) {
+    throw new Error('invalid code length: ' + codeLength);
+  }
+
   this.bitsbuf = bitsbuf >> codeLength;
   this.bitsbuflen = bitsbuflen - codeLength;
   this.ip = ip;
