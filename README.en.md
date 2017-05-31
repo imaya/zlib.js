@@ -269,6 +269,28 @@ unzip          | unzip.min.js          | PKZIP Decompression
 all            | *                     | default target
 
 
+Test
+------
+
+Unit tests are using Karma and mocha.
+
+```
+$ npm test
+```
+
+### Browser only
+
+```
+$ npm run test-karma
+```
+
+### Node.js only
+
+```
+$ npm run test-mocha
+```
+
+
 Issue
 -----
 
