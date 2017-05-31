@@ -289,6 +289,28 @@ unzip          | unzip.min.js          | PKZIP Decompression
 all            | *                     | default target
 
 
+テスト
+------
+
+ブラウザでは Karma, Node.js では mocha を使ってテストを行います。
+
+```
+$ npm test
+```
+
+### ブラウザのみのテスト
+
+```
+$ npm run test-karma
+```
+
+### Node.js のみのテスト
+
+```
+$ npm run test-mocha
+```
+
+
 Issue
 -----
 

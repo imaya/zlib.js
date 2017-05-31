@@ -2,17 +2,36 @@
 # Change Log
 
 
+## 0.3.0: 2017/06/01
+
+https://github.com/imaya/zlib.js/compare/0.2.0...0.3.0
+
+### decompression
+
+- fix bug in decode HLIT and HDIST (aefd58bc482258faaf70644717ac54b7f6d4e599)
+- check invalid code length from malicious compressed data (4971111c1ad49e3c353ed38d51850e1ff5c206b9)
+
+### compression
+
+- fix data exists after payload (08a5b2eb89e1d31178d272857fbdf55358bdcec4)
+
+### etc
+
+- Task runner: Migrate to Grunt from Ant
+- Testing framework: Migate to Karma and mocha from BusterJS
+
+
 ## 0.1.9, 0.2.0: 2014/02/21
 
 https://github.com/imaya/zlib.js/compare/0.1.8...0.2.0
 
 
-## decompression
+### decompression
 
 - fix RLE bug HDIST between HLIT
 
 
-## etc
+### etc
 
 - support buster.js 0.7.4
 - code cleanup
