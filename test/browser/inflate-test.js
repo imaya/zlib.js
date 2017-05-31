@@ -26,6 +26,8 @@ describe("Zlib.Inflate", function() {
     '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z' +
     '//n//H/+P/+f/8//5//z//n//H/+3+P/Ba1OJPE=';
 
+  this.timeout(60000);
+
   before(function() {
     Zlib = ZlibOriginal;
   });

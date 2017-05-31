@@ -3,6 +3,8 @@
     var size = 76543;
     var testData;
 
+    this.timeout(60000);
+
     before(function() {
       Zlib = {
         RawInflate: ZlibRawInflate.RawInflate,

@@ -1,5 +1,8 @@
 describe("gzip", function() {
   var size = 76543;
+  var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined');
+
+  this.timeout(60000);
 
   before(function() {
     Zlib = {
@@ -45,7 +48,7 @@ describe("gzip", function() {
   });
 
   it("compress with filename (seed: 1346432776267)", function () {
-    var testData = makeRandomSequentialData(testData, 1346432776267);
+    var testData = makeRandomSequentialData(size, USE_TYPEDARRAY, 1346432776267);
     var deflator = new Zlib.Gzip(
       testData,
       {
