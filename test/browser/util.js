@@ -123,9 +123,9 @@ function makeSequentialData(size, typedarray) {
 //-----------------------------------------------------------------------------
 // make random sequential data
 //-----------------------------------------------------------------------------
-function makeRandomSequentialData(size, typedarray) {
+function makeRandomSequentialData(size, typedarray, opt_seed) {
   var data = new (typedarray ? Uint8Array : Array)(size);
-  var seed = +new Date();
+  var seed = opt_seed || (+new Date());
   var mt = new MersenneTwister(seed);
   var i, il;
   var random1, random2;
