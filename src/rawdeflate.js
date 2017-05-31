@@ -302,7 +302,7 @@ function(blockArray, isFinalBlock) {
   var distCodes;
   /** @type {{
    *   codes: !(Array.<number>|Uint32Array),
-   *   freqs: !(Array.<number>|Uint32Array)
+   *   freqs: !(Array.<number>|Uint8Array)
    * }} */
   var treeSymbols;
   /** @type {!(Array.<number>|Uint8Array)} */
@@ -861,7 +861,7 @@ function(data, position, matchList) {
  * @param {!(Array.<number>|Uint8Array)} distLengths 距離符号の符号長配列.
  * @return {{
  *   codes: !(Array.<number>|Uint32Array),
- *   freqs: !(Array.<number>|Uint32Array)
+ *   freqs: !(Array.<number>|Uint8Array)
  * }} Tree-Transmit Symbols.
  */
 Zlib.RawDeflate.prototype.getTreeSymbols_ =
@@ -967,7 +967,7 @@ function(hlit, litlenLengths, hdist, distLengths) {
 
 /**
  * ハフマン符号の長さを取得する
- * @param {!(Array.<number>|Uint32Array)} freqs 出現カウント.
+ * @param {!(Array.<number>|Uint8Array|Uint32Array)} freqs 出現カウント.
  * @param {number} limit 符号長の制限.
  * @return {!(Array.<number>|Uint8Array)} 符号長配列.
  * @private
@@ -981,7 +981,7 @@ Zlib.RawDeflate.prototype.getLengths_ = function(freqs, limit) {
   var length = new (USE_TYPEDARRAY ? Uint8Array : Array)(nSymbols);
   /** @type {Array} */
   var nodes;
-  /** @type {!(Array.<number>|Uint8Array)} */
+  /** @type {!(Array.<number>|Uint32Array)} */
   var values;
   /** @type {!(Array.<number>|Uint8Array)} */
   var codeLength;

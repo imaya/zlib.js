@@ -218,16 +218,14 @@ see unit tests.
 If you want to know the code before compile, SourceMaps and PrettyPrint can be used.
 
 
-### SourceMaps
+### Source Map
 
-If you want to enable the SourceMaps if, you can use the `src` directory and *.min.js.map.
+If you want to use the Source Map, use `dev` version.
 
-    - inflate.min.js
-    - inflate.min.js.map
-    - [src]
-      - (source files)
+For example, you want to use Inflate with Source Map.
 
-`[src]` is zlib.js source code directory.
+    - inflate.min.js // release version
+    - inflate.dev.min.js // development version <- use this
 
 
 ### Pretty Print
@@ -238,38 +236,59 @@ If you want to enable the SourceMaps if, you can use the `src` directory and *.m
 How to build
 ------------
 
-Build using Ant and Closure Compiler.
+Build using Grunt and Closure Compiler.
 
 ### Requirement
 
-- Ant 1.8+
-- JRE 1.6+
+- Grunt
 - Python
 
 ### Build
 
-Use "ant" command.
+Use "grunt" command.
 
 ```
-$ ant [target]
+$ grunt [target]
 ```
 
 #### Build target
 
-target         | generate file        | implementation
----------------|----------------------|-------------
-deps           | deps.js              | (dependency: deps.js)
-deflate        | deflate.min.js       | ZLIB Deflate
-inflate        | inflate.min.js       | ZLIB Inflate
-inflate_stream | inlate_stream.min.js | ZLIB Inlate (stream)
-zlib           | zlib.min.js          | ZLIB Deflate + Inflate
-gzip           | gzip.min.js          | GZIP Compression
-gunzip         | gunzip.min.js        | GZIP Decompression
-zlib_and_gzip  | zlib_and_gzip.min.js | ZLIB + GZIP
-node           | node-zlib.js         | ZLIB + GZIP for node.js
-zip            | zip.min.js           | PKZIP Compression
-unzip          | unzip.min.js         | PKZIP Decompression
-all            | *                    | default target
+target         | generate file         | implementation
+---------------|-----------------------|-------------in
+deps           | deps.js               | (dependency: deps.js)
+deflate        | deflate.min.js        | ZLIB Deflate
+inflate        | inflate.min.js        | ZLIB Inflate
+inflate_stream | inflate_stream.min.js | ZLIB Inflate (stream)
+zlib           | zlib.min.js           | ZLIB Deflate + Inflate
+gzip           | gzip.min.js           | GZIP Compression
+gunzip         | gunzip.min.js         | GZIP Decompression
+zlib_and_gzip  | zlib_and_gzip.min.js  | ZLIB + GZIP
+node           | node-zlib.js          | ZLIB + GZIP for node.js
+zip            | zip.min.js            | PKZIP Compression
+unzip          | unzip.min.js          | PKZIP Decompression
+all            | *                     | default target
+
+
+Test
+------
+
+Unit tests are using Karma and mocha.
+
+```
+$ npm test
+```
+
+### Browser only
+
+```
+$ npm run test-karma
+```
+
+### Node.js only
+
+```
+$ npm run test-mocha
+```
 
 
 Issue

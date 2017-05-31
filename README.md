@@ -17,7 +17,7 @@ bin ディレクトリから必要なものを利用してください。
 - zlib_and_gzip.min.js: ZLIB + GZIP
     + (Raw)
         * rawdeflate.js: Raw Deflate
-        * rawinflate.js: Raw Inflate
+        * raw.js: Raw Inflate
     + zlib.min.js: ZLIB Inflate + Deflate
         * inflate.min.js: ZLIB Inflate
         * deflate.min.js: ZLIB Deflate
@@ -237,16 +237,13 @@ zlib.js では JavaScript ファイルを minify された形で提供してい�
 そういった時のために SourceMaps ファイルや Pretty Print されたファイルも提供しています。
 
 
-### SourceMaps
+### Source Map
 
-SourceMaps を有効にするには以下のように対象となるファイルに `.map` を付けたファイルと、変換前のソースコードである `src` ディレクトリを配置します。
+Source Map を使いたい場合はファイル名に `dev` のついたバージョンを使います。
+例えば Source Map を有効にした Inflate を使いたい場合は以下になります。
 
-    - inflate.min.js
-    - inflate.min.js.map
-    - [src]
-      - (source files)
-
-なお、ここに書いてある `[src]` は zlib.js のリポジトリの `src` ディレクトリをコピーしてください。
+    - inflate.min.js // リリースバージョン
+    - inflate.dev.min.js // 開発バージョン（これを使う）
 
 
 ### Pretty Print
@@ -259,38 +256,59 @@ SourceMaps とは異なりますが、minify の変数名の短縮のみ避け�
 How to build
 ------------
 
-ビルドは Ant と Closure Compiler を使用して行います。
+ビルドは Grunt と Closure Compiler を使用して行います。
 
 ### 必要な環境
 
-- Ant 1.8+
-- JRE 1.6+
+- Grunt
 - Python
 
 ### ビルド
 
-Ant を使ってビルドを行います。
+Grunt を使ってビルドを行います。
 
 ```
-$ ant [target]
+$ grunt [target]
 ```
 
 #### ビルドターゲット
 
-target         | ファイル名            | 含まれる実装
----------------|----------------------|-------------
-deps           | deps.js              | 依存関係の解決
-deflate        | deflate.min.js       | ZLIB Deflate
-inflate        | inflate.min.js       | ZLIB Inflate
-inflate_stream | inlate_stream.min.js | ZLIB Inlate (stream)
-zlib           | zlib.min.js          | ZLIB Deflate + Inflate
-gzip           | gzip.min.js          | GZIP Compression
-gunzip         | gunzip.min.js        | GZIP Decompression
-zlib_and_gzip  | zlib_and_gzip.min.js | ZLIB + GZIP
-node           | node-zlib.js         | ZLIB + GZIP for node.js
-zip            | zip.min.js           | PKZIP Compression
-unzip          | unzip.min.js         | PKZIP Decompression
-all            | *                    | default target
+target         | ファイル名             | 含まれる実装
+---------------|-----------------------|-------------
+deps           | deps.js               | 依存関係の解決
+deflate        | deflate.min.js        | ZLIB Deflate
+inflate        | inflate.min.js        | ZLIB Inflate
+inflate_stream | inlfate_stream.min.js | ZLIB Inlate (stream)
+zlib           | zlib.min.js           | ZLIB Deflate + Inflate
+gzip           | gzip.min.js           | GZIP Compression
+gunzip         | gunzip.min.js         | GZIP Decompression
+zlib_and_gzip  | zlib_and_gzip.min.js  | ZLIB + GZIP
+node           | node-zlib.js          | ZLIB + GZIP for node.js
+zip            | zip.min.js            | PKZIP Compression
+unzip          | unzip.min.js          | PKZIP Decompression
+all            | *                     | default target
+
+
+テスト
+------
+
+ブラウザでは Karma, Node.js では mocha を使ってテストを行います。
+
+```
+$ npm test
+```
+
+### ブラウザのみのテスト
+
+```
+$ npm run test-karma
+```
+
+### Node.js のみのテスト
+
+```
+$ npm run test-mocha
+```
 
 
 Issue
