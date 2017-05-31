@@ -4,6 +4,8 @@ describe("code path", function () {
   var fixed;
   var dynamic;
 
+  this.timeout(60000);
+
   before(function() {
     Zlib = ZlibPretty;
   });

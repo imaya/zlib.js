@@ -1,4 +1,6 @@
 describe("unzip", function() {
+  this.timeout(60000);
+
   before(function() {
     Zlib = ZlibUnzip;
   });

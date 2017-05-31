@@ -1,4 +1,6 @@
 describe('gunzip', function() {
+  this.timeout(60000);
+
   before(function() {
     Zlib = {
       Gzip: ZlibGzip.Gzip,

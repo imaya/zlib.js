@@ -1,6 +1,8 @@
 describe('zlib', function() {
   var size = 76543;
 
+  this.timeout(60000);
+
   before(function() {
     Zlib = ZlibOriginal;
   });
