@@ -254,7 +254,7 @@ $ grunt [target]
 #### Build target
 
 target         | generate file         | implementation
----------------|-----------------------|-------------in
+---------------|-----------------------|-------------
 deps           | deps.js               | (dependency: deps.js)
 deflate        | deflate.min.js        | ZLIB Deflate
 inflate        | inflate.min.js        | ZLIB Inflate
