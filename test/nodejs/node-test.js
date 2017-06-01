@@ -7,25 +7,13 @@ import * as assert from 'power-assert';
 //-----------------------------------------------------------------------------
 // array assertion
 //-----------------------------------------------------------------------------
-function arrayEquals(expected, actuals) {
-  if (!(expected instanceof actuals.constructor)) {
-    console.error(`[constructor] expected: ${ expected.constructor.name } / actuals: ${ actuals.constructor.name }`);
-    return false;
-  }
-
-  if (expected.length !== actuals.length) {
-    console.error(`[size] expected: ${ expected.length } / actuals: ${ actuals.length}`);
-    return false;
-  }
+function assertArray(expected, actuals) {
+  assert(expected instanceof actuals.constructor);
+  assert(expected.length === actuals.length);
 
   for (let i = 0, il = expected.length; i < il; ++i) {
-    if (expected[i] !== actuals[i]) {
-      console.error(`[value index=${ i }] expected: ${ expected[i] } / actuals: ${ actuals[i] }`);
-      return false;
-    }
+    assert(expected[i] === actuals[i]);
   }
-
-  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -73,7 +61,7 @@ describe("node inflate and deflate", function() {
 
     assert(testData.length === 1604);
     assert(decodedData.length === 1202);
-    assert(arrayEquals(inflated, plain));
+    assertArray(inflated, plain);
   });
 
   // native deflate, js inflate
@@ -83,7 +71,7 @@ describe("node inflate and deflate", function() {
     zlibBuffer(new NodeZlib.Deflate({level: 0}), data, function (err, buf) {
       const inflated = Zlib.inflateSync(buf);
 
-      assert(arrayEquals(inflated, data));
+      assertArray(inflated, data);
 
       done();
     });
@@ -95,7 +83,7 @@ describe("node inflate and deflate", function() {
     zlibBuffer(new NodeZlib.Deflate({level: 9}), data, function (err, buf) {
       const inflated = Zlib.inflateSync(buf);
 
-      assert(arrayEquals(inflated, data));
+      assertArray(inflated, data);
 
       done();
     });
@@ -106,7 +94,7 @@ describe("node inflate and deflate", function() {
     const compressed = Zlib.deflateSync(data);
     const decompressed = Zlib.inflateSync(compressed);
 
-    assert(arrayEquals(data, decompressed));
+    assertArray(data, decompressed);
   });
 
   // js deflate, native inflate
@@ -209,7 +197,7 @@ function inflateTest(done, testData) {
 
   // inflate
   NodeZlib.inflate(deflate, function(err, buffer) {
-    assert(arrayEquals(buffer, testData));
+    assertArray(buffer, testData);
 
     done();
   });
@@ -218,7 +206,7 @@ function inflateTest(done, testData) {
 function inflateOnlyTest(compressed, plain) {
   const inflated = Zlib.inflateSync(compressed);
 
-  assert(arrayEquals(inflated, plain));
+  assertArray(inflated, plain);
 }
 
 // gzip test
@@ -226,7 +214,7 @@ function gzipTest(done, testData) {
   const deflated = Zlib.gzipSync(testData);
 
   NodeZlib.gunzip(deflated, function(err, buf) {
-    assert(arrayEquals(buf, testData));
+    assertArray(buf, testData);
 
     done();
   });
@@ -237,7 +225,7 @@ function gunzipTest(done, testData) {
   NodeZlib.gzip(testData, function(err, buf) {
     const inflated = Zlib.gunzipSync(buf);
 
-    assert(arrayEquals(inflated, testData));
+    assertArray(inflated, testData);
 
     done();
   });
