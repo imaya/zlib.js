@@ -1,5 +1,8 @@
 describe("gzip", function() {
   var size = 76543;
+  var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined');
+
+  this.timeout(60000);
 
   before(function() {
     Zlib = {
@@ -18,7 +21,7 @@ describe("gzip", function() {
     var inflated = inflator.decompress();
 
     assert(inflated.length === testData.length);
-    assert.deepEqual(inflated, testData);
+    assertArray(inflated, testData);
   });
 
   it("compress with filename", function () {
@@ -40,12 +43,12 @@ describe("gzip", function() {
     var inflated = inflator.decompress();
 
     assert(inflated.length === testData.length);
-    assert.deepEqual(inflated, testData);
+    assertArray(inflated, testData);
     assert((inflator.getMembers())[0].getName() === 'foobar.filename');
   });
 
   it("compress with filename (seed: 1346432776267)", function () {
-    var testData = makeRandomSequentialData(testData, 1346432776267);
+    var testData = makeRandomSequentialData(size, USE_TYPEDARRAY, 1346432776267);
     var deflator = new Zlib.Gzip(
       testData,
       {
@@ -63,7 +66,7 @@ describe("gzip", function() {
     var inflated = inflator.decompress();
 
     assert(inflated.length === testData.length);
-    assert.deepEqual(inflated, testData);
+    assertArray(inflated, testData);
     assert((inflator.getMembers())[0].getName() === 'foobar.filename');
   });
 });

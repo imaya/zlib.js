@@ -1,6 +1,8 @@
 describe('zlib', function() {
   var size = 76543;
 
+  this.timeout(60000);
+
   before(function() {
     Zlib = ZlibOriginal;
   });
@@ -55,7 +57,7 @@ describe('zlib', function() {
     var compressed = new Zlib.Deflate(data).compress();
     var decompressed = new Zlib.Inflate(compressed).decompress();
 
-    assert.deepEqual(data, Array.prototype.slice.call(decompressed));
+    assertArray(data, Array.prototype.slice.call(decompressed));
   });
 });
 

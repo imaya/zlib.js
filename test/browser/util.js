@@ -55,20 +55,12 @@ function base64toArray(str) {
 //-----------------------------------------------------------------------------
 // array assertion
 //-----------------------------------------------------------------------------
-function arrayEquals(expected, actuals) {
-  var i, il;
+function assertArray(expected, actuals) {
+  assert(expected.length === actuals.length);
 
-  if (expected.length !== actuals.length) {
-    return false;
+  for (let i = 0, il = expected.length; i < il; ++i) {
+    assert(expected[i] === actuals[i]);
   }
-
-  for (i = 0, il = expected.length; i < il; ++i) {
-    if (expected[i] !== actuals[i]) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -123,9 +115,9 @@ function makeSequentialData(size, typedarray) {
 //-----------------------------------------------------------------------------
 // make random sequential data
 //-----------------------------------------------------------------------------
-function makeRandomSequentialData(size, typedarray) {
+function makeRandomSequentialData(size, typedarray, opt_seed) {
   var data = new (typedarray ? Uint8Array : Array)(size);
-  var seed = +new Date();
+  var seed = opt_seed || (+new Date());
   var mt = new MersenneTwister(seed);
   var i, il;
   var random1, random2;

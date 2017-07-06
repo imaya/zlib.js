@@ -1,6 +1,8 @@
 describe("zip", function() {
   var size = 76543;
 
+  this.timeout(60000);
+
   before(function() {
     Zlib = {
       Unzip: ZlibUnzip.Unzip,
@@ -45,9 +47,9 @@ describe("zip", function() {
       files[filenames[i]] = unzip.decompress(filenames[i]);
     }
 
-    assert.deepEqual(files[keys[0]], testData[keys[0]]);
-    assert.deepEqual(files[keys[1]], testData[keys[1]]);
-    assert.deepEqual(files[keys[2]], testData[keys[2]]);
+    assertArray(files[keys[0]], testData[keys[0]]);
+    assertArray(files[keys[1]], testData[keys[1]]);
+    assertArray(files[keys[2]], testData[keys[2]]);
   });
 
   it('compress (deflate)', function () {
@@ -87,9 +89,9 @@ describe("zip", function() {
       files[filenames[i]] = unzip.decompress(filenames[i]);
     }
 
-    assert.deepEqual(files[keys[0]], testData[keys[0]]);
-    assert.deepEqual(files[keys[1]], testData[keys[1]]);
-    assert.deepEqual(files[keys[2]], testData[keys[2]]);
+    assertArray(files[keys[0]], testData[keys[0]]);
+    assertArray(files[keys[1]], testData[keys[1]]);
+    assertArray(files[keys[2]], testData[keys[2]]);
   });
 
   it('compress with password (deflate)', function () {
@@ -131,9 +133,9 @@ describe("zip", function() {
       files[filenames[i]] = unzip.decompress(filenames[i]);
     }
 
-    assert.deepEqual(files[keys[0]], testData[keys[0]]);
-    assert.deepEqual(files[keys[1]], testData[keys[1]]);
-    assert.deepEqual(files[keys[2]], testData[keys[2]]);
+    assertArray(files[keys[0]], testData[keys[0]]);
+    assertArray(files[keys[1]], testData[keys[1]]);
+    assertArray(files[keys[2]], testData[keys[2]]);
   });
 
   it('compress with password (each file)', function () {
@@ -179,8 +181,8 @@ describe("zip", function() {
       );
     }
 
-    assert.deepEqual(files[keys[0]], testData[keys[0]][0]);
-    assert.deepEqual(files[keys[1]], testData[keys[1]][0]);
-    assert.deepEqual(files[keys[2]], testData[keys[2]][0]);
+    assertArray(files[keys[0]], testData[keys[0]][0]);
+    assertArray(files[keys[1]], testData[keys[1]][0]);
+    assertArray(files[keys[2]], testData[keys[2]][0]);
   });
 });

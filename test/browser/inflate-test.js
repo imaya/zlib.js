@@ -26,6 +26,8 @@ describe("Zlib.Inflate", function() {
     '/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z//n//H/+P/+f/8//5//z' +
     '//n//H/+P/+f/8//5//z//n//H/+3+P/Ba1OJPE=';
 
+  this.timeout(60000);
+
   before(function() {
     Zlib = ZlibOriginal;
   });
@@ -51,7 +53,7 @@ describe("Zlib.Inflate", function() {
     var inflated = inflator.decompress();
 
     assert(inflated.length === size);
-    assert.deepEqual(inflated, plain);
+    assertArray(inflated, plain);
   });
 
   it("pre-deflated data with inflate bufferSize option", function() {
@@ -76,7 +78,7 @@ describe("Zlib.Inflate", function() {
 
     assert(inflated.length === size);
     assert(inflated.buffer.byteLength === 123456);
-    assert.deepEqual(inflated, plain);
+    assertArray(inflated, plain);
   });
 
   it("pre-deflated data with inflate bufferType option", function() {
@@ -105,7 +107,7 @@ describe("Zlib.Inflate", function() {
 
     assert(inflated.length === size);
     assert(inflated.buffer.byteLength === 123456);
-    assert.deepEqual(inflated, plain);
+    assertArray(inflated, plain);
   });
 
   it("pre-deflated data with inflate resize option", function() {
@@ -134,7 +136,7 @@ describe("Zlib.Inflate", function() {
 
     assert(inflated.length === size);
     assert(inflated.buffer.byteLength === 123456);
-    assert.deepEqual(inflated, plain);
+    assertArray(inflated, plain);
   });
 
   it("issue#35 wrong inflate 1", function() {

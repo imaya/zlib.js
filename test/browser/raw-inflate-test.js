@@ -3,6 +3,8 @@
     var size = 76543;
     var testData;
 
+    this.timeout(60000);
+
     before(function() {
       Zlib = {
         RawInflate: ZlibRawInflate.RawInflate,
@@ -64,7 +66,7 @@
       var compressed = new Zlib.RawDeflate(data).compress();
       var decompressed = new Zlib.RawInflate(compressed).decompress();
 
-      assert.deepEqual(data, Array.prototype.slice.call(decompressed));
+      assertArray(data, Array.prototype.slice.call(decompressed));
     });
   });
 //});
@@ -90,5 +92,5 @@ function rawInflateTest(testData, compressionType, inflateOption) {
 
   // assertion
   assert(inflate.length === testData.length);
-  assert.deepEqual(inflate, testData);
+  assertArray(inflate, testData);
 }
