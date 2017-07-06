@@ -2,6 +2,19 @@
 # Change Log
 
 
+## 0.3.1: 2017/07/07
+
+https://github.com/imaya/zlib.js/compare/0.3.0...0.3.1
+
+### etc
+
+- Distribution files reduction in npm package
+- code cleanup
+
+
+-------------------------------------------------------------------------------
+
+
 ## 0.3.0: 2017/06/01
 
 https://github.com/imaya/zlib.js/compare/0.2.0...0.3.0
@@ -19,6 +32,9 @@ https://github.com/imaya/zlib.js/compare/0.2.0...0.3.0
 
 - Task runner: Migrate to Grunt from Ant
 - Testing framework: Migate to Karma and mocha from BusterJS
+
+
+-------------------------------------------------------------------------------
 
 
 ## 0.1.9, 0.2.0: 2014/02/21
