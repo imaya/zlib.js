@@ -19,7 +19,7 @@ describe('gunzip', function() {
     var inflated = inflator.decompress();
 
     assert(inflated.length === plain.length);
-    assert.deepEqual(inflated, plain);
+    assertArray(inflated, plain);
   });
 
   it("decompress pre-compressed data with filename", function() {
@@ -34,7 +34,7 @@ describe('gunzip', function() {
     var inflated = inflator.decompress();
 
     assert(inflated.length === plain.length);
-    assert.deepEqual(inflated, plain);
+    assertArray(inflated, plain);
     assert((inflator.getMembers())[0].getName() === 'hoge.txt');
   });
 });

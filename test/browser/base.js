@@ -15,7 +15,7 @@ function compressionAndDecompressionTest(testData, compressionType) {
 
   // assertion
   assert(inflate.length, testData.length);
-  assert.deepEqual(inflate, testData);
+  assertArray(inflate, testData);
 }
 
 // inflate test
@@ -46,12 +46,12 @@ function compressionAndDecompressionByStreamTest(testData, compressionType) {
 
   // assertion
   assert(inflate.length === testData.length);
-  assert.deepEqual(inflate, testData);
+  assertArray(inflate, testData);
 }
 
 function decompressionTest(compressed, plain) {
   var inflated = new Zlib.Inflate(compressed).decompress();
 
   assert(inflated.length === plain.length);
-  assert.deepEqual(inflated, plain);
+  assertArray(inflated, plain);
 }

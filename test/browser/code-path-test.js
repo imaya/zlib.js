@@ -27,7 +27,7 @@ describe("code path", function () {
     var compressed = new ZlibPretty.Deflate(data).compress();
     var decompressed = new ZlibPretty.Inflate(compressed).decompress();
 
-    assert.deepEqual(data, Array.prototype.slice.call(decompressed));
+    assertArray(data, Array.prototype.slice.call(decompressed));
   });
 
   it("uncompressed random data", function () {

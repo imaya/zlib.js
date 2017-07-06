@@ -57,7 +57,7 @@ describe('zlib', function() {
     var compressed = new Zlib.Deflate(data).compress();
     var decompressed = new Zlib.Inflate(compressed).decompress();
 
-    assert.deepEqual(data, Array.prototype.slice.call(decompressed));
+    assertArray(data, Array.prototype.slice.call(decompressed));
   });
 });
 

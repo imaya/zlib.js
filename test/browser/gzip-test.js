@@ -21,7 +21,7 @@ describe("gzip", function() {
     var inflated = inflator.decompress();
 
     assert(inflated.length === testData.length);
-    assert.deepEqual(inflated, testData);
+    assertArray(inflated, testData);
   });
 
   it("compress with filename", function () {
@@ -43,7 +43,7 @@ describe("gzip", function() {
     var inflated = inflator.decompress();
 
     assert(inflated.length === testData.length);
-    assert.deepEqual(inflated, testData);
+    assertArray(inflated, testData);
     assert((inflator.getMembers())[0].getName() === 'foobar.filename');
   });
 
@@ -66,7 +66,7 @@ describe("gzip", function() {
     var inflated = inflator.decompress();
 
     assert(inflated.length === testData.length);
-    assert.deepEqual(inflated, testData);
+    assertArray(inflated, testData);
     assert((inflator.getMembers())[0].getName() === 'foobar.filename');
   });
 });

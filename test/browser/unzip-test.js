@@ -29,9 +29,9 @@ describe("unzip", function() {
       files[filenames[i]] = unzip.decompress(filenames[i]);
     }
 
-    assert.deepEqual(files['hoge.txt'], new Uint8Array(stringToByteArray("hoge\x0a")));
-    assert.deepEqual(files['fuga.txt'], new Uint8Array(stringToByteArray("fuga\x0a")));
-    assert.deepEqual(files['piyo.txt'], new Uint8Array(stringToByteArray("piyo\x0a")));
+    assertArray(files['hoge.txt'], new Uint8Array(stringToByteArray("hoge\x0a")));
+    assertArray(files['fuga.txt'], new Uint8Array(stringToByteArray("fuga\x0a")));
+    assertArray(files['piyo.txt'], new Uint8Array(stringToByteArray("piyo\x0a")));
   });
 
   it('decompression files (encrypted)', function () {
@@ -63,8 +63,8 @@ describe("unzip", function() {
       files[filenames[i]] = unzip.decompress(filenames[i]);
     }
 
-    assert.deepEqual(files['hoge.txt'], new Uint8Array(stringToByteArray("hoge\x0a")));
-    assert.deepEqual(files['fuga.txt'], new Uint8Array(stringToByteArray("fuga\x0a")));
-    assert.deepEqual(files['piyo.txt'], new Uint8Array(stringToByteArray("piyo\x0a")));
+    assertArray(files['hoge.txt'], new Uint8Array(stringToByteArray("hoge\x0a")));
+    assertArray(files['fuga.txt'], new Uint8Array(stringToByteArray("fuga\x0a")));
+    assertArray(files['piyo.txt'], new Uint8Array(stringToByteArray("piyo\x0a")));
   });
 });
