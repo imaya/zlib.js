@@ -45,13 +45,7 @@ module.exports = function(config) {
 
 
       // test files
-      /*
-       'test/browser/code-path-test.js',
-       'test/browser/raw-inflate-test.js',
-       'test/browser/inflate-test.js'
-       */
       'test/browser/*-test.js'
-      //'test/browser/main.js'
     ],
 
 
