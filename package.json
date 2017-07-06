@@ -33,6 +33,14 @@
     "power-assert": "^1.4.1",
     "sinon": "^2.3.2"
   },
+  "files": [
+    "README.md",
+    "README.en.md",
+    "ChangeLog.md",
+    "LICENSE",
+    "bin",
+    "package.json"
+  ],
   "optionalDependencies": {},
   "engines": {
     "node": "*"
