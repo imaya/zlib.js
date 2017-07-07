@@ -1,6 +1,8 @@
 zlib.js
 =======
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/imaya/zlib.js.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/imaya/zlib.js.png?branch=master)](https://travis-ci.org/imaya/zlib.js)
 
 [English version](./README.en.md)
