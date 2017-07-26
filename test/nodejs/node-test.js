@@ -20,7 +20,7 @@ function assertArray(expected, actuals) {
 // test cases
 //-----------------------------------------------------------------------------
 describe("node inflate and deflate", function() {
-  this.timeout(10000);
+  this.timeout(60000);
   const size = 1234567;
 
   it("inflate pre-deflated data", function () {
