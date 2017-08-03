@@ -51,17 +51,19 @@ function deflate(buffer, callback, opt_params) {
  */
 function deflateSync(buffer, opt_params) {
   /** @type {Zlib.Deflate} deflate encoder. */
-  var deflate = new Zlib.Deflate(
-    /** @type {!(Array.<number>|Uint8Array)} */(buffer)
-  );
+  var deflate;
   /** @type {!(Array.<number>|Uint8Array)} deflated buffer. */
   var deflated;
-
-  deflated = deflate.compress();
 
   if (!opt_params) {
     opt_params = {};
   }
+
+  deflate = new Zlib.Deflate(
+    /** @type {!(Array.<number>|Uint8Array)} */(buffer),
+    opt_params['deflateOption'] || {}
+  );
+  deflated = deflate.compress();
 
   return opt_params.noBuffer ? deflated : toBuffer(deflated);
 }
@@ -104,13 +106,13 @@ function inflateSync(buffer, opt_params) {
   /** @type {!(Buffer|Array.<number>|Uint8Array)} inflated plain buffer. */
   var inflated;
 
-  buffer.subarray = buffer.slice;
-  inflate = new Zlib.Inflate(buffer);
-  inflated = inflate.decompress();
-
   if (!opt_params) {
     opt_params = {};
   }
+
+  buffer.subarray = buffer.slice;
+  inflate = new Zlib.Inflate(buffer, opt_params['inflateOption'] || {});
+  inflated = inflate.decompress();
 
   return opt_params['noBuffer'] ? inflated : toBuffer(inflated);
 }
@@ -216,15 +218,6 @@ function gunzipSync(buffer, opt_params) {
  * @return {!Buffer} Buffer object.
  */
 function toBuffer(array) {
-  var buffer = new Buffer(array.length);
-  var i;
-  var il;
-
-  // TODO: loop unrolling for performance
-  for (i = 0, il = array.length; i < il; ++i) {
-    buffer[i] = array[i];
-  }
-
-  return buffer;
+  return new Buffer(array)
 }
 
