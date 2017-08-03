@@ -83,9 +83,6 @@ Zlib.RawInflate = function(input, opt_params) {
     case Zlib.RawInflate.BufferType.ADAPTIVE:
       this.op = 0;
       this.output = new (USE_TYPEDARRAY ? Uint8Array : Array)(this.bufferSize);
-      this.expandBuffer = this.expandBufferAdaptive;
-      this.concatBuffer = this.concatBufferDynamic;
-      this.decodeHuffman = this.decodeHuffmanAdaptive;
       break;
     default:
       throw new Error('invalid inflate mode');
@@ -109,7 +106,14 @@ Zlib.RawInflate.prototype.decompress = function() {
     this.parseBlock();
   }
 
-  return this.concatBuffer();
+  switch (this.bufferType) {
+    case Zlib.RawInflate.BufferType.BLOCK:
+      return this.concatBufferBlock();
+    case Zlib.RawInflate.BufferType.ADAPTIVE:
+      return this.concatBufferDynamic();
+    default:
+      throw new Error('invalid inflate mode');
+  }
 };
 
 /**
@@ -274,14 +278,13 @@ Zlib.RawInflate.prototype.readBits = function(length) {
   /** @type {number} input and output byte. */
   var octet;
 
+  // input byte
+  if (ip + ((length - bitsbuflen + 7) >> 3) >= inputLength) {
+    throw new Error('input buffer is broken');
+  }
+
   // not enough buffer
   while (bitsbuflen < length) {
-    // input byte
-    if (ip >= inputLength) {
-      throw new Error('input buffer is broken');
-    }
-
-    // concat octet
     bitsbuf |= input[ip++] << bitsbuflen;
     bitsbuflen += 8;
   }
@@ -405,13 +408,13 @@ Zlib.RawInflate.prototype.parseUncompressedBlock = function() {
           }
         }
         this.op = op;
-        output = this.expandBuffer();
+        output = this.expandBufferBlock();
         op = this.op;
       }
       break;
     case Zlib.RawInflate.BufferType.ADAPTIVE:
       while (op + len > output.length) {
-        output = this.expandBuffer({fixRatio: 2});
+        output = this.expandBufferAdaptive({fixRatio: 2});
       }
       break;
     default:
@@ -438,10 +441,22 @@ Zlib.RawInflate.prototype.parseUncompressedBlock = function() {
  * parse fixed huffman block.
  */
 Zlib.RawInflate.prototype.parseFixedHuffmanBlock = function() {
-  this.decodeHuffman(
-    Zlib.RawInflate.FixedLiteralLengthTable,
-    Zlib.RawInflate.FixedDistanceTable
-  );
+  switch (this.bufferType) {
+    case Zlib.RawInflate.BufferType.ADAPTIVE:
+      this.decodeHuffmanAdaptive(
+        Zlib.RawInflate.FixedLiteralLengthTable,
+        Zlib.RawInflate.FixedDistanceTable
+      );
+      break;
+    case Zlib.RawInflate.BufferType.BLOCK:
+      this.decodeHuffmanBlock(
+        Zlib.RawInflate.FixedLiteralLengthTable,
+        Zlib.RawInflate.FixedDistanceTable
+      );
+      break;
+    default:
+      throw new Error('invalid inflate mode');
+  }
 };
 
 /**
@@ -520,7 +535,16 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
     ? buildHuffmanTable(lengthTable.subarray(hlit))
     : buildHuffmanTable(lengthTable.slice(hlit));
 
-  this.decodeHuffman(litlenTable, distTable);
+  switch (this.bufferType) {
+    case Zlib.RawInflate.BufferType.ADAPTIVE:
+      this.decodeHuffmanAdaptive(litlenTable, distTable);
+      break;
+    case Zlib.RawInflate.BufferType.BLOCK:
+      this.decodeHuffmanBlock(litlenTable, distTable);
+      break;
+    default:
+      throw new Error('invalid inflate mode');
+  }
 };
 
 /**
@@ -528,7 +552,7 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
  * @param {!(Array.<number>|Uint16Array)} litlen literal and length code table.
  * @param {!(Array.<number>|Uint8Array)} dist distination code table.
  */
-Zlib.RawInflate.prototype.decodeHuffman = function(litlen, dist) {
+Zlib.RawInflate.prototype.decodeHuffmanBlock = function(litlen, dist) {
   var output = this.output;
   var op = this.op;
 
@@ -545,12 +569,17 @@ Zlib.RawInflate.prototype.decodeHuffman = function(litlen, dist) {
   /** @type {number} huffman code length. */
   var codeLength;
 
+  var lengthCodeTable = Zlib.RawInflate.LengthCodeTable;
+  var lengthExtraTable = Zlib.RawInflate.LengthExtraTable;
+  var distCodeTable = Zlib.RawInflate.DistCodeTable;
+  var distExtraTable = Zlib.RawInflate.DistExtraTable;
+
   while ((code = this.readCodeByTable(litlen)) !== 256) {
     // literal
     if (code < 256) {
       if (op >= olength) {
         this.op = op;
-        output = this.expandBuffer();
+        output = this.expandBufferBlock();
         op = this.op;
       }
       output[op++] = code;
@@ -560,22 +589,22 @@ Zlib.RawInflate.prototype.decodeHuffman = function(litlen, dist) {
 
     // length code
     ti = code - 257;
-    codeLength = Zlib.RawInflate.LengthCodeTable[ti];
-    if (Zlib.RawInflate.LengthExtraTable[ti] > 0) {
-      codeLength += this.readBits(Zlib.RawInflate.LengthExtraTable[ti]);
+    codeLength = lengthCodeTable[ti];
+    if (lengthExtraTable[ti] > 0) {
+      codeLength += this.readBits(lengthExtraTable[ti]);
     }
 
     // dist code
     code = this.readCodeByTable(dist);
-    codeDist = Zlib.RawInflate.DistCodeTable[code];
-    if (Zlib.RawInflate.DistExtraTable[code] > 0) {
-      codeDist += this.readBits(Zlib.RawInflate.DistExtraTable[code]);
+    codeDist = distCodeTable[code];
+    if (distExtraTable[code] > 0) {
+      codeDist += this.readBits(distExtraTable[code]);
     }
 
     // lz77 decode
     if (op >= olength) {
       this.op = op;
-      output = this.expandBuffer();
+      output = this.expandBufferBlock();
       op = this.op;
     }
     while (codeLength--) {
@@ -612,11 +641,16 @@ Zlib.RawInflate.prototype.decodeHuffmanAdaptive = function(litlen, dist) {
   /** @type {number} huffman code length. */
   var codeLength;
 
+  var lengthCodeTable = Zlib.RawInflate.LengthCodeTable;
+  var lengthExtraTable = Zlib.RawInflate.LengthExtraTable;
+  var distCodeTable = Zlib.RawInflate.DistCodeTable;
+  var distExtraTable = Zlib.RawInflate.DistExtraTable;
+
   while ((code = this.readCodeByTable(litlen)) !== 256) {
     // literal
     if (code < 256) {
       if (op >= olength) {
-        output = this.expandBuffer();
+        output = this.expandBufferAdaptive();
         olength = output.length;
       }
       output[op++] = code;
@@ -626,21 +660,21 @@ Zlib.RawInflate.prototype.decodeHuffmanAdaptive = function(litlen, dist) {
 
     // length code
     ti = code - 257;
-    codeLength = Zlib.RawInflate.LengthCodeTable[ti];
-    if (Zlib.RawInflate.LengthExtraTable[ti] > 0) {
-      codeLength += this.readBits(Zlib.RawInflate.LengthExtraTable[ti]);
+    codeLength = lengthCodeTable[ti];
+    if (lengthExtraTable[ti] > 0) {
+      codeLength += this.readBits(lengthExtraTable[ti]);
     }
 
     // dist code
     code = this.readCodeByTable(dist);
-    codeDist = Zlib.RawInflate.DistCodeTable[code];
-    if (Zlib.RawInflate.DistExtraTable[code] > 0) {
-      codeDist += this.readBits(Zlib.RawInflate.DistExtraTable[code]);
+    codeDist = distCodeTable[code];
+    if (distExtraTable[code] > 0) {
+      codeDist += this.readBits(distExtraTable[code]);
     }
 
     // lz77 decode
     if (op + codeLength > olength) {
-      output = this.expandBuffer();
+      output = this.expandBufferAdaptive();
       olength = output.length;
     }
     while (codeLength--) {
@@ -660,7 +694,7 @@ Zlib.RawInflate.prototype.decodeHuffmanAdaptive = function(litlen, dist) {
  * @param {Object=} opt_param option parameters.
  * @return {!(Array.<number>|Uint8Array)} output buffer.
  */
-Zlib.RawInflate.prototype.expandBuffer = function(opt_param) {
+Zlib.RawInflate.prototype.expandBufferBlock = function(opt_param) {
   /** @type {!(Array.<number>|Uint8Array)} store buffer. */
   var buffer =
     new (USE_TYPEDARRAY ? Uint8Array : Array)(
@@ -761,7 +795,7 @@ Zlib.RawInflate.prototype.expandBufferAdaptive = function(opt_param) {
  * concat output buffer.
  * @return {!(Array.<number>|Uint8Array)} output buffer.
  */
-Zlib.RawInflate.prototype.concatBuffer = function() {
+Zlib.RawInflate.prototype.concatBufferBlock = function() {
   /** @type {number} buffer pointer. */
   var pos = 0;
   /** @type {number} buffer pointer. */
