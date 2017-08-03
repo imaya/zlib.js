@@ -3,13 +3,37 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
 
   var license = grunt.file.read('LICENSE_min');
-  var basefiles = [
-    'closure-primitives/base.js',
-    'define/typedarray/hybrid.js',
-    'src/*.js'
-  ];
+  var basefiles = [];
   var config = grunt.file.readJSON("build.json");
   var targets = Object.keys(config);
+
+
+  // basefiles
+  basefiles.push('closure-primitives/base.js');
+
+  switch (grunt.option('typedarray')) {
+    case 'use':
+      console.log('USE_TYPEDARRAY=true');
+      basefiles.push(
+        'define/typedarray/use.js'
+      );
+      break;
+    case 'no':
+      console.log('USE_TYPEDARRAY=false');
+      basefiles.push(
+        'define/typedarray/no.js'
+      );
+      break;
+    case 'hypbrid': /* FALLTHROUGH */
+    default:
+      console.log('USE_TYPEDARRAY=hybrid');
+      basefiles.push(
+        'define/typedarray/hybrid.js'
+      );
+      break;
+  }
+
+  basefiles.push('src/*.js');
 
   grunt.initConfig({
     closureDepsWriter: {
