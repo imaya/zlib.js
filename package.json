@@ -29,7 +29,7 @@
     "karma-mocha-reporter": "^2.2.3",
     "karma-power-assert": "^1.0.0",
     "karma-sinon": "^1.0.5",
-    "mocha": "^3.1.0",
+    "mocha": "^6.0.1",
     "power-assert": "^1.4.4",
     "sinon": "^4.0.0"
   },
