@@ -155,7 +155,7 @@ filename, comment, extraField は Typed Array が使用可能な場合は必ず 
 圧縮されたデータの伸張は、基本的に各コンストラクタに圧縮されたデータを渡し、
 それの <code>decompress</code> メソッドを呼ぶ事で伸張処理を開始する事が出来ます。
 
-#### Raw Deflate
+#### Raw Inflate
 
 ```js
 // compressed = Array.<number> or Uint8Array
@@ -163,7 +163,7 @@ var inflate = new Zlib.RawInflate(compressed);
 var plain = inflate.decompress();
 ```
 
-#### Raw Deflate Option
+#### Raw Inflate Option
 
 ZLIB Option を参照してください。
 

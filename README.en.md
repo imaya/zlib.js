@@ -146,7 +146,7 @@ filename, comment, extraField are must use Uint8Array if enabled Typed Array.
 
 ### Decompression
 
-#### Raw Deflate
+#### Raw Inflate
 
 ```js
 // compressed = Array.<number> or Uint8Array
@@ -154,7 +154,7 @@ var inflate = new Zlib.RawInflate(compressed);
 var plain = inflate.decompress();
 ```
 
-#### Raw Deflate Option
+#### Raw Inflate Option
 
 See ZLIB Option.
 
