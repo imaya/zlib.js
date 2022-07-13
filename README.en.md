@@ -210,7 +210,7 @@ var plain = unzip.decompress(filenames[0]);
 ### Node.js
 
 see unit tests.
-<https://github.com/imaya/zlib.js/blob/master/test/node-test.js>
+<https://github.com/imaya/zlib.js/blob/master/test/nodejs/node-test.js>
 
 
 ## Debug
